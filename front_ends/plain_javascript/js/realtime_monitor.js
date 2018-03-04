@@ -1,6 +1,27 @@
 "use strict";
 
-function RealtimeMonitor( ui ) {
+// The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
+// of a separate panel; you need to define at least one, and there is no upper limit.  The object has the following
+// members:
+//
+// title :  Text displayed at the top of the panel
+// url   :  The URL used to update the panel
+// fields:  An array of objects specifying field configuration:
+//             prop       : The property name present in the JSON response - also used in the HTML ID
+//             caption    : Text displayed in front of the value
+//             suffix     : Text displayed after the value.  Optional.
+//             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
+//                          Supports only numeric values, so if your data is text you'll have to map it to a number.
+//                            warn   : The warning threshold
+//                            danger : The danger threshold
+//             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
+//                          Assumes numeric values, so if your data is text you'll have to map it to a number.
+//                          When set to true, the max value will appear as a separate field immediately beneath the
+//                          field being tracked.
+// callback : A function which fires after the panel is updated.  Optional.
+
+function RealtimeMonitor() {
+   var thresholds = [];
    var panelData = [];
 
    var PREFIX_MAX = "max";
@@ -16,17 +37,9 @@ function RealtimeMonitor( ui ) {
        MAX_INTERNAL_TEMP = PREFIX_MAX + INTERNAL_TEMP,
        MAX_HUMIDITY      = PREFIX_MAX + HUMIDITY;
 
-   var THRESHOLD = {
-      [LOAD] : { warn : 70, danger : 90 },
-      [RPM]  : { warn : 2000, danger : 2500 },
-      [AMBIENT_TEMP]  : { warn : 80, danger : 100 },
-      [INTERNAL_TEMP] : { warn : 200, danger : 250 },
-      [HUMIDITY] : { warn : 75, danger : 85 }
-   };
-
-   function buildUI( ui ) {
-      for( var i = 0; i < ui.length; i++ ) {
-         var uiCfg = ui[i];
+   this.buildUI = function( appCfg ) {
+      for( var i = 0; i < appCfg.length; i++ ) {
+         var panelCfg = appCfg[i];
 
          var panelContainer = document.createElement( "div" );
          var title = document.createElement( "div" );
@@ -40,12 +53,19 @@ function RealtimeMonitor( ui ) {
 
          title.id = "title" + i;
          title.className = "title";
-         title.innerHTML = uiCfg.title;
+         title.innerHTML = panelCfg.title;
 
          panelContainer.append( title );
 
-         for( var j = 0; j < uiCfg.fields.length; j++ ) {
-            var fieldCfg = uiCfg.fields[j];
+         thresholds[i] = [];
+
+         for( var j = 0; j < panelCfg.fields.length; j++ ) {
+            var fieldCfg = panelCfg.fields[j];
+
+            if( fieldCfg.thresholds ) {
+               thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // This is the only part of the configuration that we need to refer back to after the UI is built, so save it
+            }
+
             panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.caption, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
@@ -118,7 +138,7 @@ function RealtimeMonitor( ui ) {
             return separator;
          }
       }
-   }
+   };
 
    function getSiteNum( btnId ) {
       return btnId.replace( "btn", "" );
@@ -163,25 +183,28 @@ function RealtimeMonitor( ui ) {
       }
    }
 
-   function updateUI( siteNum ) {
-      var panel = panelData[ "panel" + siteNum ];
-      var elem;
+   function updateUI( panelNum ) {
+      var panelThresholds = thresholds[panelNum];
+      var data = panelData[ "panel" + panelNum ];
 
-      for( var prop in panel ) {
+      for( var prop in data ) {
          var thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
-         var value = panel[prop];
-         var field = document.getElementById( prop + siteNum );
+         var value = data[prop];
+         var field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
             field.innerHTML = value;
 
             var container = field.parentNode;
             var className = "normal";
+            var fieldThresholds = panelThresholds[thresholdProp];
 
-            if( value >= THRESHOLD[thresholdProp].danger ) {
-               className = "danger";
-            } else if( value >= THRESHOLD[thresholdProp].warn ) {
-               className = "warn";
+            if( fieldThresholds ) {
+               if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
+                  className = "danger";
+               } else if( fieldThresholds.warn && value >= fieldThresholds.warn ) {
+                  className = "warn";
+               }
             }
 
             for( var i = 0; i < container.children.length; i++ ) {
@@ -191,24 +214,4 @@ function RealtimeMonitor( ui ) {
          }
       }
    }
-
-   // Creates the UI based on an array of objects.  Each array element specifies the configuration of a separate panel.
-   // The object has the following members:
-   //
-   // title :  Text displayed at the top of the panel
-   // url   :  URL used to retrieve updates
-   // fields:  An array of objects specifying field configuration:
-   //             prop       : The property name present in the JSON response - also used in the HTML ID
-   //             caption    : Text displayed in front of the value
-   //             suffix     : Text displayed after the value.  Optional.
-   //             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
-   //                          Supports only numeric values, so if your data is text you'll have to map it to a number.
-   //                            warn   : The warning threshold
-   //                            danger : The danger threshold
-   //             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
-   //                          Assumes numeric values, so if your data is text you'll have to map it to a number.
-   //                          When set to true, the max value will appear as a separate field immediately beneath the
-   //                          field being tracked.
-   // callback : A function which fires after the panel is updated.  Optional.
-   buildUI( ui );
 }

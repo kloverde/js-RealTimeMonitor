@@ -22,7 +22,8 @@
          } ];
 
          document.addEventListener( "DOMContentLoaded", function() {
-            new RealtimeMonitor( ui );
+            new RealtimeMonitor().buildUI( ui );
+            ui = null;
          } );
       </script>
    </head>
