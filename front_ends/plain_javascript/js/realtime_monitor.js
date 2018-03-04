@@ -34,14 +34,14 @@ document.addEventListener( "DOMContentLoaded", function() {
 
    function buildUI() {
       for( var i = 1; i <= ui.length; i++ ) {
-         var siteContainer = document.createElement( "div" );
+         var panelContainer = document.createElement( "div" );
          var log = document.createElement( "textarea" );
          var btnContainer = document.createElement( "div" );
          var btn = document.createElement( "button" );
          var btnValue = document.createTextNode( "Connect Site " + i );
 
-         siteContainer.id = "panel" + i;
-         siteContainer.className = "monitoringPanel";
+         panelContainer.id = "panel" + i;
+         panelContainer.className = "monitoringPanel";
 
          log.id = "log" + i;
 
@@ -52,30 +52,30 @@ document.addEventListener( "DOMContentLoaded", function() {
          btn.appendChild( btnValue );
          btnContainer.appendChild( btn );
 
-         siteContainer.appendChild( newField(LOAD + i, "Load:", "%") );
-         siteContainer.appendChild( newField(MAX_LOAD + i, "Max Load:", "%") );
-         siteContainer.appendChild( newFieldSeparator() );
+         panelContainer.appendChild( newField(LOAD + i, "Load:", "%") );
+         panelContainer.appendChild( newField(MAX_LOAD + i, "Max Load:", "%") );
+         panelContainer.appendChild( newFieldSeparator() );
 
-         siteContainer.appendChild( newField(RPM + i, "RPM:") );
-         siteContainer.appendChild( newField(MAX_RPM + i, "Max RPM:") );
-         siteContainer.appendChild( newFieldSeparator() );
+         panelContainer.appendChild( newField(RPM + i, "RPM:") );
+         panelContainer.appendChild( newField(MAX_RPM + i, "Max RPM:") );
+         panelContainer.appendChild( newFieldSeparator() );
 
-         siteContainer.appendChild( newField(AMBIENT_TEMP + i, "Ambient Temp:", "°F") );
-         siteContainer.appendChild( newField(MAX_AMBIENT_TEMP + i, "Max Ambient Temp:", "°F") );
-         siteContainer.appendChild( newFieldSeparator() );
+         panelContainer.appendChild( newField(AMBIENT_TEMP + i, "Ambient Temp:", "°F") );
+         panelContainer.appendChild( newField(MAX_AMBIENT_TEMP + i, "Max Ambient Temp:", "°F") );
+         panelContainer.appendChild( newFieldSeparator() );
 
-         siteContainer.appendChild( newField(INTERNAL_TEMP + i, "Internal Temp:", "°F") );
-         siteContainer.appendChild( newField(MAX_INTERNAL_TEMP + i, "Max Internal Temp:", "°F") );
-         siteContainer.appendChild( newFieldSeparator() );
+         panelContainer.appendChild( newField(INTERNAL_TEMP + i, "Internal Temp:", "°F") );
+         panelContainer.appendChild( newField(MAX_INTERNAL_TEMP + i, "Max Internal Temp:", "°F") );
+         panelContainer.appendChild( newFieldSeparator() );
 
-         siteContainer.appendChild( newField(HUMIDITY + i, "Humidity:", "%") );
-         siteContainer.appendChild( newField(MAX_HUMIDITY + i, "Max Humidity:", "%") );
-         siteContainer.appendChild( newFieldSeparator() );
+         panelContainer.appendChild( newField(HUMIDITY + i, "Humidity:", "%") );
+         panelContainer.appendChild( newField(MAX_HUMIDITY + i, "Max Humidity:", "%") );
+         panelContainer.appendChild( newFieldSeparator() );
 
-         siteContainer.appendChild( log );
-         siteContainer.appendChild( btnContainer );
+         panelContainer.appendChild( log );
+         panelContainer.appendChild( btnContainer );
 
-         document.body.appendChild( siteContainer );
+         document.body.appendChild( panelContainer );
 
          panelData[ "panel" + i ] = {
             [LOAD] : 0,
@@ -160,22 +160,22 @@ document.addEventListener( "DOMContentLoaded", function() {
    }
 
    function updateStats( siteNum, stats ) {
-      var site = panelData[ "panel" + siteNum ];
+      var panel = panelData[ "panel" + siteNum ];
 
       for( var prop in stats ) {
          var maxProp = PREFIX_MAX + prop;
-         site[ prop ] = stats[prop];
-         site[maxProp] = site[maxProp] >= site[prop] ? site[maxProp] : site[prop];
+         panel[prop] = stats[prop];
+         panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
       }
    }
 
    function updateUI( siteNum ) {
-      var site = panelData[ "panel" + siteNum ];
+      var panel = panelData[ "panel" + siteNum ];
       var elem;
 
-      for( var prop in site ) {
+      for( var prop in panel ) {
          var thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
-         var value = site[prop];
+         var value = panel[prop];
          var field = document.getElementById( prop + siteNum );
 
          field.innerHTML = value;
