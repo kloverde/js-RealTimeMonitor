@@ -5,6 +5,12 @@
    margin: 5px;
 }
 
+.monitoringPanel .title {
+   font-size: larger;
+   font-weight: bold;
+   text-align: center;
+}
+
 .monitoringPanel textarea {
    box-sizing: border-box;
    width: 100%;

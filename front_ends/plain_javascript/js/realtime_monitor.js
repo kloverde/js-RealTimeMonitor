@@ -1,6 +1,6 @@
-document.addEventListener( "DOMContentLoaded", function() {
-   "use strict";
+"use strict";
 
+function RealtimeMonitor( ui ) {
    var panelData = [];
 
    var PREFIX_MAX = "max";
@@ -24,53 +24,45 @@ document.addEventListener( "DOMContentLoaded", function() {
       [HUMIDITY] : { warn : 75, danger : 85 }
    };
 
-   // A double-dimensioned array used for building the UI.  The first element is the title which displays at the top of the panel;
-   // the second is the URL used to refresh the panel.  You can declare as few or as many panels as you wish.
-   var ui = [
-      [ "Site 1", "http://localhost/RealtimeMonitor/status/site1" ],
-      [ "Site 2", "http://localhost/RealtimeMonitor/status/site2" ],
-      [ "Site 3", "http://localhost/RealtimeMonitor/status/site3" ]
-   ];
+   function buildUI( ui ) {
+      for( var i = 0; i < ui.length; i++ ) {
+         var uiCfg = ui[i];
 
-   function buildUI() {
-      for( var i = 1; i <= ui.length; i++ ) {
          var panelContainer = document.createElement( "div" );
+         var title = document.createElement( "div" );
          var log = document.createElement( "textarea" );
          var btnContainer = document.createElement( "div" );
          var btn = document.createElement( "button" );
-         var btnValue = document.createTextNode( "Connect Site " + i );
+         var btnValue = document.createTextNode( "Connect" );
 
          panelContainer.id = "panel" + i;
          panelContainer.className = "monitoringPanel";
 
+         title.id = "title" + i;
+         title.className = "title";
+         title.innerHTML = uiCfg.title;
+
+         panelContainer.append( title );
+
+         for( var j = 0; j < uiCfg.fields.length; j++ ) {
+            var fieldCfg = uiCfg.fields[j];
+            panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.caption, fieldCfg.suffix) );
+
+            if( fieldCfg.showMax ) {
+               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop + i, "Max " + fieldCfg.caption, fieldCfg.suffix) );
+            }
+
+            panelContainer.appendChild( newFieldSeparator() );
+         }
+
          log.id = "log" + i;
 
          btnContainer.className = "btnContainer";
-         btn.id = "btn" + i;
 
+         btn.id = "btn" + i;
          btn.addEventListener( "click", function() { btnClick(this) } );
          btn.appendChild( btnValue );
          btnContainer.appendChild( btn );
-
-         panelContainer.appendChild( newField(LOAD + i, "Load:", "%") );
-         panelContainer.appendChild( newField(MAX_LOAD + i, "Max Load:", "%") );
-         panelContainer.appendChild( newFieldSeparator() );
-
-         panelContainer.appendChild( newField(RPM + i, "RPM:") );
-         panelContainer.appendChild( newField(MAX_RPM + i, "Max RPM:") );
-         panelContainer.appendChild( newFieldSeparator() );
-
-         panelContainer.appendChild( newField(AMBIENT_TEMP + i, "Ambient Temp:", "°F") );
-         panelContainer.appendChild( newField(MAX_AMBIENT_TEMP + i, "Max Ambient Temp:", "°F") );
-         panelContainer.appendChild( newFieldSeparator() );
-
-         panelContainer.appendChild( newField(INTERNAL_TEMP + i, "Internal Temp:", "°F") );
-         panelContainer.appendChild( newField(MAX_INTERNAL_TEMP + i, "Max Internal Temp:", "°F") );
-         panelContainer.appendChild( newFieldSeparator() );
-
-         panelContainer.appendChild( newField(HUMIDITY + i, "Humidity:", "%") );
-         panelContainer.appendChild( newField(MAX_HUMIDITY + i, "Max Humidity:", "%") );
-         panelContainer.appendChild( newFieldSeparator() );
 
          panelContainer.appendChild( log );
          panelContainer.appendChild( btnContainer );
@@ -90,6 +82,8 @@ document.addEventListener( "DOMContentLoaded", function() {
             [MAX_INTERNAL_TEMP] : 0,
             [MAX_HUMIDITY] : 0
          };
+
+         i++;
 
          function newField( id, caption, suffix ) {
             var container = document.createElement( "div" );
@@ -136,10 +130,10 @@ document.addEventListener( "DOMContentLoaded", function() {
 
       if( connected ) {
          disconnect( siteNum );
-         btn.innerHTML = "Connect Site " + siteNum;
+         btn.innerHTML = "Connect";
       } else {
          connect( siteNum );
-         btn.innerHTML = "Disconnect Site " + siteNum;
+         btn.innerHTML = "Disconnect";
       }
    }
 
@@ -178,23 +172,43 @@ document.addEventListener( "DOMContentLoaded", function() {
          var value = panel[prop];
          var field = document.getElementById( prop + siteNum );
 
-         field.innerHTML = value;
+         if( field != null ) {
+            field.innerHTML = value;
 
-         var container = field.parentNode;
-         var className = "normal";
+            var container = field.parentNode;
+            var className = "normal";
 
-         if( value >= THRESHOLD[thresholdProp].danger ) {
-            className = "danger";
-         } else if( value >= THRESHOLD[thresholdProp].warn ) {
-            className = "warn";
-         }
+            if( value >= THRESHOLD[thresholdProp].danger ) {
+               className = "danger";
+            } else if( value >= THRESHOLD[thresholdProp].warn ) {
+               className = "warn";
+            }
 
-         for( var i = 0; i < container.children.length; i++ ) {
-            var child = container.children[ i ];
-            child.className = className;
+            for( var i = 0; i < container.children.length; i++ ) {
+               var child = container.children[ i ];
+               child.className = className;
+            }
          }
       }
    }
 
-   buildUI();
-} );
+   // Creates the UI based on an array of objects.  Each array element specifies the configuration of a separate panel.
+   // The object has the following members:
+   //
+   // title :  Text displayed at the top of the panel
+   // url   :  URL used to retrieve updates
+   // fields:  An array of objects specifying field configuration:
+   //             prop       : The property name present in the JSON response - also used in the HTML ID
+   //             caption    : Text displayed in front of the value
+   //             suffix     : Text displayed after the value.  Optional.
+   //             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
+   //                          Supports only numeric values, so if your data is text you'll have to map it to a number.
+   //                            warn   : The warning threshold
+   //                            danger : The danger threshold
+   //             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
+   //                          Assumes numeric values, so if your data is text you'll have to map it to a number.
+   //                          When set to true, the max value will appear as a separate field immediately beneath the
+   //                          field being tracked.
+   // callback : A function which fires after the panel is updated.  Optional.
+   buildUI( ui );
+}

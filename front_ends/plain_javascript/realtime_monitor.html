@@ -3,8 +3,28 @@
 <html lang="en">
    <head>
       <meta charset="utf-8"/>
+
       <link rel="stylesheet" href="css/realtime_monitor.css"/>
+
       <script type="text/javascript" src="js/realtime_monitor.js"></script>
+
+      <script type="text/javascript">
+         var ui = [ {
+            title  : "Site 1",
+            url    : "http://localhost/RealtimeMonitor/status/site1",
+            fields : [
+                        { prop : "load", caption : "Load:", suffix : "%", thresholds : { warn : 70, danger : 90 }, showMax : true },
+                        { prop : "rpm", caption : "RPM:",  thresholds : { warn : 2000, danger : 2500 }, showMax : true },
+                        { prop : "ambientTemp", caption : "Ambient Temp:", suffix : "°F", showMax : false },
+                        { prop : "internalTemp", caption : "Internal Temp:", suffix : "°F", thresholds : { warn : 200, danger : 250 }, showMax : true }
+                     ],
+            callback : function() {}
+         } ];
+
+         document.addEventListener( "DOMContentLoaded", function() {
+            new RealtimeMonitor( ui );
+         } );
+      </script>
    </head>
 
    <body>
