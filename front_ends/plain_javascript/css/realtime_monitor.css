@@ -1,0 +1,55 @@
+.monitoringPanel {
+   display: inline-block;
+   width: 300px;
+   border: 1px solid black;
+   margin: 5px;
+}
+
+.monitoringPanel textarea {
+   box-sizing: border-box;
+   width: 100%;
+   height: 100px;
+   vertical-align: bottom;
+   resize: none;
+   padding: 0;
+}
+
+.monitoringPanel .fieldContainer {
+   font-family: monospace;
+}
+
+.monitoringPanel .fieldContainer label {
+   font-weight: bold;
+   padding-right: 10px;
+}
+
+.monitoringPanel .fieldContainer .normal {
+   color: #000000;
+}
+
+.monitoringPanel .fieldContainer .warn {
+   background-color: #000000;
+   color: #FFFF00;
+}
+
+.monitoringPanel .fieldContainer .danger {
+   background-color: #000000;
+   color: #FF0000;
+}
+
+.monitoringPanel .fieldContainer .hidden {
+   display: none;
+}
+
+.monitoringPanel .fieldSeparator {
+   height: 11px;
+}
+
+.monitoringPanel .btnContainer {
+   display: inline-block;
+   line-height: 50px;
+   width: 100%;
+   vertical-align: bottom;
+   text-align: center;
+   padding-bottom: 5px;
+}
