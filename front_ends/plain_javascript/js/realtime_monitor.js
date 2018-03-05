@@ -45,7 +45,7 @@ function RealtimeMonitor() {
          title.className = "title";
          title.innerHTML = panelCfg.title;
 
-         panelContainer.append( title );
+         panelContainer.appendChild( title );
 
          thresholds[i] = [];
          panelData[PREFIX_PANEL + i] = panelData[PREFIX_PANEL + i] || [];
