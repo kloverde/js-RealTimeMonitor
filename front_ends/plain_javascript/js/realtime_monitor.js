@@ -117,12 +117,8 @@ function RealtimeMonitor() {
       }
    };
 
-   function getSiteNum( btnId ) {
-      return btnId.replace( "btn", "" );
-   }
-
    function btnClick( btn ) {
-      var siteNum = getSiteNum( btn.id );
+      var siteNum = btn.id.replace( "btn", "" );
       var connected = btn.innerHTML.indexOf( "Disconnect" ) !== -1;
 
       if( connected ) {
@@ -140,7 +136,7 @@ function RealtimeMonitor() {
          rpm  : 500,
          ambientTemp  : 75,
          internalTemp : 200,
-         humidity : 45
+         rhinocerous : 45
       };
 
       updateStats( siteNum, stats );
@@ -155,8 +151,14 @@ function RealtimeMonitor() {
 
       for( var prop in stats ) {
          var maxProp = PREFIX_MAX + prop;
-         panel[prop] = stats[prop];
-         panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
+
+         // Kind of a kludge.  To save on memory, the configuration passed to buildUI isn't saved, so we
+         // use the presence of a "max" property to see if the property from the server is recognized.
+
+         if( panel[maxProp] !== undefined ) {
+            panel[prop] = stats[prop];
+            panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
+         }
       }
    }
 
