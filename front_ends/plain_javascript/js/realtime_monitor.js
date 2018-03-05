@@ -1,8 +1,8 @@
 "use strict";
 
 // The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
-// of a separate panel; you need to define at least one, and there is no upper limit.  The object has the following
-// members:
+// of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
+// following members:
 //
 // title :  Text displayed at the top of the panel
 // url   :  The URL used to update the panel
@@ -21,21 +21,11 @@
 // callback : A function which fires after the panel is updated.  Optional.
 
 function RealtimeMonitor() {
+   var PREFIX_MAX = "max",
+       PREFIX_PANEL = "panel";
+
    var thresholds = [];
    var panelData = [];
-
-   var PREFIX_MAX = "max";
-
-   var LOAD              = "load",
-       RPM               = "rpm",
-       AMBIENT_TEMP      = "ambientTemp",
-       INTERNAL_TEMP     = "internalTemp",
-       HUMIDITY          = "humidity",
-       MAX_LOAD          = PREFIX_MAX + LOAD,
-       MAX_RPM           = PREFIX_MAX + RPM,
-       MAX_AMBIENT_TEMP  = PREFIX_MAX + AMBIENT_TEMP,
-       MAX_INTERNAL_TEMP = PREFIX_MAX + INTERNAL_TEMP,
-       MAX_HUMIDITY      = PREFIX_MAX + HUMIDITY;
 
    this.buildUI = function( appCfg ) {
       for( var i = 0; i < appCfg.length; i++ ) {
@@ -48,7 +38,7 @@ function RealtimeMonitor() {
          var btn = document.createElement( "button" );
          var btnValue = document.createTextNode( "Connect" );
 
-         panelContainer.id = "panel" + i;
+         panelContainer.id = PREFIX_PANEL + i;
          panelContainer.className = "monitoringPanel";
 
          title.id = "title" + i;
@@ -58,12 +48,13 @@ function RealtimeMonitor() {
          panelContainer.append( title );
 
          thresholds[i] = [];
+         panelData[PREFIX_PANEL + i] = panelData[PREFIX_PANEL + i] || [];
 
          for( var j = 0; j < panelCfg.fields.length; j++ ) {
             var fieldCfg = panelCfg.fields[j];
 
             if( fieldCfg.thresholds ) {
-               thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // This is the only part of the configuration that we need to refer back to after the UI is built, so save it
+               thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
             panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.caption, fieldCfg.suffix) );
@@ -73,6 +64,8 @@ function RealtimeMonitor() {
             }
 
             panelContainer.appendChild( newFieldSeparator() );
+
+            panelData[PREFIX_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
          }
 
          log.id = "log" + i;
@@ -88,22 +81,6 @@ function RealtimeMonitor() {
          panelContainer.appendChild( btnContainer );
 
          document.body.appendChild( panelContainer );
-
-         panelData[ "panel" + i ] = {
-            [LOAD] : 0,
-            [RPM] : 0,
-            [AMBIENT_TEMP] : 0,
-            [INTERNAL_TEMP] : 0,
-            [HUMIDITY] : 0,
-
-            [MAX_LOAD] : 0,
-            [MAX_RPM] : 0,
-            [MAX_AMBIENT_TEMP] : 0,
-            [MAX_INTERNAL_TEMP] : 0,
-            [MAX_HUMIDITY] : 0
-         };
-
-         i++;
 
          function newField( id, caption, suffix ) {
             var container = document.createElement( "div" );
@@ -159,11 +136,11 @@ function RealtimeMonitor() {
 
    function connect( siteNum ) {
       var stats = {
-         [LOAD] : 70,
-         [RPM]  : 500,
-         [AMBIENT_TEMP]  : 75,
-         [INTERNAL_TEMP] : 200,
-         [HUMIDITY] : 45
+         load : 70,
+         rpm  : 500,
+         ambientTemp  : 75,
+         internalTemp : 200,
+         humidity : 45
       };
 
       updateStats( siteNum, stats );
@@ -174,7 +151,7 @@ function RealtimeMonitor() {
    }
 
    function updateStats( siteNum, stats ) {
-      var panel = panelData[ "panel" + siteNum ];
+      var panel = panelData[ PREFIX_PANEL + siteNum ];
 
       for( var prop in stats ) {
          var maxProp = PREFIX_MAX + prop;
@@ -185,7 +162,7 @@ function RealtimeMonitor() {
 
    function updateUI( panelNum ) {
       var panelThresholds = thresholds[panelNum];
-      var data = panelData[ "panel" + panelNum ];
+      var data = panelData[ PREFIX_PANEL + panelNum ];
 
       for( var prop in data ) {
          var thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
@@ -193,11 +170,11 @@ function RealtimeMonitor() {
          var field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
-            field.innerHTML = value;
-
             var container = field.parentNode;
             var className = "normal";
             var fieldThresholds = panelThresholds[thresholdProp];
+
+            field.innerHTML = value;
 
             if( fieldThresholds ) {
                if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
