@@ -8,7 +8,7 @@
 // url   :  The URL used to update the panel
 // fields:  An array of objects specifying field configuration:
 //             prop       : The property name present in the JSON response - also used in the HTML ID
-//             caption    : Text displayed in front of the value
+//             label      : Text displayed in front of the value
 //             suffix     : Text displayed after the value.  Optional.
 //             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
 //                          Supports only numeric values, so if your data is text you'll have to map it to a number.
@@ -57,10 +57,10 @@ function RealtimeMonitor() {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
-            panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.caption, fieldCfg.suffix) );
+            panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop + i, "Max " + fieldCfg.caption, fieldCfg.suffix) );
+               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop + i, "Max " + fieldCfg.label, fieldCfg.suffix) );
             }
 
             panelContainer.appendChild( newFieldSeparator() );
@@ -82,7 +82,7 @@ function RealtimeMonitor() {
 
          document.body.appendChild( panelContainer );
 
-         function newField( id, caption, suffix ) {
+         function newField( id, labelText, suffix ) {
             var container = document.createElement( "div" );
             var label = document.createElement( "label" );
             var val = document.createElement( "span" );
@@ -90,7 +90,7 @@ function RealtimeMonitor() {
             container.className = "fieldContainer";
             val.id = id;
             label.setAttribute( "for", id );
-            label.appendChild( document.createTextNode(caption) );
+            label.appendChild( document.createTextNode(labelText) );
 
             container.appendChild( label );
             container.appendChild( val );
@@ -130,20 +130,29 @@ function RealtimeMonitor() {
       }
    }
 
-   function connect( siteNum ) {
-      var stats = {
-         load : 70,
-         rpm  : 500,
-         ambientTemp  : 75,
-         internalTemp : 200,
-         rhinocerous : 45
-      };
+   var simulator = null;
 
-      updateStats( siteNum, stats );
-      updateUI( siteNum );
+   function connect( siteNum ) {
+      simulator = window.setInterval( function() {
+         var stats = {
+            load : random(50, 100),
+            rpm  : random(1500, 2700),
+            ambientTemp  : random(70, 75),
+            internalTemp : random(175, 260),
+            rhinocerous  : 45
+         };
+
+         updateStats( siteNum, stats );
+         updateUI( siteNum );
+      }, 1000 );
+
+      function random( from, to ) {
+         return Math.floor( Math.random() * (to - from + 1) ) + from;
+      }
    }
 
    function disconnect( siteNum ) {
+      window.clearInterval( simulator );
    }
 
    function updateStats( siteNum, stats ) {
