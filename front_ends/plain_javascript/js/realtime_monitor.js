@@ -89,9 +89,7 @@ function RealtimeMonitor() {
 
             container.className = "fieldContainer";
 
-            if( hasThreshold ) {
-               status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-            }
+            status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
 
             status.className = "status"
             container.appendChild( status );
@@ -204,9 +202,7 @@ function RealtimeMonitor() {
                }
             }
 
-            if( status ) {
-               status.className = "status " + className;
-            }
+            status.className = "status " + (fieldThresholds ? className : "none");
 
             var suffix = document.getElementById( "suffix" + prop + panelNum );
 

@@ -33,7 +33,10 @@
    width: 14px;
    display: inline-block;
    vertical-align: middle;
-   /*border: 1px dashed #000000;*/   /* If activated, the border of fields with thresholds will be overridden with a solid border, and fields without thresholds will remain dashed */
+}
+
+.monitoringPanel .fieldContainer  .status.none {
+   border: 1px dashed #000000;
 }
 
 .monitoringPanel .fieldContainer  .status.normal {
