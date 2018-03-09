@@ -141,15 +141,15 @@ function RealtimeMonitor() {
 
    function connect( siteNum ) {
       simulator = window.setInterval( function() {
-         var stats = {
+         var jsonResponse = JSON.stringify( {
             load : random(50, 100),
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
             internalTemp : random(175, 260),
             rhinocerous  : 45
-         };
+         } );
 
-         updateStats( siteNum, stats );
+         updateStats( siteNum, jsonResponse );
          updateUI( siteNum );
       }, 1000 );
 
@@ -162,8 +162,9 @@ function RealtimeMonitor() {
       window.clearInterval( simulator );
    }
 
-   function updateStats( siteNum, stats ) {
+   function updateStats( siteNum, jsonResponse ) {
       var panel = panelData[ PREFIX_PANEL + siteNum ];
+      var stats = JSON.parse( jsonResponse );
 
       for( var prop in stats ) {
          var maxProp = PREFIX_MAX + prop;
