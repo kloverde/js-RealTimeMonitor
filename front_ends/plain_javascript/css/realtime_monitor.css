@@ -28,23 +28,27 @@
 }
 
 .monitoringPanel .fieldContainer .status {
-   height: 12px;
-   width: 12px;
+   box-sizing: border-box;
+   height: 14px;
+   width: 14px;
    display: inline-block;
    vertical-align: middle;
-   border: 1px solid black;
+   /*border: 1px dashed #000000;*/   /* If activated, the border of fields with thresholds will be overridden with a solid border, and fields without thresholds will remain dashed */
 }
 
 .monitoringPanel .fieldContainer  .status.normal {
    background-color: #00FF00;
+   border: 1px solid black;
 }
 
 .monitoringPanel .fieldContainer .status.warn {
    background-color: #FFFF00;
+   border: 1px solid black;
 }
 
 .monitoringPanel .fieldContainer .status.danger {
    background-color: #FF0000;
+   border: 1px solid black;
 }
 
 .monitoringPanel .fieldContainer label {

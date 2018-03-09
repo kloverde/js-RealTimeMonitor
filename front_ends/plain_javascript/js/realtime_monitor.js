@@ -56,10 +56,10 @@ function RealtimeMonitor() {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
-            panelContainer.appendChild( newField(fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
+            panelContainer.appendChild( newField(fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop, i, "Max " + fieldCfg.label, fieldCfg.suffix) );
+               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop, i, Boolean(fieldCfg.thresholds), "Max " + fieldCfg.label, fieldCfg.suffix) );
             }
 
             panelContainer.appendChild( newFieldSeparator() );
@@ -81,7 +81,7 @@ function RealtimeMonitor() {
 
          document.body.appendChild( panelContainer );
 
-         function newField( propName, panelNum, labelText, suffix ) {
+         function newField( propName, panelNum, hasThreshold, labelText, suffix ) {
             var container = document.createElement( "div" );
             var status = document.createElement( "div" );
             var label = document.createElement( "label" );
@@ -89,15 +89,18 @@ function RealtimeMonitor() {
 
             container.className = "fieldContainer";
 
-            status.id = "status" + propName + panelNum;
+            if( hasThreshold ) {
+               status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
+            }
+
             status.className = "status"
             container.appendChild( status );
 
-            label.setAttribute( "for", status.id );
+            label.setAttribute( "for", val.id );
             label.appendChild( document.createTextNode(labelText) );
             container.appendChild( label );
 
-            val.id = propName + panelNum
+            val.id = propName + panelNum;
             container.appendChild( val );
 
             if( suffix ) {
@@ -201,7 +204,9 @@ function RealtimeMonitor() {
                }
             }
 
-            status.className = "status " + className;
+            if( status ) {
+               status.className = "status " + className;
+            }
 
             var suffix = document.getElementById( "suffix" + prop + panelNum );
 
