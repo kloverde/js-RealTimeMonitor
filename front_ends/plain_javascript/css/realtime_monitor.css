@@ -9,6 +9,7 @@
    font-size: x-large;
    font-weight: bold;
    text-align: center;
+   padding-bottom: 8px;
 }
 
 .monitoringPanel textarea {
@@ -26,23 +27,31 @@
    padding-left: 4px;
 }
 
+.monitoringPanel .fieldContainer .status {
+   height: 12px;
+   width: 12px;
+   display: inline-block;
+   vertical-align: middle;
+   border: 1px solid black;
+}
+
+.monitoringPanel .fieldContainer  .status.normal {
+   background-color: #00FF00;
+}
+
+.monitoringPanel .fieldContainer .status.warn {
+   background-color: #FFFF00;
+}
+
+.monitoringPanel .fieldContainer .status.danger {
+   background-color: #FF0000;
+}
+
 .monitoringPanel .fieldContainer label {
    font-weight: bold;
+   vertical-align: middle;
+   margin-left: 7px;
    padding-right: 10px;
-}
-
-.monitoringPanel .fieldContainer .normal {
-   color: #000000;
-}
-
-.monitoringPanel .fieldContainer .warn {
-   background-color: #000000;
-   color: #FFFF00;
-}
-
-.monitoringPanel .fieldContainer .danger {
-   background-color: #000000;
-   color: #FF0000;
 }
 
 .monitoringPanel .fieldContainer .hidden {

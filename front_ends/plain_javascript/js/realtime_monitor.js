@@ -18,7 +18,6 @@
 //                          Assumes numeric values, so if your data is text you'll have to map it to a number.
 //                          When set to true, the max value will appear as a separate field immediately beneath the
 //                          field being tracked.
-// callback : A function which fires after the panel is updated.  Optional.
 
 function RealtimeMonitor() {
    var PREFIX_MAX = "max",
@@ -57,10 +56,10 @@ function RealtimeMonitor() {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
-            panelContainer.appendChild( newField(fieldCfg.prop + i, fieldCfg.label, fieldCfg.suffix) );
+            panelContainer.appendChild( newField(fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop + i, "Max " + fieldCfg.label, fieldCfg.suffix) );
+               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop, i, "Max " + fieldCfg.label, fieldCfg.suffix) );
             }
 
             panelContainer.appendChild( newFieldSeparator() );
@@ -82,28 +81,35 @@ function RealtimeMonitor() {
 
          document.body.appendChild( panelContainer );
 
-         function newField( id, labelText, suffix ) {
+         function newField( propName, panelNum, labelText, suffix ) {
             var container = document.createElement( "div" );
+            var status = document.createElement( "div" );
             var label = document.createElement( "label" );
             var val = document.createElement( "span" );
 
             container.className = "fieldContainer";
-            val.id = id;
-            label.setAttribute( "for", id );
-            label.appendChild( document.createTextNode(labelText) );
 
+            status.id = "status" + propName + panelNum;
+            status.className = "status"
+            container.appendChild( status );
+
+            label.setAttribute( "for", status.id );
+            label.appendChild( document.createTextNode(labelText) );
             container.appendChild( label );
+
+            val.id = propName + panelNum
             container.appendChild( val );
 
             if( suffix ) {
-               container.appendChild( newSuffix(suffix) );
+               container.appendChild( newSuffix(suffix, propName, panelNum) );
             }
 
             return container;
          }
 
-         function newSuffix( suffix ) {
+         function newSuffix( suffix, prop, panelNum ) {
             var elem = document.createElement( "span" );
+            elem.id = "suffix" + prop + panelNum;
             elem.className = "hidden";
             elem.innerHTML = suffix;
             return elem;
@@ -181,9 +187,9 @@ function RealtimeMonitor() {
          var field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
-            var container = field.parentNode;
             var className = "normal";
             var fieldThresholds = panelThresholds[thresholdProp];
+            var status = document.getElementById( "status" + prop + panelNum );
 
             field.innerHTML = value;
 
@@ -195,9 +201,12 @@ function RealtimeMonitor() {
                }
             }
 
-            for( var i = 0; i < container.children.length; i++ ) {
-               var child = container.children[ i ];
-               child.className = className;
+            status.className = "status " + className;
+
+            var suffix = document.getElementById( "suffix" + prop + panelNum );
+
+            if( suffix ) {
+               suffix.className = "";  // make visible
             }
          }
       }

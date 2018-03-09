@@ -10,15 +10,14 @@
 
       <script type="text/javascript">
          var ui = [ {
-            title  : "Site 1",
+            title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", thresholds : { warn : 70, danger : 90 }, showMax : true },
                         { prop : "rpm", label : "RPM:",  thresholds : { warn : 2000, danger : 2500 }, showMax : true },
                         { prop : "ambientTemp", label : "Ambient Temp:", suffix : "°F", showMax : false },
                         { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", thresholds : { warn : 200, danger : 250 }, showMax : true }
-                     ],
-            callback : function() {}
+                     ]
          } ];
 
          document.addEventListener( "DOMContentLoaded", function() {
