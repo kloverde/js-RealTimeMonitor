@@ -125,32 +125,32 @@ function RealtimeMonitor() {
    };
 
    function btnClick( btn ) {
-      var siteNum = btn.id.replace( "btn", "" );
+      var panelNum = btn.id.replace( "btn", "" );
       var connected = btn.innerHTML.indexOf( "Disconnect" ) !== -1;
 
       if( connected ) {
-         disconnect( siteNum );
+         disconnect( panelNum );
          btn.innerHTML = "Connect";
       } else {
-         connect( siteNum );
+         connect( panelNum );
          btn.innerHTML = "Disconnect";
       }
    }
 
    var simulator = null;
 
-   function connect( siteNum ) {
+   function connect( panelNum ) {
       simulator = window.setInterval( function() {
          var jsonResponse = JSON.stringify( {
             load : random(50, 100),
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
             internalTemp : random(175, 260),
-            rhinocerous  : 45
+            rhinocerous  : 45  // unrecognized properties do not cause errors
          } );
 
-         updateStats( siteNum, jsonResponse );
-         updateUI( siteNum );
+         updateStats( panelNum, jsonResponse );
+         updateUI( panelNum );
       }, 1000 );
 
       function random( from, to ) {
@@ -158,12 +158,12 @@ function RealtimeMonitor() {
       }
    }
 
-   function disconnect( siteNum ) {
+   function disconnect( panelNum ) {
       window.clearInterval( simulator );
    }
 
-   function updateStats( siteNum, jsonResponse ) {
-      var panel = panelData[ PREFIX_PANEL + siteNum ];
+   function updateStats( panelNum, jsonResponse ) {
+      var panel = panelData[ PREFIX_PANEL + panelNum ];
       var stats = JSON.parse( jsonResponse );
 
       for( var prop in stats ) {
