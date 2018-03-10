@@ -63,7 +63,6 @@ function RealtimeMonitor() {
             }
 
             panelContainer.appendChild( newFieldSeparator() );
-
             panelData[PREFIX_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
          }
 
@@ -90,15 +89,15 @@ function RealtimeMonitor() {
             container.className = "fieldContainer";
 
             status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-
             status.className = "status"
             container.appendChild( status );
+
+            val.id = propName + panelNum;
 
             label.setAttribute( "for", val.id );
             label.appendChild( document.createTextNode(labelText) );
             container.appendChild( label );
 
-            val.id = propName + panelNum;
             container.appendChild( val );
 
             if( suffix ) {
