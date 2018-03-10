@@ -140,7 +140,7 @@ function RealtimeMonitor() {
             }
 
             status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-            status.className = "status"
+            status.className = "status";
             fieldContainer.appendChild( status );
 
             val.id = propName + panelNum;
@@ -213,11 +213,11 @@ function RealtimeMonitor() {
       simulator = window.setInterval( function() {
          var jsonResponse = JSON.stringify( {
             load : random(50, 100),
-            //load : "<img src=\"asdf\" onerror=\"console.log('json xss')\" />",
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
             internalTemp : random(175, 260),
-            rhinocerous  : 45  // unrecognized properties do not cause errors
+            rhinocerous  : 45,  // unrecognized properties do not cause errors
+            jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
          } );
 
          updateStats( panelNum, jsonResponse );

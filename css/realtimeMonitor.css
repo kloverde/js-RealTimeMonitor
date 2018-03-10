@@ -38,6 +38,10 @@
    margin: 5px;
 }
 
+.monitoringPanel .hidden {
+   display: none;
+}
+
 .monitoringPanel .title {
    font-size: x-large;
    font-weight: bold;
@@ -108,10 +112,6 @@
 .monitoringPanel .fieldContainer.hasGraph label:hover {
    color: #008000;
    cursor: pointer;
-}
-
-.monitoringPanel .fieldContainer .hidden {
-   display: none;
 }
 
 .monitoringPanel .fieldSeparator {

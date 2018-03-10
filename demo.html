@@ -51,15 +51,18 @@
                         { prop : "ambientTemp", label : "Ambient Temp:", suffix : "°F", showMax : false },
                         { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", thresholds : { warn : 200, danger : 250 }, showMax : true }
                      ]
-         }/*,
+         }
 
-         {
-            title  : "Test XSS Attacks <img src=\"asdf\" onerror=\"console.log('xss1')\" />",
+         /* You'll have to deactivate the 'hidden' CSS class to observe the XSS3 test */
+         /*
+         ,{
+
+            title  : "Test XSS Attacks <img src=\"asdf\" onerror=\"alert('xss1')\" />",
             url    : "http://localhost/RealtimeMonitor/status/site1",
             fields : [
-                        { prop : "xss2", label : "XSS 2:", suffix : "suffix <img src=\"asdf\" onerror=\"console.log('xss2')\" />", showMax : false },
-                        { prop : "xss3", label : "XSS 3: <img src=\"asdf\" onerror=\"console.log('xss3')\" />", suffix : "suffix", showMax : false },
-                        { prop : "xss4", label : "XSS 4:", suffix : "suffix <img src=\"asdf\" onerror=\"console.log('xss4')\" />", showMax : false }
+                        { prop : "xss2", label : "XSS 2: <img src=\"asdf\" onerror=\"alert('xss2')\" />", suffix : "suffix", showMax : false },
+                        { prop : "xss3", label : "XSS 3: ", suffix : "suffix <img src=\"asdf\" onerror=\"alert('xss3')\" />", showMax : false },
+                        { prop : "jsonXss", label : "JSON XSS Test (click 'Connect'): ", showMax : false }
                      ]
          }*/ ];
 
