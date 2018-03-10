@@ -42,7 +42,7 @@ function RealtimeMonitor() {
 
          title.id = "title" + i;
          title.className = "title";
-         title.innerHTML = panelCfg.title;
+         title.appendChild( document.createTextNode(panelCfg.title) );
 
          panelContainer.appendChild( title );
 
@@ -112,7 +112,7 @@ function RealtimeMonitor() {
             var elem = document.createElement( "span" );
             elem.id = "suffix" + prop + panelNum;
             elem.className = "hidden";
-            elem.innerHTML = suffix;
+            elem.appendChild( document.createTextNode(suffix) );
             return elem;
          }
 
@@ -143,6 +143,7 @@ function RealtimeMonitor() {
       simulator = window.setInterval( function() {
          var jsonResponse = JSON.stringify( {
             load : random(50, 100),
+            //load : "<img src=\"asdf\" onerror=\"console.log('json xss')\" />",
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
             internalTemp : random(175, 260),
@@ -193,7 +194,8 @@ function RealtimeMonitor() {
             var fieldThresholds = panelThresholds[thresholdProp];
             var status = document.getElementById( "status" + prop + panelNum );
 
-            field.innerHTML = value;
+            field.innerHTML = "";
+            field.appendChild( document.createTextNode(value) );
 
             if( fieldThresholds ) {
                if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
