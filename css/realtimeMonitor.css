@@ -38,15 +38,46 @@
    margin: 5px;
 }
 
+.monitoringPanel button::-moz-focus-inner {
+  border: 0;
+}
+
+.monitoringPanel.minimized {
+   height: 30px;
+   overflow: hidden;
+}
+
 .monitoringPanel .hidden {
    display: none;
 }
 
-.monitoringPanel .title {
+.monitoringPanel .titleBar {
    font-size: x-large;
    font-weight: bold;
    text-align: center;
-   padding-bottom: 8px;
+}
+
+.monitoringPanel .titleBar.normal {
+   background: linear-gradient( to right, #FFFFFF, #00FF00 );
+}
+
+.monitoringPanel .titleBar.warn {
+   background: linear-gradient( to right, #FFFFFF, #FFFF00 );
+}
+
+.monitoringPanel .titleBar.danger {
+   background: linear-gradient( to right, #FFFFFF, #FF0000 );
+}
+
+.monitoringPanel .titleBar button {
+   float: right;
+   position: relative;
+   top: 5px;
+   right: 7px;
+   width: 16px;
+   height: 16px;
+   line-height: .6em;
+   padding: 0;
 }
 
 .monitoringPanel .graphContainer {
@@ -63,6 +94,10 @@
    width: 100%;
    height: 100%;
    visibility: hidden;
+}
+
+.monitoringPanel .fieldsContainer {
+   margin-top: 10px;
 }
 
 .monitoringPanel .fieldContainer {
@@ -118,7 +153,7 @@
    height: 11px;
 }
 
-.monitoringPanel .btnContainer {
+.monitoringPanel .btnConnectContainer {
    display: inline-block;
    line-height: 50px;
    width: 100%;
@@ -127,6 +162,6 @@
    padding-bottom: 5px;
 }
 
-.monitoringPanel .btnContainer button {
+.monitoringPanel .btnConnectContainer button {
    line-height: normal;
 }

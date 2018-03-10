@@ -63,25 +63,33 @@ function RealtimeMonitor() {
       for( var i = 0; i < appCfg.length; i++ ) {
          var panelCfg = appCfg[i];
 
-         var panelContainer = document.createElement( "div" );
-         var title = document.createElement( "div" );
-         var btnContainer = document.createElement( "div" );
-         var btn = document.createElement( "button" );
-         var btnValue = document.createTextNode( "Connect" );
+         var panel = document.createElement( "div" );
+         var titleBar = document.createElement( "div" );
+         var btnMinMax = document.createElement( "button" );
+         var fieldsContainer = document.createElement( "div" );
+         var btnConnectContainer = document.createElement( "div" );
+         var btnConnect = document.createElement( "button" );
          var graphContainer = document.createElement( "div" );
          var graphs = [];
 
-         panelContainer.id = PREFIX_PANEL + i;
-         panelContainer.className = "monitoringPanel";
+         panel.id = PREFIX_PANEL + i;
+         panel.className = "monitoringPanel";
 
-         title.id = "title" + i;
-         title.className = "title";
-         title.appendChild( document.createTextNode(panelCfg.title) );
+         titleBar.id = "title" + i;
+         titleBar.className = "titleBar";
+         titleBar.appendChild( document.createTextNode(panelCfg.title) );
 
-         panelContainer.appendChild( title );
+         btnMinMax.id = "btnMinMax" + i;
+         btnMinMax.innerHTML = "-";
+         btnMinMax.addEventListener( "click", function(event) { minimizeMaximize( this.id.replace("btnMinMax", "") ); } );
+         titleBar.appendChild( btnMinMax );
+
+         panel.appendChild( titleBar );
 
          thresholds[i] = [];
          panelData[PREFIX_PANEL + i] = panelData[PREFIX_PANEL + i] || [];
+
+         fieldsContainer.className = "fieldsContainer";
 
          for( var j = 0; j < panelCfg.fields.length; j++ ) {
             var fieldCfg = panelCfg.fields[j];
@@ -90,35 +98,37 @@ function RealtimeMonitor() {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
-            panelContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
+            fieldsContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               panelContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
+               fieldsContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
             }
 
-            panelContainer.appendChild( newFieldSeparator() );
+            fieldsContainer.appendChild( newFieldSeparator() );
             panelData[PREFIX_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
 
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
 
          graphContainer.className = "graphContainer";
-         panelContainer.appendChild( graphContainer );
 
-         btnContainer.className = "btnContainer";
+         panel.appendChild( fieldsContainer );
+         panel.appendChild( graphContainer );
 
-         btn.id = "btn" + i;
-         btn.addEventListener( "click", function(event) { btnClick( this ) } );
-         btn.appendChild( btnValue );
-         btnContainer.appendChild( btn );
+         btnConnectContainer.className = "btnConnectContainer";
 
-         panelContainer.appendChild( btnContainer );
+         btnConnect.id = "btnConnect" + i;
+         btnConnect.addEventListener( "click", function(event) { connectBtnClick( this ); } );
+         btnConnect.appendChild( document.createTextNode("Connect") );
+         btnConnectContainer.appendChild( btnConnect );
+
+         panel.appendChild( btnConnectContainer );
 
          for( var j = 0; j < graphs.length; j++ ) {
             graphContainer.appendChild( graphs[j] );
          }
 
-         document.body.appendChild( panelContainer );
+         document.body.appendChild( panel );
 
          function newField( isMax, propName, panelNum, hasThreshold, labelText, suffix ) {
             var fieldContainer = document.createElement( "div" );
@@ -183,6 +193,22 @@ function RealtimeMonitor() {
       }
    };
 
+   function minimizeMaximize( panelNum ) {
+      var min = "minimized",
+          max = "maximized";
+
+      var panel = document.getElementById( "panel" + panelNum ),
+          btn   = document.getElementById( "btnMinMax" + panelNum );
+
+      if( panel.classList.contains(min) ) {
+         panel.classList.remove( min );
+         btn.innerHTML = "-";
+      } else {
+         panel.classList.add( min );
+         btn.innerHTML = "+";
+      }
+   }
+
    function showGraph( id ) {
       var graph = document.getElementById( id );
       var graphContainer = graph.parentNode;
@@ -194,8 +220,8 @@ function RealtimeMonitor() {
       graph.style.visibility = "visible";
    }
 
-   function btnClick( btn ) {
-      var panelNum = btn.id.replace( "btn", "" );
+   function connectBtnClick( btn ) {
+      var panelNum = btn.id.replace( "btnConnect", "" );
       var connected = btn.innerHTML.indexOf( "Disconnect" ) !== -1;
 
       if( connected ) {
@@ -254,12 +280,18 @@ function RealtimeMonitor() {
       var panelThresholds = thresholds[panelNum];
       var data = panelData[ PREFIX_PANEL + panelNum ];
 
+      var titleBar = document.getElementById( "title" + panelNum );
+
+      var anyWarn = false,
+          anyDanger = false;
+
       for( var prop in data ) {
          var thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
          var value = data[prop];
          var field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
+            var isMaxField = field.id.startsWith( PREFIX_MAX );
             var className = "normal";
             var fieldThresholds = panelThresholds[thresholdProp];
             var status = document.getElementById( "status" + prop + panelNum );
@@ -270,8 +302,16 @@ function RealtimeMonitor() {
             if( fieldThresholds ) {
                if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
                   className = "danger";
+
+                  if( !isMaxField ) {
+                     anyDanger = true;
+                  }
                } else if( fieldThresholds.warn && value >= fieldThresholds.warn ) {
                   className = "warn";
+
+                  if( !isMaxField ) {
+                     anyWarn = true;
+                  }
                }
             }
 
@@ -283,6 +323,19 @@ function RealtimeMonitor() {
                suffix.className = "";  // make visible
             }
          }
+
+         var panelStatus;
+
+         if( anyDanger ) {
+            panelStatus = "danger";
+         } else if( anyWarn ) {
+            panelStatus = "warn";
+         } else {
+            panelStatus = "normal";
+         }
+
+         titleBar.classList.remove( "normal", "warn", "danger" );
+         titleBar.classList.add( panelStatus );
       }
    }
 }
