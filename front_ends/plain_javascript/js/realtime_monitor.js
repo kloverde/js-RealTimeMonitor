@@ -1,3 +1,36 @@
+/*
+ * RealtimeMonitor
+ * https://www.github.com/kloverde/js-RealtimeMonitor
+ *
+ * Copyright (c) 2018, Kurtis LoVerde
+ * All rights reserved.
+ *
+ * Donations:  https://paypal.me/KurtisLoVerde/5
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     1. Redistributions of source code must retain the above copyright
+ *        notice, this list of conditions and the following disclaimer.
+ *     2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ *     3. Neither the name of the copyright holder nor the names of its
+ *        contributors may be used to endorse or promote products derived from
+ *        this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 "use strict";
 
 // The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
@@ -32,10 +65,11 @@ function RealtimeMonitor() {
 
          var panelContainer = document.createElement( "div" );
          var title = document.createElement( "div" );
-         var log = document.createElement( "textarea" );
          var btnContainer = document.createElement( "div" );
          var btn = document.createElement( "button" );
          var btnValue = document.createTextNode( "Connect" );
+         var graphContainer = document.createElement( "div" );
+         var graphs = [];
 
          panelContainer.id = PREFIX_PANEL + i;
          panelContainer.className = "monitoringPanel";
@@ -56,55 +90,72 @@ function RealtimeMonitor() {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
             }
 
-            panelContainer.appendChild( newField(fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
+            panelContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               panelContainer.appendChild( newField(PREFIX_MAX + fieldCfg.prop, i, Boolean(fieldCfg.thresholds), "Max " + fieldCfg.label, fieldCfg.suffix) );
+               panelContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
             }
 
             panelContainer.appendChild( newFieldSeparator() );
             panelData[PREFIX_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
+
+            graphs.push( newGraph(fieldCfg.prop, i) );
          }
 
-         log.id = "log" + i;
+         graphContainer.className = "graphContainer";
+         panelContainer.appendChild( graphContainer );
 
          btnContainer.className = "btnContainer";
 
          btn.id = "btn" + i;
-         btn.addEventListener( "click", function() { btnClick(this) } );
+         btn.addEventListener( "click", function(event) { btnClick( this ) } );
          btn.appendChild( btnValue );
          btnContainer.appendChild( btn );
 
-         panelContainer.appendChild( log );
          panelContainer.appendChild( btnContainer );
+
+         for( var j = 0; j < graphs.length; j++ ) {
+            graphContainer.appendChild( graphs[j] );
+         }
 
          document.body.appendChild( panelContainer );
 
-         function newField( propName, panelNum, hasThreshold, labelText, suffix ) {
-            var container = document.createElement( "div" );
+         function newField( isMax, propName, panelNum, hasThreshold, labelText, suffix ) {
+            var fieldContainer = document.createElement( "div" );
             var status = document.createElement( "div" );
             var label = document.createElement( "label" );
             var val = document.createElement( "span" );
 
-            container.className = "fieldContainer";
+            fieldContainer.className = "fieldContainer";
+
+            if( isMax ) {
+               propName = PREFIX_MAX + propName;
+               labelText = "Max " + labelText;
+            } else {
+               fieldContainer.className += " hasGraph";
+
+               label.addEventListener( "click", function(event) {
+                  showGraph( "graph" + this.getAttribute("for") );
+               } );
+            }
 
             status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
             status.className = "status"
-            container.appendChild( status );
+            fieldContainer.appendChild( status );
 
             val.id = propName + panelNum;
 
             label.setAttribute( "for", val.id );
             label.appendChild( document.createTextNode(labelText) );
-            container.appendChild( label );
+            fieldContainer.appendChild( label );
 
-            container.appendChild( val );
+            fieldContainer.appendChild( val );
 
             if( suffix ) {
-               container.appendChild( newSuffix(suffix, propName, panelNum) );
+               fieldContainer.appendChild( newSuffix(suffix, propName, panelNum) );
             }
 
-            return container;
+            return fieldContainer;
          }
 
          function newSuffix( suffix, prop, panelNum ) {
@@ -120,8 +171,28 @@ function RealtimeMonitor() {
             separator.className = "fieldSeparator";
             return separator;
          }
+
+         function newGraph( propName, panelNum ) {
+            var graph = document.createElement( "div" );
+
+            graph.id = "graph" + propName + panelNum;
+            graph.appendChild( document.createTextNode(graph.id) );
+
+            return graph;
+         }
       }
    };
+
+   function showGraph( id ) {
+      var graph = document.getElementById( id );
+      var graphContainer = graph.parentNode;
+
+      for( var i = 0; i < graphContainer.childNodes.length; i++ ) {
+         graphContainer.childNodes[i].style.visibility = "hidden";
+      }
+
+      graph.style.visibility = "visible";
+   }
 
    function btnClick( btn ) {
       var panelNum = btn.id.replace( "btn", "" );
