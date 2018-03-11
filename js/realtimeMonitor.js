@@ -248,7 +248,7 @@ function RealtimeMonitor() {
 
          updateStats( panelNum, jsonResponse );
          updateUI( panelNum );
-      }, 1000 );
+      }, 2000 );
 
       function random( from, to ) {
          return Math.floor( Math.random() * (to - from + 1) ) + from;
@@ -291,7 +291,7 @@ function RealtimeMonitor() {
          var field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
-            var isMaxField = field.id.startsWith( PREFIX_MAX );
+            var isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
             var className = "normal";
             var fieldThresholds = panelThresholds[thresholdProp];
             var status = document.getElementById( "status" + prop + panelNum );
@@ -323,19 +323,21 @@ function RealtimeMonitor() {
                suffix.className = "";  // make visible
             }
          }
-
-         var panelStatus;
-
-         if( anyDanger ) {
-            panelStatus = "danger";
-         } else if( anyWarn ) {
-            panelStatus = "warn";
-         } else {
-            panelStatus = "normal";
-         }
-
-         titleBar.classList.remove( "normal", "warn", "danger" );
-         titleBar.classList.add( panelStatus );
       }
+
+      var panelStatus;
+
+      if( anyDanger ) {
+         panelStatus = "danger";
+      } else if( anyWarn ) {
+         panelStatus = "warn";
+      } else {
+         panelStatus = "normal";
+      }
+
+      titleBar.classList.remove( "normal" );
+      titleBar.classList.remove( "warn" );
+      titleBar.classList.remove( "danger" );
+      titleBar.classList.add( panelStatus );
    }
 }
