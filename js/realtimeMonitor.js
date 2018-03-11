@@ -70,13 +70,18 @@ function RealtimeMonitor() {
          CLASS_STATUS_DANGER         = "danger",
          CLASS_STATUS_NONE           = "none";
 
-   const ID_STUB_PANEL           = "panel",
-         ID_STUB_TITLE           = "title",
-         ID_STUB_MIN_MAX_BUTTON  = "btnMinMax",
-         ID_STUB_CONNECT_BUTTON  = "btnConnect",
-         ID_STUB_GRAPH           = "graph",
-         ID_STUB_STATUS          = "status",
-         ID_STUB_SUFFIX          = "suffix";
+   const ID_STUB_PANEL               = "panel",
+         ID_STUB_TITLE               = "title",
+         ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
+         ID_STUB_CONNECT_BUTTON      = "btnConnect",
+         ID_STUB_GRAPH               = "graph",
+         ID_STUB_STATUS              = "status",
+         ID_STUB_SUFFIX              = "suffix";
+
+   const TEXT_BUTTON_MINIMIZE        = "-",
+         TEXT_BUTTON_MAXIMIZE        = "+",
+         TEXT_BUTTON_CONNECT         = "Connect",
+         TEXT_BUTTON_DISCONNECT      = "Disconnect";
 
    const PREFIX_MAX = "max";
 
@@ -104,8 +109,8 @@ function RealtimeMonitor() {
          titleBar.appendChild( document.createTextNode(panelCfg.title) );
 
          btnMinMax.id = ID_STUB_MIN_MAX_BUTTON + i;
-         btnMinMax.innerHTML = "-";
-         btnMinMax.addEventListener( "click", function(event) { minimizeMaximize( this.id.replace("btnMinMax", "") ); } );
+         btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
+         btnMinMax.addEventListener( "click", function(event) { minimizeMaximize( this.id.replace(ID_STUB_MIN_MAX_BUTTON, "") ); } );
          titleBar.appendChild( btnMinMax );
 
          panel.appendChild( titleBar );
@@ -143,7 +148,7 @@ function RealtimeMonitor() {
 
          btnConnect.id = ID_STUB_CONNECT_BUTTON + i;
          btnConnect.addEventListener( "click", function(event) { connectBtnClick( this ); } );
-         btnConnect.appendChild( document.createTextNode("Connect") );
+         btnConnect.appendChild( document.createTextNode(TEXT_BUTTON_CONNECT) );
          btnConnectContainer.appendChild( btnConnect );
 
          panel.appendChild( btnConnectContainer );
@@ -224,10 +229,10 @@ function RealtimeMonitor() {
 
       if( panel.classList.contains(CLASS_MINIMIZED) ) {
          panel.classList.remove( CLASS_MINIMIZED );
-         btn.innerHTML = "-";
+         btn.innerHTML = TEXT_BUTTON_MINIMIZE;
       } else {
          panel.classList.add( CLASS_MINIMIZED );
-         btn.innerHTML = "+";
+         btn.innerHTML = TEXT_BUTTON_MAXIMIZE;
       }
    }
 
@@ -247,15 +252,15 @@ function RealtimeMonitor() {
    }
 
    function connectBtnClick( btn ) {
-      var panelNum = btn.id.replace( "btnConnect", "" );
-      var connected = btn.innerHTML.indexOf( "Disconnect" ) !== -1;
+      var panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
+      var connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
 
       if( connected ) {
          disconnect( panelNum );
-         btn.innerHTML = "Connect";
+         btn.innerHTML = TEXT_BUTTON_CONNECT;
       } else {
          connect( panelNum );
-         btn.innerHTML = "Disconnect";
+         btn.innerHTML = TEXT_BUTTON_DISCONNECT;
       }
    }
 
