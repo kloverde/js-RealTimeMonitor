@@ -70,7 +70,7 @@ function RealtimeMonitor() {
          CLASS_STATUS_DANGER         = "danger",
          CLASS_STATUS_NONE           = "none";
 
-   const ID_STUB_PANEL               = "panel",
+   const ID_STUB_PANEL               = "monitoringPanel",
          ID_STUB_TITLE               = "title",
          ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",

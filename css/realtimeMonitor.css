@@ -38,7 +38,7 @@
    margin: 5px;
 }
 
-.monitoringPanel * {
+.monitoringPanel, .monitoringPanel * {
    box-sizing: border-box;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .monitoringPanel.minimized {
-   height: 30px;
+   height: 29px;
    overflow: hidden;
 }
 
