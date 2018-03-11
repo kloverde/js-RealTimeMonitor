@@ -33,25 +33,6 @@
 
 "use strict";
 
-// The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
-// of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
-// following members:
-//
-// title :  Text displayed at the top of the panel
-// url   :  The URL used to update the panel
-// fields:  An array of objects specifying field configuration:
-//             prop       : The property name present in the JSON response - also used in the HTML ID
-//             label      : Text displayed in front of the value
-//             suffix     : Text displayed after the value.  Optional.
-//             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
-//                          Supports only numeric values, so if your data is text you'll have to map it to a number.
-//                            warn   : The warning threshold
-//                            danger : The danger threshold
-//             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
-//                          Assumes numeric values, so if your data is text you'll have to map it to a number.
-//                          When set to true, the max value will appear as a separate field immediately beneath the
-//                          field being tracked.
-
 function RealtimeMonitor() {
    const CLASS_MONITORING_PANEL      = "monitoringPanel",
          CLASS_TITLEBAR              = "titleBar",
@@ -85,10 +66,30 @@ function RealtimeMonitor() {
 
    const PREFIX_MAX = "max";
 
-   let thresholds = [];
-   let panelData = [];
+   let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
+   let panelData = {};
 
-   this.buildUI = function( appCfg ) {
+   /*
+    * The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
+    * of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
+    * following members:
+    *
+    * title :  Text displayed at the top of the panel
+    * url   :  The URL used to update the panel
+    * fields:  An array of objects specifying field configuration:
+    *             prop       : The property name present in the JSON response - also used in the HTML ID
+    *             label      : Text displayed in front of the value
+    *             suffix     : Text displayed after the value.  Optional.
+    *             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
+    *                          Supports only numeric values, so if your data is text you'll have to map it to a number.
+    *                            warn   : The warning threshold
+    *                            danger : The danger threshold
+    *             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
+    *                          Assumes numeric values, so if your data is text you'll have to map it to a number.
+    *                          When set to true, the max value will appear as a separate field immediately beneath the
+    *                          field being tracked.
+    */
+   this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
          let panelCfg = appCfg[i];
 
@@ -104,6 +105,11 @@ function RealtimeMonitor() {
          panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
 
+         // The settings object gets built piecemeal - as the opportunity arises.
+         settings[panel.id] = {};
+         settings[panel.id].url = appCfg[i].url;
+         settings[panel.id].thresholds = {};
+
          titleBar.id = ID_STUB_TITLE + i;
          titleBar.className = CLASS_TITLEBAR;
          titleBar.appendChild( document.createTextNode(panelCfg.title) );
@@ -115,7 +121,6 @@ function RealtimeMonitor() {
 
          panel.appendChild( titleBar );
 
-         thresholds[i] = [];
          panelData[ID_STUB_PANEL + i] = panelData[ID_STUB_PANEL + i] || [];
 
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
@@ -124,17 +129,19 @@ function RealtimeMonitor() {
             let fieldCfg = panelCfg.fields[j];
 
             if( fieldCfg.thresholds ) {
-               thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
+               settings[panel.id].thresholds[fieldCfg.prop] = fieldCfg.thresholds;  // More opportunistic saving of settings
             }
 
             fieldsContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
                fieldsContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
+               panelData[ID_STUB_PANEL + i][PREFIX_MAX + fieldCfg.prop] = null;;
             }
 
             fieldsContainer.appendChild( newFieldSeparator() );
-            panelData[ID_STUB_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
+
+            panelData[ID_STUB_PANEL + i][fieldCfg.prop] = null;
 
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
@@ -295,22 +302,21 @@ function RealtimeMonitor() {
       let stats = JSON.parse( jsonResponse );
 
       for( let prop in stats ) {
-         let maxProp = PREFIX_MAX + prop;
-
-         // Kind of a kludge.  To save on memory, the configuration passed to buildUI isn't saved, so we
-         // use the presence of a "max" property to see if the property from the server is recognized.
-
-         if( panel[maxProp] !== undefined ) {
+         // Process recognized data; ignore unrecognized data
+         if( panel[prop] !== undefined ) {
+            let maxProp = PREFIX_MAX + prop;
             panel[prop] = stats[prop];
-            panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
+
+            if( panel[maxProp] !== undefined ) {
+               panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
+            }
          }
       }
    }
 
    function updateUI( panelNum ) {
-      let panelThresholds = thresholds[panelNum];
+      let thresholds = settings[ ID_STUB_PANEL + panelNum ].thresholds;
       let data = panelData[ ID_STUB_PANEL + panelNum ];
-
       let titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
 
       let anyWarn = false,
@@ -324,7 +330,7 @@ function RealtimeMonitor() {
          if( field != null ) {
             let isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
             let className = CLASS_STATUS_NORMAL;
-            let fieldThresholds = panelThresholds[thresholdProp];
+            let fieldThresholds = thresholds[thresholdProp];
             let fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
 
             field.innerHTML = "";

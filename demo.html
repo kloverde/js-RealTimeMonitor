@@ -42,9 +42,14 @@
       <script type="text/javascript" src="js/realtimeMonitor.js"></script>
 
       <script type="text/javascript">
-         var ui = [ {
+         "use strict";
+
+         var configuration = [ {
             title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
+            // autoConnect : true/false
+            // startMinimized : true/false (default true) - true will force autoConnect to true
+            // draggable : true/false (default false)
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", thresholds : { warn : 70, danger : 90 }, showMax : true },
                         { prop : "rpm", label : "RPM:",  thresholds : { warn : 2000, danger : 2500 }, showMax : true },
@@ -53,7 +58,7 @@
                      ]
          }
 
-         /* You'll have to deactivate the 'hidden' CSS class to observe the XSS3 test */
+         /* You'll have to deactivate the visibilityHidden class to observe the XSS3 test, as suffixes are hidden until the 'Connect' button is clicked */
          /*
          ,{
             title  : "Test XSS Attacks <img src=\"asdf\" onerror=\"alert('xss1')\" />",
@@ -66,8 +71,8 @@
          }*/ ];
 
          document.addEventListener( "DOMContentLoaded", function() {
-            new RealtimeMonitor().buildUI( ui );
-            ui = null;
+            new RealtimeMonitor().initialize( configuration );
+            configuration = null;
          } );
       </script>
    </head>
