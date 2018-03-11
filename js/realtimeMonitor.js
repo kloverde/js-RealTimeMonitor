@@ -85,21 +85,21 @@ function RealtimeMonitor() {
 
    const PREFIX_MAX = "max";
 
-   var thresholds = [];
-   var panelData = [];
+   let thresholds = [];
+   let panelData = [];
 
    this.buildUI = function( appCfg ) {
-      for( var i = 0; i < appCfg.length; i++ ) {
-         var panelCfg = appCfg[i];
+      for( let i = 0; i < appCfg.length; i++ ) {
+         let panelCfg = appCfg[i];
 
-         var panel = document.createElement( "div" );
-         var titleBar = document.createElement( "div" );
-         var btnMinMax = document.createElement( "button" );
-         var fieldsContainer = document.createElement( "div" );
-         var btnConnectContainer = document.createElement( "div" );
-         var btnConnect = document.createElement( "button" );
-         var graphContainer = document.createElement( "div" );
-         var graphs = [];
+         let panel = document.createElement( "div" );
+         let titleBar = document.createElement( "div" );
+         let btnMinMax = document.createElement( "button" );
+         let fieldsContainer = document.createElement( "div" );
+         let btnConnectContainer = document.createElement( "div" );
+         let btnConnect = document.createElement( "button" );
+         let graphContainer = document.createElement( "div" );
+         let graphs = [];
 
          panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
@@ -120,8 +120,8 @@ function RealtimeMonitor() {
 
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
-         for( var j = 0; j < panelCfg.fields.length; j++ ) {
-            var fieldCfg = panelCfg.fields[j];
+         for( let j = 0; j < panelCfg.fields.length; j++ ) {
+            let fieldCfg = panelCfg.fields[j];
 
             if( fieldCfg.thresholds ) {
                thresholds[i][fieldCfg.prop] = fieldCfg.thresholds;  // We need to refer to this part of the configuration after the UI is built, so save it
@@ -153,17 +153,17 @@ function RealtimeMonitor() {
 
          panel.appendChild( btnConnectContainer );
 
-         for( var j = 0; j < graphs.length; j++ ) {
+         for( let j = 0; j < graphs.length; j++ ) {
             graphContainer.appendChild( graphs[j] );
          }
 
          document.body.appendChild( panel );
 
          function newField( isMax, propName, panelNum, hasThreshold, labelText, suffix ) {
-            var fieldContainer = document.createElement( "div" );
-            var status = document.createElement( "div" );
-            var label = document.createElement( "label" );
-            var val = document.createElement( "span" );
+            let fieldContainer = document.createElement( "div" );
+            let status = document.createElement( "div" );
+            let label = document.createElement( "label" );
+            let val = document.createElement( "span" );
 
             fieldContainer.className = CLASS_FIELD_CONTAINER;
 
@@ -198,7 +198,7 @@ function RealtimeMonitor() {
          }
 
          function newSuffix( suffix, prop, panelNum ) {
-            var elem = document.createElement( "span" );
+            let elem = document.createElement( "span" );
             elem.id = ID_STUB_SUFFIX + prop + panelNum;
             elem.className = CLASS_VISIBILITY_HIDDEN;
             elem.appendChild( document.createTextNode(suffix) );
@@ -206,13 +206,13 @@ function RealtimeMonitor() {
          }
 
          function newFieldSeparator() {
-            var separator = document.createElement( "div" );
+            let separator = document.createElement( "div" );
             separator.className = CLASS_FIELD_SEPARATOR;
             return separator;
          }
 
          function newGraph( propName, panelNum ) {
-            var graph = document.createElement( "div" );
+            let graph = document.createElement( "div" );
 
             graph.id = ID_STUB_GRAPH + propName + panelNum;
             graph.className = CLASS_VISIBILITY_GONE;
@@ -224,7 +224,7 @@ function RealtimeMonitor() {
    };
 
    function minimizeMaximize( panelNum ) {
-      var panel = document.getElementById( ID_STUB_PANEL + panelNum ),
+      let panel = document.getElementById( ID_STUB_PANEL + panelNum ),
           btn   = document.getElementById( ID_STUB_MIN_MAX_BUTTON + panelNum );
 
       if( panel.classList.contains(CLASS_MINIMIZED) ) {
@@ -237,11 +237,11 @@ function RealtimeMonitor() {
    }
 
    function showGraph( id ) {
-      var graph = document.getElementById( id );
-      var graphContainer = graph.parentNode;
+      let graph = document.getElementById( id );
+      let graphContainer = graph.parentNode;
 
-      for( var i = 0; i < graphContainer.childNodes.length; i++ ) {
-         var classList = graphContainer.childNodes[i].classList;
+      for( let i = 0; i < graphContainer.childNodes.length; i++ ) {
+         let classList = graphContainer.childNodes[i].classList;
 
          if( !classList.contains(CLASS_VISIBILITY_GONE) ) {
             classList.add( CLASS_VISIBILITY_GONE );
@@ -252,8 +252,8 @@ function RealtimeMonitor() {
    }
 
    function connectBtnClick( btn ) {
-      var panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
-      var connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
+      let panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
+      let connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
 
       if( connected ) {
          disconnect( panelNum );
@@ -264,11 +264,11 @@ function RealtimeMonitor() {
       }
    }
 
-   var simulator = null;
+   let simulator = null;
 
    function connect( panelNum ) {
       simulator = window.setInterval( function() {
-         var jsonResponse = JSON.stringify( {
+         let jsonResponse = JSON.stringify( {
             load : random(50, 100),
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
@@ -291,11 +291,11 @@ function RealtimeMonitor() {
    }
 
    function updateStats( panelNum, jsonResponse ) {
-      var panel = panelData[ ID_STUB_PANEL + panelNum ];
-      var stats = JSON.parse( jsonResponse );
+      let panel = panelData[ ID_STUB_PANEL + panelNum ];
+      let stats = JSON.parse( jsonResponse );
 
-      for( var prop in stats ) {
-         var maxProp = PREFIX_MAX + prop;
+      for( let prop in stats ) {
+         let maxProp = PREFIX_MAX + prop;
 
          // Kind of a kludge.  To save on memory, the configuration passed to buildUI isn't saved, so we
          // use the presence of a "max" property to see if the property from the server is recognized.
@@ -308,24 +308,24 @@ function RealtimeMonitor() {
    }
 
    function updateUI( panelNum ) {
-      var panelThresholds = thresholds[panelNum];
-      var data = panelData[ ID_STUB_PANEL + panelNum ];
+      let panelThresholds = thresholds[panelNum];
+      let data = panelData[ ID_STUB_PANEL + panelNum ];
 
-      var titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
+      let titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
 
-      var anyWarn = false,
+      let anyWarn = false,
           anyDanger = false;
 
-      for( var prop in data ) {
-         var thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
-         var value = data[prop];
-         var field = document.getElementById( prop + panelNum );
+      for( let prop in data ) {
+         let thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
+         let value = data[prop];
+         let field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
-            var isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
-            var className = CLASS_STATUS_NORMAL;
-            var fieldThresholds = panelThresholds[thresholdProp];
-            var fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
+            let isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
+            let className = CLASS_STATUS_NORMAL;
+            let fieldThresholds = panelThresholds[thresholdProp];
+            let fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
 
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
@@ -352,7 +352,7 @@ function RealtimeMonitor() {
 
             fieldStatus.classList.add( fieldThresholds ? className : CLASS_STATUS_NONE );
 
-            var suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
+            let suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
 
             if( suffix ) {
                suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );

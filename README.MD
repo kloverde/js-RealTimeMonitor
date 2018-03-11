@@ -7,3 +7,5 @@ I'm considering writing multiple front ends.  The current one uses vanilla JavaS
 With some modification, you can use this code as a starting point for a real application that does real-time web-based monitoring.
 
 You're free to use this software to your heart's content, but because this isn't a "real" application, there will never be a release.  Please don't contact me about this project - I only respond to questions about projects that have releases.
+
+Compatibility is limited to browsers which support 'const' and 'let'.  If the script doesn't work for you, you're overdue for a browser upgrade.
