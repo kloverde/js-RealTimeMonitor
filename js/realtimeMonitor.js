@@ -62,9 +62,12 @@ function RealtimeMonitor() {
    const TEXT_BUTTON_MINIMIZE        = "-",
          TEXT_BUTTON_MAXIMIZE        = "+",
          TEXT_BUTTON_CONNECT         = "Connect",
-         TEXT_BUTTON_DISCONNECT      = "Disconnect";
+         TEXT_BUTTON_DISCONNECT      = "Disconnect",
+         TEXT_LABEL_HIGHEST          = "Highest",
+         TEXT_LABEL_LOWEST           = "Lowest";
 
-   const PREFIX_MAX = "max";
+   const PROP_STUB_HIGHEST = "highest",
+         PROP_STUB_LOWEST  = "lowest";
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
@@ -80,10 +83,11 @@ function RealtimeMonitor() {
     *             prop       : The property name present in the JSON response - also used in the HTML ID
     *             label      : Text displayed in front of the value
     *             suffix     : Text displayed after the value.  Optional.
-    *             thresholds : An optional object specifying warning and danger levels - used to drive visual feedback.
-    *                          Supports only numeric values, so if your data is text you'll have to map it to a number.
-    *                            warn   : The warning threshold
-    *                            danger : The danger threshold
+    *             lowThresholds  : An optional object specifying warning and danger levels - used to drive visual feedback.
+    *                              Supports only numeric values, so if your data is text you'll have to map it to a number.
+    *                                 warn   : The warning threshold
+    *                                 danger : The danger threshold
+    *             highThresholds : Same as lowThresholds
     *             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
     *                          Assumes numeric values, so if your data is text you'll have to map it to a number.
     *                          When set to true, the max value will appear as a separate field immediately beneath the
@@ -91,16 +95,16 @@ function RealtimeMonitor() {
     */
    this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
-         let panelCfg = appCfg[i];
+         const panelCfg = appCfg[i];
 
-         let panel = document.createElement( "div" );
-         let titleBar = document.createElement( "div" );
-         let btnMinMax = document.createElement( "button" );
-         let fieldsContainer = document.createElement( "div" );
-         let btnConnectContainer = document.createElement( "div" );
-         let btnConnect = document.createElement( "button" );
-         let graphContainer = document.createElement( "div" );
-         let graphs = [];
+         const panel = document.createElement( "div" );
+         const titleBar = document.createElement( "div" );
+         const btnMinMax = document.createElement( "button" );
+         const fieldsContainer = document.createElement( "div" );
+         const btnConnectContainer = document.createElement( "div" );
+         const btnConnect = document.createElement( "button" );
+         const graphContainer = document.createElement( "div" );
+         const graphs = [];
 
          panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
@@ -108,7 +112,7 @@ function RealtimeMonitor() {
          // The settings object gets built piecemeal - as the opportunity arises.
          settings[panel.id] = {};
          settings[panel.id].url = appCfg[i].url;
-         settings[panel.id].thresholds = {};
+         settings[panel.id].highThresholds = {};
 
          titleBar.id = ID_STUB_TITLE + i;
          titleBar.className = CLASS_TITLEBAR;
@@ -126,23 +130,21 @@ function RealtimeMonitor() {
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
          for( let j = 0; j < panelCfg.fields.length; j++ ) {
-            let fieldCfg = panelCfg.fields[j];
+            const fieldCfg = panelCfg.fields[j];
 
-            if( fieldCfg.thresholds ) {
-               settings[panel.id].thresholds[fieldCfg.prop] = fieldCfg.thresholds;  // More opportunistic saving of settings
+            if( fieldCfg.highThresholds ) {
+               settings[panel.id].highThresholds[fieldCfg.prop] = fieldCfg.highThresholds;  // More opportunistic saving of settings
             }
 
-            fieldsContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
+            fieldsContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.highThresholds), fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showMax ) {
-               fieldsContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.thresholds), fieldCfg.label, fieldCfg.suffix) );
-               panelData[ID_STUB_PANEL + i][PREFIX_MAX + fieldCfg.prop] = null;;
+               fieldsContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.highThresholds), fieldCfg.label, fieldCfg.suffix) );
+               panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
             }
 
             fieldsContainer.appendChild( newFieldSeparator() );
-
             panelData[ID_STUB_PANEL + i][fieldCfg.prop] = null;
-
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
 
@@ -167,16 +169,16 @@ function RealtimeMonitor() {
          document.body.appendChild( panel );
 
          function newField( isMax, propName, panelNum, hasThreshold, labelText, suffix ) {
-            let fieldContainer = document.createElement( "div" );
-            let status = document.createElement( "div" );
-            let label = document.createElement( "label" );
-            let val = document.createElement( "span" );
+            const fieldContainer = document.createElement( "div" );
+            const status = document.createElement( "div" );
+            const label = document.createElement( "label" );
+            const val = document.createElement( "span" );
 
             fieldContainer.className = CLASS_FIELD_CONTAINER;
 
             if( isMax ) {
-               propName = PREFIX_MAX + propName;
-               labelText = "Max " + labelText;
+               propName = PROP_STUB_HIGHEST + propName;
+               labelText = TEXT_LABEL_HIGHEST + " " + labelText;
             } else {
                fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
@@ -205,7 +207,7 @@ function RealtimeMonitor() {
          }
 
          function newSuffix( suffix, prop, panelNum ) {
-            let elem = document.createElement( "span" );
+            const elem = document.createElement( "span" );
             elem.id = ID_STUB_SUFFIX + prop + panelNum;
             elem.className = CLASS_VISIBILITY_HIDDEN;
             elem.appendChild( document.createTextNode(suffix) );
@@ -213,13 +215,13 @@ function RealtimeMonitor() {
          }
 
          function newFieldSeparator() {
-            let separator = document.createElement( "div" );
+            const separator = document.createElement( "div" );
             separator.className = CLASS_FIELD_SEPARATOR;
             return separator;
          }
 
          function newGraph( propName, panelNum ) {
-            let graph = document.createElement( "div" );
+            const graph = document.createElement( "div" );
 
             graph.id = ID_STUB_GRAPH + propName + panelNum;
             graph.className = CLASS_VISIBILITY_GONE;
@@ -231,8 +233,8 @@ function RealtimeMonitor() {
    };
 
    function minimizeMaximize( panelNum ) {
-      let panel = document.getElementById( ID_STUB_PANEL + panelNum ),
-          btn   = document.getElementById( ID_STUB_MIN_MAX_BUTTON + panelNum );
+      const panel = document.getElementById( ID_STUB_PANEL + panelNum ),
+            btn   = document.getElementById( ID_STUB_MIN_MAX_BUTTON + panelNum );
 
       if( panel.classList.contains(CLASS_MINIMIZED) ) {
          panel.classList.remove( CLASS_MINIMIZED );
@@ -244,11 +246,11 @@ function RealtimeMonitor() {
    }
 
    function showGraph( id ) {
-      let graph = document.getElementById( id );
-      let graphContainer = graph.parentNode;
+      const graph = document.getElementById( id );
+      const graphContainer = graph.parentNode;
 
       for( let i = 0; i < graphContainer.childNodes.length; i++ ) {
-         let classList = graphContainer.childNodes[i].classList;
+         const classList = graphContainer.childNodes[i].classList;
 
          if( !classList.contains(CLASS_VISIBILITY_GONE) ) {
             classList.add( CLASS_VISIBILITY_GONE );
@@ -259,8 +261,8 @@ function RealtimeMonitor() {
    }
 
    function connectBtnClick( btn ) {
-      let panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
-      let connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
+      const panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
+      const connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
 
       if( connected ) {
          disconnect( panelNum );
@@ -275,7 +277,7 @@ function RealtimeMonitor() {
 
    function connect( panelNum ) {
       simulator = window.setInterval( function() {
-         let jsonResponse = JSON.stringify( {
+         const jsonResponse = JSON.stringify( {
             load : random(50, 100),
             rpm  : random(1500, 2700),
             ambientTemp  : random(70, 75),
@@ -298,13 +300,13 @@ function RealtimeMonitor() {
    }
 
    function updateStats( panelNum, jsonResponse ) {
-      let panel = panelData[ ID_STUB_PANEL + panelNum ];
-      let stats = JSON.parse( jsonResponse );
+      const panel = panelData[ ID_STUB_PANEL + panelNum ];
+      const stats = JSON.parse( jsonResponse );
 
       for( let prop in stats ) {
          // Process recognized data; ignore unrecognized data
          if( panel[prop] !== undefined ) {
-            let maxProp = PREFIX_MAX + prop;
+            const maxProp = PROP_STUB_HIGHEST + prop;
             panel[prop] = stats[prop];
 
             if( panel[maxProp] !== undefined ) {
@@ -315,35 +317,34 @@ function RealtimeMonitor() {
    }
 
    function updateUI( panelNum ) {
-      let thresholds = settings[ ID_STUB_PANEL + panelNum ].thresholds;
-      let data = panelData[ ID_STUB_PANEL + panelNum ];
-      let titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
+      const data = panelData[ ID_STUB_PANEL + panelNum ];
+      const titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
 
       let anyWarn = false,
           anyDanger = false;
 
       for( let prop in data ) {
-         let thresholdProp = prop.replace( new RegExp("^" + PREFIX_MAX), "" );
+         let thresholdProp = prop.replace( new RegExp("^" + PROP_STUB_HIGHEST), "" );
          let value = data[prop];
          let field = document.getElementById( prop + panelNum );
 
          if( field != null ) {
-            let isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
+            const isMaxField = field.id.indexOf( PROP_STUB_HIGHEST ) === 0;
+            const highThresholds = settings[ ID_STUB_PANEL + panelNum ].highThresholds[thresholdProp];
+            const fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
             let className = CLASS_STATUS_NORMAL;
-            let fieldThresholds = thresholds[thresholdProp];
-            let fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
 
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
 
-            if( fieldThresholds ) {
-               if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
+            if( highThresholds ) {
+               if( highThresholds.danger && value >= highThresholds.danger ) {
                   className = CLASS_STATUS_DANGER;
 
                   if( !isMaxField ) {
                      anyDanger = true;
                   }
-               } else if( fieldThresholds.warn && value >= fieldThresholds.warn ) {
+               } else if( highThresholds.warn && value >= highThresholds.warn ) {
                   className = CLASS_STATUS_WARN;
 
                   if( !isMaxField ) {
@@ -356,9 +357,9 @@ function RealtimeMonitor() {
             fieldStatus.classList.remove( CLASS_STATUS_WARN );
             fieldStatus.classList.remove( CLASS_STATUS_DANGER );
 
-            fieldStatus.classList.add( fieldThresholds ? className : CLASS_STATUS_NONE );
+            fieldStatus.classList.add( highThresholds ? className : CLASS_STATUS_NONE );
 
-            let suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
+            const suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
 
             if( suffix ) {
                suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );

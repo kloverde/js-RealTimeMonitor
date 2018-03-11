@@ -51,10 +51,10 @@
             // startMinimized : true/false (default true) - true will force autoConnect to true
             // draggable : true/false (default false)
             fields : [
-                        { prop : "load", label : "Load:", suffix : "%", thresholds : { warn : 70, danger : 90 }, showMax : true },
-                        { prop : "rpm", label : "RPM:",  thresholds : { warn : 2000, danger : 2500 }, showMax : true },
+                        { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showMax : true },
+                        { prop : "rpm", label : "RPM:",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showMax : true },
                         { prop : "ambientTemp", label : "Ambient Temp:", suffix : "°F", showMax : false },
-                        { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", thresholds : { warn : 200, danger : 250 }, showMax : true }
+                        { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showMax : true }
                      ]
          }
 
