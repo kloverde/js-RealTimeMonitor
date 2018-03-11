@@ -53,8 +53,24 @@
 //                          field being tracked.
 
 function RealtimeMonitor() {
-   var PREFIX_MAX = "max",
-       PREFIX_PANEL = "panel";
+   const CLASS_MONITORING_PANEL = "monitoringPanel",
+         CLASS_TITLEBAR         = "titleBar",
+         CLASS_FIELD_CONTAINER  = "fieldContainer",
+         CLASS_FIELDS_CONTAINER = "fieldsContainer",
+         CLASS_GRAPH_CONTAINER  = "graphContainer",
+         CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
+         CLASS_HAS_GRAPH        = "hasGraph",
+         CLASS_HIDDEN           = "hidden",
+         CLASS_FIELD_SEPARATOR  = "fieldSeparator",
+         CLASS_MINIMIZED        = "minimized",
+         CLASS_STATUS           = "status",
+         CLASS_STATUS_NORMAL    = "normal",
+         CLASS_STATUS_WARN      = "warn",
+         CLASS_STATUS_DANGER    = "danger",
+         CLASS_STATUS_NONE      = "none";
+
+   const PREFIX_MAX = "max",
+         PREFIX_PANEL = "panel";
 
    var thresholds = [];
    var panelData = [];
@@ -73,10 +89,10 @@ function RealtimeMonitor() {
          var graphs = [];
 
          panel.id = PREFIX_PANEL + i;
-         panel.className = "monitoringPanel";
+         panel.className = CLASS_MONITORING_PANEL;
 
          titleBar.id = "title" + i;
-         titleBar.className = "titleBar";
+         titleBar.className = CLASS_TITLEBAR;
          titleBar.appendChild( document.createTextNode(panelCfg.title) );
 
          btnMinMax.id = "btnMinMax" + i;
@@ -89,7 +105,7 @@ function RealtimeMonitor() {
          thresholds[i] = [];
          panelData[PREFIX_PANEL + i] = panelData[PREFIX_PANEL + i] || [];
 
-         fieldsContainer.className = "fieldsContainer";
+         fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
          for( var j = 0; j < panelCfg.fields.length; j++ ) {
             var fieldCfg = panelCfg.fields[j];
@@ -110,12 +126,12 @@ function RealtimeMonitor() {
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
 
-         graphContainer.className = "graphContainer";
+         graphContainer.className = CLASS_GRAPH_CONTAINER;
 
          panel.appendChild( fieldsContainer );
          panel.appendChild( graphContainer );
 
-         btnConnectContainer.className = "btnConnectContainer";
+         btnConnectContainer.className = CLASS_CONNECT_BTN_CONTAINER;
 
          btnConnect.id = "btnConnect" + i;
          btnConnect.addEventListener( "click", function(event) { connectBtnClick( this ); } );
@@ -136,13 +152,13 @@ function RealtimeMonitor() {
             var label = document.createElement( "label" );
             var val = document.createElement( "span" );
 
-            fieldContainer.className = "fieldContainer";
+            fieldContainer.className = CLASS_FIELD_CONTAINER;
 
             if( isMax ) {
                propName = PREFIX_MAX + propName;
                labelText = "Max " + labelText;
             } else {
-               fieldContainer.className += " hasGraph";
+               fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
                label.addEventListener( "click", function(event) {
                   showGraph( "graph" + this.getAttribute("for") );
@@ -150,7 +166,7 @@ function RealtimeMonitor() {
             }
 
             status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-            status.className = "status";
+            status.className = CLASS_STATUS;
             fieldContainer.appendChild( status );
 
             val.id = propName + panelNum;
@@ -171,14 +187,14 @@ function RealtimeMonitor() {
          function newSuffix( suffix, prop, panelNum ) {
             var elem = document.createElement( "span" );
             elem.id = "suffix" + prop + panelNum;
-            elem.className = "hidden";
+            elem.className = CLASS_HIDDEN;
             elem.appendChild( document.createTextNode(suffix) );
             return elem;
          }
 
          function newFieldSeparator() {
             var separator = document.createElement( "div" );
-            separator.className = "fieldSeparator";
+            separator.className = CLASS_FIELD_SEPARATOR;
             return separator;
          }
 
@@ -194,17 +210,14 @@ function RealtimeMonitor() {
    };
 
    function minimizeMaximize( panelNum ) {
-      var min = "minimized",
-          max = "maximized";
-
       var panel = document.getElementById( "panel" + panelNum ),
           btn   = document.getElementById( "btnMinMax" + panelNum );
 
-      if( panel.classList.contains(min) ) {
-         panel.classList.remove( min );
+      if( panel.classList.contains(CLASS_MINIMIZED) ) {
+         panel.classList.remove( CLASS_MINIMIZED );
          btn.innerHTML = "-";
       } else {
-         panel.classList.add( min );
+         panel.classList.add( CLASS_MINIMIZED );
          btn.innerHTML = "+";
       }
    }
@@ -292,22 +305,22 @@ function RealtimeMonitor() {
 
          if( field != null ) {
             var isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
-            var className = "normal";
+            var className = CLASS_STATUS_NORMAL;
             var fieldThresholds = panelThresholds[thresholdProp];
-            var status = document.getElementById( "status" + prop + panelNum );
+            var fieldStatus = document.getElementById( "status" + prop + panelNum );
 
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
 
             if( fieldThresholds ) {
                if( fieldThresholds.danger && value >= fieldThresholds.danger ) {
-                  className = "danger";
+                  className = CLASS_STATUS_DANGER;
 
                   if( !isMaxField ) {
                      anyDanger = true;
                   }
                } else if( fieldThresholds.warn && value >= fieldThresholds.warn ) {
-                  className = "warn";
+                  className = CLASS_STATUS_WARN;
 
                   if( !isMaxField ) {
                      anyWarn = true;
@@ -315,29 +328,30 @@ function RealtimeMonitor() {
                }
             }
 
-            status.className = "status " + (fieldThresholds ? className : "none");
+            fieldStatus.classList.remove( CLASS_STATUS_NORMAL );
+            fieldStatus.classList.remove( CLASS_STATUS_WARN );
+            fieldStatus.classList.remove( CLASS_STATUS_DANGER );
+
+            fieldStatus.classList.add( fieldThresholds ? className : CLASS_STATUS_NONE );
 
             var suffix = document.getElementById( "suffix" + prop + panelNum );
 
             if( suffix ) {
-               suffix.className = "";  // make visible
+               suffix.classList.remove( CLASS_HIDDEN );
             }
          }
       }
 
-      var panelStatus;
+      titleBar.classList.remove( CLASS_STATUS_NORMAL );
+      titleBar.classList.remove( CLASS_STATUS_WARN );
+      titleBar.classList.remove( CLASS_STATUS_DANGER );
 
       if( anyDanger ) {
-         panelStatus = "danger";
+         titleBar.classList.add( CLASS_STATUS_DANGER );
       } else if( anyWarn ) {
-         panelStatus = "warn";
+         titleBar.classList.add( CLASS_STATUS_WARN );
       } else {
-         panelStatus = "normal";
+         titleBar.classList.add( CLASS_STATUS_NORMAL );
       }
-
-      titleBar.classList.remove( "normal" );
-      titleBar.classList.remove( "warn" );
-      titleBar.classList.remove( "danger" );
-      titleBar.classList.add( panelStatus );
    }
 }
