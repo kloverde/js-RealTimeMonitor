@@ -31,15 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.monitoringPanel * {
-   box-sizing: border-box;
-}
-
 .monitoringPanel {
    display: inline-block;
    width: 300px;
    border: 1px solid black;
    margin: 5px;
+}
+
+.monitoringPanel * {
+   box-sizing: border-box;
+}
+
+.monitoringPanel .visibilityHidden {
+   visibility: hidden;
+}
+
+.monitoringPanel .visibilityGone {
+   display: none;
 }
 
 .monitoringPanel button::-moz-focus-inner {
@@ -49,10 +57,6 @@
 .monitoringPanel.minimized {
    height: 30px;
    overflow: hidden;
-}
-
-.monitoringPanel .hidden {
-   display: none;
 }
 
 .monitoringPanel .titleBar {
@@ -91,12 +95,11 @@
    vertical-align: bottom;
 }
 
-.monitoringPanel .graphContainer div[id^=graph] {
+.monitoringPanel .graphContainer.graph {
    position: absolute;
    bottom: px;
    width: 100%;
    height: 100%;
-   visibility: hidden;
 }
 
 .monitoringPanel .fieldsContainer {

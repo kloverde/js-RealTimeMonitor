@@ -53,24 +53,32 @@
 //                          field being tracked.
 
 function RealtimeMonitor() {
-   const CLASS_MONITORING_PANEL = "monitoringPanel",
-         CLASS_TITLEBAR         = "titleBar",
-         CLASS_FIELD_CONTAINER  = "fieldContainer",
-         CLASS_FIELDS_CONTAINER = "fieldsContainer",
-         CLASS_GRAPH_CONTAINER  = "graphContainer",
+   const CLASS_MONITORING_PANEL      = "monitoringPanel",
+         CLASS_TITLEBAR              = "titleBar",
+         CLASS_FIELD_CONTAINER       = "fieldContainer",
+         CLASS_FIELDS_CONTAINER      = "fieldsContainer",
+         CLASS_GRAPH_CONTAINER       = "graphContainer",
          CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
-         CLASS_HAS_GRAPH        = "hasGraph",
-         CLASS_HIDDEN           = "hidden",
-         CLASS_FIELD_SEPARATOR  = "fieldSeparator",
-         CLASS_MINIMIZED        = "minimized",
-         CLASS_STATUS           = "status",
-         CLASS_STATUS_NORMAL    = "normal",
-         CLASS_STATUS_WARN      = "warn",
-         CLASS_STATUS_DANGER    = "danger",
-         CLASS_STATUS_NONE      = "none";
+         CLASS_HAS_GRAPH             = "hasGraph",
+         CLASS_VISIBILITY_HIDDEN     = "visibilityHidden",
+         CLASS_VISIBILITY_GONE       = "visibilityGone",
+         CLASS_FIELD_SEPARATOR       = "fieldSeparator",
+         CLASS_MINIMIZED             = "minimized",
+         CLASS_STATUS                = "status",
+         CLASS_STATUS_NORMAL         = "normal",
+         CLASS_STATUS_WARN           = "warn",
+         CLASS_STATUS_DANGER         = "danger",
+         CLASS_STATUS_NONE           = "none";
 
-   const PREFIX_MAX = "max",
-         PREFIX_PANEL = "panel";
+   const ID_STUB_PANEL           = "panel",
+         ID_STUB_TITLE           = "title",
+         ID_STUB_MIN_MAX_BUTTON  = "btnMinMax",
+         ID_STUB_CONNECT_BUTTON  = "btnConnect",
+         ID_STUB_GRAPH           = "graph",
+         ID_STUB_STATUS          = "status",
+         ID_STUB_SUFFIX          = "suffix";
+
+   const PREFIX_MAX = "max";
 
    var thresholds = [];
    var panelData = [];
@@ -88,14 +96,14 @@ function RealtimeMonitor() {
          var graphContainer = document.createElement( "div" );
          var graphs = [];
 
-         panel.id = PREFIX_PANEL + i;
+         panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
 
-         titleBar.id = "title" + i;
+         titleBar.id = ID_STUB_TITLE + i;
          titleBar.className = CLASS_TITLEBAR;
          titleBar.appendChild( document.createTextNode(panelCfg.title) );
 
-         btnMinMax.id = "btnMinMax" + i;
+         btnMinMax.id = ID_STUB_MIN_MAX_BUTTON + i;
          btnMinMax.innerHTML = "-";
          btnMinMax.addEventListener( "click", function(event) { minimizeMaximize( this.id.replace("btnMinMax", "") ); } );
          titleBar.appendChild( btnMinMax );
@@ -103,7 +111,7 @@ function RealtimeMonitor() {
          panel.appendChild( titleBar );
 
          thresholds[i] = [];
-         panelData[PREFIX_PANEL + i] = panelData[PREFIX_PANEL + i] || [];
+         panelData[ID_STUB_PANEL + i] = panelData[ID_STUB_PANEL + i] || [];
 
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
@@ -121,7 +129,7 @@ function RealtimeMonitor() {
             }
 
             fieldsContainer.appendChild( newFieldSeparator() );
-            panelData[PREFIX_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
+            panelData[ID_STUB_PANEL + i][PREFIX_MAX + fieldCfg.prop] = 0;
 
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
@@ -133,7 +141,7 @@ function RealtimeMonitor() {
 
          btnConnectContainer.className = CLASS_CONNECT_BTN_CONTAINER;
 
-         btnConnect.id = "btnConnect" + i;
+         btnConnect.id = ID_STUB_CONNECT_BUTTON + i;
          btnConnect.addEventListener( "click", function(event) { connectBtnClick( this ); } );
          btnConnect.appendChild( document.createTextNode("Connect") );
          btnConnectContainer.appendChild( btnConnect );
@@ -161,11 +169,11 @@ function RealtimeMonitor() {
                fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
                label.addEventListener( "click", function(event) {
-                  showGraph( "graph" + this.getAttribute("for") );
+                  showGraph( ID_STUB_GRAPH + this.getAttribute("for") );
                } );
             }
 
-            status.id = "status" + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
+            status.id = ID_STUB_STATUS + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
             status.className = CLASS_STATUS;
             fieldContainer.appendChild( status );
 
@@ -186,8 +194,8 @@ function RealtimeMonitor() {
 
          function newSuffix( suffix, prop, panelNum ) {
             var elem = document.createElement( "span" );
-            elem.id = "suffix" + prop + panelNum;
-            elem.className = CLASS_HIDDEN;
+            elem.id = ID_STUB_SUFFIX + prop + panelNum;
+            elem.className = CLASS_VISIBILITY_HIDDEN;
             elem.appendChild( document.createTextNode(suffix) );
             return elem;
          }
@@ -201,7 +209,8 @@ function RealtimeMonitor() {
          function newGraph( propName, panelNum ) {
             var graph = document.createElement( "div" );
 
-            graph.id = "graph" + propName + panelNum;
+            graph.id = ID_STUB_GRAPH + propName + panelNum;
+            graph.className = CLASS_VISIBILITY_GONE;
             graph.appendChild( document.createTextNode(graph.id) );
 
             return graph;
@@ -210,8 +219,8 @@ function RealtimeMonitor() {
    };
 
    function minimizeMaximize( panelNum ) {
-      var panel = document.getElementById( "panel" + panelNum ),
-          btn   = document.getElementById( "btnMinMax" + panelNum );
+      var panel = document.getElementById( ID_STUB_PANEL + panelNum ),
+          btn   = document.getElementById( ID_STUB_MIN_MAX_BUTTON + panelNum );
 
       if( panel.classList.contains(CLASS_MINIMIZED) ) {
          panel.classList.remove( CLASS_MINIMIZED );
@@ -227,10 +236,14 @@ function RealtimeMonitor() {
       var graphContainer = graph.parentNode;
 
       for( var i = 0; i < graphContainer.childNodes.length; i++ ) {
-         graphContainer.childNodes[i].style.visibility = "hidden";
+         var classList = graphContainer.childNodes[i].classList;
+
+         if( !classList.contains(CLASS_VISIBILITY_GONE) ) {
+            classList.add( CLASS_VISIBILITY_GONE );
+         }
       }
 
-      graph.style.visibility = "visible";
+      graph.classList.remove( CLASS_VISIBILITY_GONE );
    }
 
    function connectBtnClick( btn ) {
@@ -273,7 +286,7 @@ function RealtimeMonitor() {
    }
 
    function updateStats( panelNum, jsonResponse ) {
-      var panel = panelData[ PREFIX_PANEL + panelNum ];
+      var panel = panelData[ ID_STUB_PANEL + panelNum ];
       var stats = JSON.parse( jsonResponse );
 
       for( var prop in stats ) {
@@ -291,9 +304,9 @@ function RealtimeMonitor() {
 
    function updateUI( panelNum ) {
       var panelThresholds = thresholds[panelNum];
-      var data = panelData[ PREFIX_PANEL + panelNum ];
+      var data = panelData[ ID_STUB_PANEL + panelNum ];
 
-      var titleBar = document.getElementById( "title" + panelNum );
+      var titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
 
       var anyWarn = false,
           anyDanger = false;
@@ -307,7 +320,7 @@ function RealtimeMonitor() {
             var isMaxField = field.id.indexOf( PREFIX_MAX ) === 0;
             var className = CLASS_STATUS_NORMAL;
             var fieldThresholds = panelThresholds[thresholdProp];
-            var fieldStatus = document.getElementById( "status" + prop + panelNum );
+            var fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
 
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
@@ -334,10 +347,10 @@ function RealtimeMonitor() {
 
             fieldStatus.classList.add( fieldThresholds ? className : CLASS_STATUS_NONE );
 
-            var suffix = document.getElementById( "suffix" + prop + panelNum );
+            var suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
 
             if( suffix ) {
-               suffix.classList.remove( CLASS_HIDDEN );
+               suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );
             }
          }
       }
