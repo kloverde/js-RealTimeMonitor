@@ -112,6 +112,12 @@
    padding-left: 4px;
 }
 
+.monitoringPanel .fieldContainer.currentValue {
+   background-color: #F0F0F0;
+   font-size: larger;
+   font-weight: bold;
+}
+
 .monitoringPanel .fieldContainer .status {
    height: 14px;
    width: 14px;
@@ -139,7 +145,6 @@
 }
 
 .monitoringPanel .fieldContainer label {
-   font-weight: bold;
    vertical-align: middle;
    margin-left: 7px;
    padding-right: 10px;

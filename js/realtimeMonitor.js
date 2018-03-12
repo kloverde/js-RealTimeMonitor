@@ -40,6 +40,7 @@ function RealtimeMonitor() {
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
          CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
+         CLASS_CURRENT_VALUE         = "currentValue",
          CLASS_HAS_GRAPH             = "hasGraph",
          CLASS_VISIBILITY_HIDDEN     = "visibilityHidden",
          CLASS_VISIBILITY_GONE       = "visibilityGone",
@@ -198,6 +199,7 @@ function RealtimeMonitor() {
                propName = PROP_STUB_HIGHEST + propName;
                labelText = TEXT_LABEL_HIGHEST + " " + labelText;
             } else if( FIELD_TYPE_FIELD === fieldType ) {
+               fieldContainer.classList.add( CLASS_CURRENT_VALUE );
                fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
                label.addEventListener( "click", function(event) {
