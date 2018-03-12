@@ -66,8 +66,12 @@ function RealtimeMonitor() {
          TEXT_LABEL_HIGHEST          = "Highest",
          TEXT_LABEL_LOWEST           = "Lowest";
 
-   const PROP_STUB_HIGHEST = "highest",
-         PROP_STUB_LOWEST  = "lowest";
+   const PROP_STUB_HIGHEST           = "highest",
+         PROP_STUB_LOWEST            = "lowest";
+
+   const FIELD_TYPE_FIELD            = 0,
+         FIELD_TYPE_LOWEST           = 1,
+         FIELD_TYPE_HIGHEST          = 2;
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
@@ -88,10 +92,10 @@ function RealtimeMonitor() {
     *                                 warn   : The warning threshold
     *                                 danger : The danger threshold
     *             highThresholds : Same as lowThresholds
-    *             showMax    : A boolean which specifies whether to display the largest recorded value for 'prop'.
-    *                          Assumes numeric values, so if your data is text you'll have to map it to a number.
-    *                          When set to true, the max value will appear as a separate field immediately beneath the
-    *                          field being tracked.
+    *             showLowest/showHighest : A boolean which specifies whether to display the smallest/largest recorded value for 'prop'.
+    *                                      Assumes numeric values, so if your data is text you'll have to map it to a number.  When
+    *                                      set to true, the value will appear as a separate field immediately beneath the field being
+    *                                      tracked.  When set to false, the low/high will viewable as a tooltip.
     */
    this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
@@ -112,6 +116,7 @@ function RealtimeMonitor() {
          // The settings object gets built piecemeal - as the opportunity arises.
          settings[panel.id] = {};
          settings[panel.id].url = appCfg[i].url;
+         settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
 
          titleBar.id = ID_STUB_TITLE + i;
@@ -132,19 +137,29 @@ function RealtimeMonitor() {
          for( let j = 0; j < panelCfg.fields.length; j++ ) {
             const fieldCfg = panelCfg.fields[j];
 
+            if( fieldCfg.lowThresholds ) {
+               settings[panel.id].lowThresholds[fieldCfg.prop] = fieldCfg.lowThresholds;  // More opportunistic saving of settings
+            }
+
             if( fieldCfg.highThresholds ) {
                settings[panel.id].highThresholds[fieldCfg.prop] = fieldCfg.highThresholds;  // More opportunistic saving of settings
             }
 
-            fieldsContainer.appendChild( newField(false, fieldCfg.prop, i, Boolean(fieldCfg.highThresholds), fieldCfg.label, fieldCfg.suffix) );
+            fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
 
-            if( fieldCfg.showMax ) {
-               fieldsContainer.appendChild( newField(true, fieldCfg.prop, i, Boolean(fieldCfg.highThresholds), fieldCfg.label, fieldCfg.suffix) );
-               panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
+            if( fieldCfg.showLowest ) {
+               fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
             }
 
-            fieldsContainer.appendChild( newFieldSeparator() );
+            if( fieldCfg.showHighest ) {
+               fieldsContainer.appendChild( newField(FIELD_TYPE_HIGHEST, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
+            }
+
             panelData[ID_STUB_PANEL + i][fieldCfg.prop] = null;
+            panelData[ID_STUB_PANEL + i][PROP_STUB_LOWEST + fieldCfg.prop] = null;
+            panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
+
+            fieldsContainer.appendChild( newFieldSeparator() );
             graphs.push( newGraph(fieldCfg.prop, i) );
          }
 
@@ -168,7 +183,7 @@ function RealtimeMonitor() {
 
          document.body.appendChild( panel );
 
-         function newField( isMax, propName, panelNum, hasThreshold, labelText, suffix ) {
+         function newField( fieldType, propName, panelNum, labelText, suffix ) {
             const fieldContainer = document.createElement( "div" );
             const status = document.createElement( "div" );
             const label = document.createElement( "label" );
@@ -176,10 +191,13 @@ function RealtimeMonitor() {
 
             fieldContainer.className = CLASS_FIELD_CONTAINER;
 
-            if( isMax ) {
+            if( FIELD_TYPE_LOWEST === fieldType ) {
+               propName = PROP_STUB_LOWEST + propName;
+               labelText = TEXT_LABEL_LOWEST + " " + labelText;
+            } else if( FIELD_TYPE_HIGHEST === fieldType ) {
                propName = PROP_STUB_HIGHEST + propName;
                labelText = TEXT_LABEL_HIGHEST + " " + labelText;
-            } else {
+            } else if( FIELD_TYPE_FIELD === fieldType ) {
                fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
                label.addEventListener( "click", function(event) {
@@ -278,10 +296,10 @@ function RealtimeMonitor() {
    function connect( panelNum ) {
       simulator = window.setInterval( function() {
          const jsonResponse = JSON.stringify( {
-            load : random(50, 100),
-            rpm  : random(1500, 2700),
-            ambientTemp  : random(70, 75),
-            internalTemp : random(175, 260),
+            load         : random( 50, 100 ),
+            rpm          : random( 200, 2700 ),
+            ambientTemp  : random( 70, 75 ),
+            internalTemp : random( 175, 260 ),
             rhinocerous  : 45,  // unrecognized properties do not cause errors
             jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
          } );
@@ -305,13 +323,13 @@ function RealtimeMonitor() {
 
       for( let prop in stats ) {
          // Process recognized data; ignore unrecognized data
-         if( panel[prop] !== undefined ) {
-            const maxProp = PROP_STUB_HIGHEST + prop;
-            panel[prop] = stats[prop];
+         if( defined(panel[prop])  ) {
+            const lowestProp  = PROP_STUB_LOWEST + prop,
+                  highestProp = PROP_STUB_HIGHEST + prop;
 
-            if( panel[maxProp] !== undefined ) {
-               panel[maxProp] = panel[maxProp] >= panel[prop] ? panel[maxProp] : panel[prop];
-            }
+            panel[prop] = stats[prop];
+            panel[lowestProp] = panel[lowestProp] == null || panel[lowestProp] > panel[prop] ? panel[prop] : panel[lowestProp];
+            panel[highestProp] = panel[highestProp] == null || panel[highestProp] < panel[prop] ? panel[prop] : panel[highestProp];
          }
       }
    }
@@ -320,49 +338,107 @@ function RealtimeMonitor() {
       const data = panelData[ ID_STUB_PANEL + panelNum ];
       const titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
 
-      let anyWarn = false,
-          anyDanger = false;
+      let anyWarn   = false,
+          anyDanger = false,
+          showStatusInTitleBar = false;
 
       for( let prop in data ) {
-         let thresholdProp = prop.replace( new RegExp("^" + PROP_STUB_HIGHEST), "" );
-         let value = data[prop];
-         let field = document.getElementById( prop + panelNum );
+         const thresholdProp = prop.replace( new RegExp("^(" + PROP_STUB_LOWEST + "|" + PROP_STUB_HIGHEST + ")"), "" );
 
-         if( field != null ) {
-            const isMaxField = field.id.indexOf( PROP_STUB_HIGHEST ) === 0;
-            const highThresholds = settings[ ID_STUB_PANEL + panelNum ].highThresholds[thresholdProp];
+         const lowThresholds  = settings[ ID_STUB_PANEL + panelNum ].lowThresholds[thresholdProp],
+               highThresholds = settings[ ID_STUB_PANEL + panelNum ].highThresholds[thresholdProp];
+
+         const value = data[prop];
+
+         const field = document.getElementById( prop + panelNum ),
+               isLowField  = field && field.id.indexOf( PROP_STUB_LOWEST ) === 0,
+               isHighField = field && field.id.indexOf( PROP_STUB_HIGHEST ) === 0;
+
+         showStatusInTitleBar = !showStatusInTitleBar && (something(lowThresholds) || something(highThresholds));
+
+         if( field ) {
             const fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
-            let className = CLASS_STATUS_NORMAL;
+
+            let classNameFromLowThreshold  = null,
+                classNameFromHighThreshold = null,
+                winningClassName = lowThresholds || highThresholds ? CLASS_STATUS_NORMAL : CLASS_STATUS_NONE;
 
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
 
-            if( highThresholds ) {
-               if( highThresholds.danger && value >= highThresholds.danger ) {
-                  className = CLASS_STATUS_DANGER;
+            if( lowThresholds ) {
+               classNameFromLowThreshold = checkAgainstLow();
 
-                  if( !isMaxField ) {
-                     anyDanger = true;
-                  }
-               } else if( highThresholds.warn && value >= highThresholds.warn ) {
-                  className = CLASS_STATUS_WARN;
-
-                  if( !isMaxField ) {
+               if( classNameFromLowThreshold === CLASS_STATUS_WARN ) {
+                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyWarn = true;
+                  }
+               } else if( classNameFromLowThreshold === CLASS_STATUS_DANGER ) {
+                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                     anyDanger = true;
                   }
                }
             }
 
+            if( highThresholds ) {
+               classNameFromHighThreshold = checkAgainstHigh();
+
+               if( classNameFromHighThreshold === CLASS_STATUS_WARN ) {
+                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                     anyWarn = true;
+                  }
+               } else if( classNameFromHighThreshold === CLASS_STATUS_DANGER ) {
+                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                     anyDanger = true;
+                  }
+               }
+            }
+
+            // Pick the worst outcome as the winning field status
+
+            if( classNameFromLowThreshold === CLASS_STATUS_WARN || classNameFromHighThreshold === CLASS_STATUS_WARN ) {
+               winningClassName = CLASS_STATUS_WARN;
+            }
+
+            if( classNameFromLowThreshold === CLASS_STATUS_DANGER || classNameFromHighThreshold === CLASS_STATUS_DANGER ) {
+               winningClassName = CLASS_STATUS_DANGER;
+            }
+
+            fieldStatus.classList.remove( CLASS_STATUS_NONE );
             fieldStatus.classList.remove( CLASS_STATUS_NORMAL );
             fieldStatus.classList.remove( CLASS_STATUS_WARN );
             fieldStatus.classList.remove( CLASS_STATUS_DANGER );
 
-            fieldStatus.classList.add( highThresholds ? className : CLASS_STATUS_NONE );
+            fieldStatus.classList.add( winningClassName );
 
             const suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
 
             if( suffix ) {
                suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );
+            }
+
+            function checkAgainstLow() {
+               var className = CLASS_STATUS_NORMAL;
+
+               if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
+                  className = CLASS_STATUS_DANGER;
+               } else if( something(lowThresholds) && something(lowThresholds.warn) && value <= lowThresholds.warn ) {
+                  className = CLASS_STATUS_WARN;
+               }
+
+               return className;
+            }
+
+            function checkAgainstHigh() {
+               var className = CLASS_STATUS_NORMAL;
+
+               if( something(highThresholds.danger) && value >= highThresholds.danger ) {
+                  className = CLASS_STATUS_DANGER;
+               } else if( something(highThresholds.warn) && value >= highThresholds.warn ) {
+                  className = CLASS_STATUS_WARN;
+               }
+
+               return className;
             }
          }
       }
@@ -371,12 +447,33 @@ function RealtimeMonitor() {
       titleBar.classList.remove( CLASS_STATUS_WARN );
       titleBar.classList.remove( CLASS_STATUS_DANGER );
 
-      if( anyDanger ) {
-         titleBar.classList.add( CLASS_STATUS_DANGER );
-      } else if( anyWarn ) {
-         titleBar.classList.add( CLASS_STATUS_WARN );
+      // Pick the worst outcome as the winning title bar status
+
+      if( showStatusInTitleBar ) {
+         if( anyDanger ) {
+            titleBar.classList.add( CLASS_STATUS_DANGER );
+         } else if( anyWarn ) {
+            titleBar.classList.add( CLASS_STATUS_WARN );
+         } else {
+            titleBar.classList.add( CLASS_STATUS_NORMAL );
+         }
       } else {
-         titleBar.classList.add( CLASS_STATUS_NORMAL );
+         titleBar.classList.add( CLASS_STATUS_NONE );
       }
+   }
+
+   function defined( obj ) {
+      return typeof obj !== "undefined";
+   }
+
+   function something( obj ) {
+      const isUndef = typeof obj === "undefined";
+      let isNull = false;
+
+      if( !isUndef ) {
+         isNull = obj == null;
+      }
+
+      return !isUndef && !isNull;
    }
 }
