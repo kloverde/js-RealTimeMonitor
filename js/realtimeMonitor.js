@@ -52,7 +52,7 @@ function RealtimeMonitor() {
          CLASS_STATUS_DANGER         = "danger",
          CLASS_STATUS_NONE           = "none";
 
-   const ID_STUB_PANEL               = "monitoringPanel",
+   const ID_STUB_PANEL               = "panel",
          ID_STUB_TITLE               = "title",
          ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
@@ -119,14 +119,21 @@ function RealtimeMonitor() {
          settings[panel.id].url = appCfg[i].url;
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
+         settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
 
-         titleBar.id = ID_STUB_TITLE + i;
+         titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
          titleBar.appendChild( document.createTextNode(panelCfg.title) );
 
-         btnMinMax.id = ID_STUB_MIN_MAX_BUTTON + i;
+         btnMinMax.id = panel.id + ID_STUB_MIN_MAX_BUTTON;
          btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
-         btnMinMax.addEventListener( "click", function(event) { minimizeMaximize( this.id.replace(ID_STUB_MIN_MAX_BUTTON, "") ); } );
+
+         ( function(panelId) {
+            btnMinMax.addEventListener( "click", function(event) {
+               minimizeMaximize( panelId );
+            } );
+         } )( panel.id );
+
          titleBar.appendChild( btnMinMax );
 
          panel.appendChild( titleBar );
@@ -146,14 +153,14 @@ function RealtimeMonitor() {
                settings[panel.id].highThresholds[fieldCfg.prop] = fieldCfg.highThresholds;  // More opportunistic saving of settings
             }
 
-            fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
+            fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
 
             if( fieldCfg.showLowest ) {
-               fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
+               fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
             }
 
             if( fieldCfg.showHighest ) {
-               fieldsContainer.appendChild( newField(FIELD_TYPE_HIGHEST, fieldCfg.prop, i, fieldCfg.label, fieldCfg.suffix) );
+               fieldsContainer.appendChild( newField(FIELD_TYPE_HIGHEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
             }
 
             panelData[ID_STUB_PANEL + i][fieldCfg.prop] = null;
@@ -161,7 +168,8 @@ function RealtimeMonitor() {
             panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
 
             fieldsContainer.appendChild( newFieldSeparator() );
-            graphs.push( newGraph(fieldCfg.prop, i) );
+
+            graphs.push( newGraph(panel.id, fieldCfg.prop) );
          }
 
          graphContainer.className = CLASS_GRAPH_CONTAINER;
@@ -170,9 +178,14 @@ function RealtimeMonitor() {
          panel.appendChild( graphContainer );
 
          btnConnectContainer.className = CLASS_CONNECT_BTN_CONTAINER;
+         btnConnect.id = panel.id + ID_STUB_CONNECT_BUTTON;
 
-         btnConnect.id = ID_STUB_CONNECT_BUTTON + i;
-         btnConnect.addEventListener( "click", function(event) { connectBtnClick( this ); } );
+         ( function(panelId) {
+            btnConnect.addEventListener( "click", function(event) {
+               connectDisconnect( panelId );
+            } );
+         } )( panel.id );
+
          btnConnect.appendChild( document.createTextNode(TEXT_BUTTON_CONNECT) );
          btnConnectContainer.appendChild( btnConnect );
 
@@ -183,78 +196,84 @@ function RealtimeMonitor() {
          }
 
          document.body.appendChild( panel );
+      }
 
-         function newField( fieldType, propName, panelNum, labelText, suffix ) {
-            const fieldContainer = document.createElement( "div" );
-            const status = document.createElement( "div" );
-            const label = document.createElement( "label" );
-            const val = document.createElement( "span" );
+      function newField( fieldType, propName, panelId, labelText, suffix ) {
+         const fieldContainer = document.createElement( "div" );
+         const status = document.createElement( "div" );
+         const label = document.createElement( "label" );
+         const val = document.createElement( "span" );
 
-            fieldContainer.className = CLASS_FIELD_CONTAINER;
+         fieldContainer.className = CLASS_FIELD_CONTAINER;
 
-            if( FIELD_TYPE_LOWEST === fieldType ) {
-               propName = PROP_STUB_LOWEST + propName;
-               labelText = TEXT_LABEL_LOWEST + " " + labelText;
-            } else if( FIELD_TYPE_HIGHEST === fieldType ) {
-               propName = PROP_STUB_HIGHEST + propName;
-               labelText = TEXT_LABEL_HIGHEST + " " + labelText;
-            } else if( FIELD_TYPE_FIELD === fieldType ) {
-               fieldContainer.classList.add( CLASS_CURRENT_VALUE );
-               fieldContainer.classList.add( CLASS_HAS_GRAPH );
+         if( FIELD_TYPE_LOWEST === fieldType ) {
+            propName = PROP_STUB_LOWEST + propName;
+            labelText = TEXT_LABEL_LOWEST + " " + labelText;
+         } else if( FIELD_TYPE_HIGHEST === fieldType ) {
+            propName = PROP_STUB_HIGHEST + propName;
+            labelText = TEXT_LABEL_HIGHEST + " " + labelText;
+         } else if( FIELD_TYPE_FIELD === fieldType ) {
+            fieldContainer.classList.add( CLASS_CURRENT_VALUE );
+            fieldContainer.classList.add( CLASS_HAS_GRAPH );
 
-               label.addEventListener( "click", function(event) {
-                  showGraph( ID_STUB_GRAPH + this.getAttribute("for") );
-               } );
-            }
-
-            status.id = ID_STUB_STATUS + propName + panelNum;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-            status.className = CLASS_STATUS;
-            fieldContainer.appendChild( status );
-
-            val.id = propName + panelNum;
-
-            label.setAttribute( "for", val.id );
-            label.appendChild( document.createTextNode(labelText) );
-            fieldContainer.appendChild( label );
-
-            fieldContainer.appendChild( val );
-
-            if( suffix ) {
-               fieldContainer.appendChild( newSuffix(suffix, propName, panelNum) );
-            }
-
-            return fieldContainer;
+            label.addEventListener( "click", function(event) {
+               showGraph( panelId + ID_STUB_GRAPH + propName );
+            } );
          }
 
-         function newSuffix( suffix, prop, panelNum ) {
-            const elem = document.createElement( "span" );
-            elem.id = ID_STUB_SUFFIX + prop + panelNum;
-            elem.className = CLASS_VISIBILITY_HIDDEN;
-            elem.appendChild( document.createTextNode(suffix) );
-            return elem;
+         status.id = panelId + ID_STUB_STATUS + propName;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
+         status.className = CLASS_STATUS;
+         fieldContainer.appendChild( status );
+
+         val.id = panelId + propName;
+
+         label.setAttribute( "for", val.id );
+         label.appendChild( document.createTextNode(labelText) );
+         fieldContainer.appendChild( label );
+
+         fieldContainer.appendChild( val );
+
+         if( suffix ) {
+            fieldContainer.appendChild( newSuffix(suffix, propName, panelId) );
          }
 
-         function newFieldSeparator() {
-            const separator = document.createElement( "div" );
-            separator.className = CLASS_FIELD_SEPARATOR;
-            return separator;
+         return fieldContainer;
+      }
+
+      for( let panelId in settings ) {
+         if( settings[panelId].autoConnect ) {
+            connectDisconnect( panelId );
          }
+      }
 
-         function newGraph( propName, panelNum ) {
-            const graph = document.createElement( "div" );
+      function newSuffix( suffix, prop, panelId ) {
+         const elem = document.createElement( "span" );
+         elem.id = panelId + ID_STUB_SUFFIX + prop;
+         elem.className = CLASS_VISIBILITY_HIDDEN;
+         elem.appendChild( document.createTextNode(suffix) );
+         return elem;
+      }
 
-            graph.id = ID_STUB_GRAPH + propName + panelNum;
-            graph.className = CLASS_VISIBILITY_GONE;
-            graph.appendChild( document.createTextNode(graph.id) );
+      function newFieldSeparator() {
+         const separator = document.createElement( "div" );
+         separator.className = CLASS_FIELD_SEPARATOR;
+         return separator;
+      }
 
-            return graph;
-         }
+      function newGraph( panelId, propName ) {
+         const graph = document.createElement( "div" );
+
+         graph.id = panelId + ID_STUB_GRAPH + propName;
+         graph.className = CLASS_VISIBILITY_GONE;
+         graph.appendChild( document.createTextNode(graph.id) );
+
+         return graph;
       }
    };
 
-   function minimizeMaximize( panelNum ) {
-      const panel = document.getElementById( ID_STUB_PANEL + panelNum ),
-            btn   = document.getElementById( ID_STUB_MIN_MAX_BUTTON + panelNum );
+   function minimizeMaximize( panelId ) {
+      const panel = document.getElementById( panelId ),
+            btn   = document.getElementById( panelId + ID_STUB_MIN_MAX_BUTTON );
 
       if( panel.classList.contains(CLASS_MINIMIZED) ) {
          panel.classList.remove( CLASS_MINIMIZED );
@@ -280,22 +299,23 @@ function RealtimeMonitor() {
       graph.classList.remove( CLASS_VISIBILITY_GONE );
    }
 
-   function connectBtnClick( btn ) {
-      const panelNum = btn.id.replace( ID_STUB_CONNECT_BUTTON, "" );
+   function connectDisconnect( panelId ) {
+      const cfg = settings[ panelId ];
+      const btn = document.getElementById( panelId + ID_STUB_CONNECT_BUTTON );
       const connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
 
       if( connected ) {
-         disconnect( panelNum );
+         disconnect( panelId );
          btn.innerHTML = TEXT_BUTTON_CONNECT;
       } else {
-         connect( panelNum );
+         connect( panelId, cfg.url );
          btn.innerHTML = TEXT_BUTTON_DISCONNECT;
       }
    }
 
    let simulator = null;
 
-   function connect( panelNum ) {
+   function connect( panelId, url ) {
       simulator = window.setInterval( function() {
          const jsonResponse = JSON.stringify( {
             load         : random( 50, 100 ),
@@ -306,8 +326,8 @@ function RealtimeMonitor() {
             jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
          } );
 
-         updateStats( panelNum, jsonResponse );
-         updateUI( panelNum );
+         updateStats( panelId, jsonResponse );
+         updateUI( panelId );
       }, 2000 );
 
       function random( from, to ) {
@@ -315,12 +335,12 @@ function RealtimeMonitor() {
       }
    }
 
-   function disconnect( panelNum ) {
+   function disconnect( panelId ) {
       window.clearInterval( simulator );
    }
 
-   function updateStats( panelNum, jsonResponse ) {
-      const panel = panelData[ ID_STUB_PANEL + panelNum ];
+   function updateStats( panelId, jsonResponse ) {
+      const panel = panelData[ panelId ];
       const stats = JSON.parse( jsonResponse );
 
       for( let prop in stats ) {
@@ -336,9 +356,9 @@ function RealtimeMonitor() {
       }
    }
 
-   function updateUI( panelNum ) {
-      const data = panelData[ ID_STUB_PANEL + panelNum ];
-      const titleBar = document.getElementById( ID_STUB_TITLE + panelNum );
+   function updateUI( panelId ) {
+      const data = panelData[ panelId ];
+      const titleBar = document.getElementById( panelId + ID_STUB_TITLE );
 
       let anyWarn   = false,
           anyDanger = false,
@@ -347,19 +367,19 @@ function RealtimeMonitor() {
       for( let prop in data ) {
          const thresholdProp = prop.replace( new RegExp("^(" + PROP_STUB_LOWEST + "|" + PROP_STUB_HIGHEST + ")"), "" );
 
-         const lowThresholds  = settings[ ID_STUB_PANEL + panelNum ].lowThresholds[thresholdProp],
-               highThresholds = settings[ ID_STUB_PANEL + panelNum ].highThresholds[thresholdProp];
+         const lowThresholds  = settings[ panelId ].lowThresholds[ thresholdProp ],
+               highThresholds = settings[ panelId ].highThresholds[ thresholdProp ];
 
-         const value = data[prop];
+         const value = data[ prop ];
 
-         const field = document.getElementById( prop + panelNum ),
-               isLowField  = field && field.id.indexOf( PROP_STUB_LOWEST ) === 0,
-               isHighField = field && field.id.indexOf( PROP_STUB_HIGHEST ) === 0;
+         const field = document.getElementById( panelId + prop ),
+               isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0 && field && field.id == panelId + prop,
+               isHighField = prop.indexOf( PROP_STUB_HIGHEST ) === 0 && field && field.id == panelId + prop
 
          showStatusInTitleBar = !showStatusInTitleBar && (something(lowThresholds) || something(highThresholds));
 
          if( field ) {
-            const fieldStatus = document.getElementById( ID_STUB_STATUS + prop + panelNum );
+            const fieldStatus = document.getElementById( panelId + ID_STUB_STATUS + prop );
 
             let classNameFromLowThreshold  = null,
                 classNameFromHighThreshold = null,
@@ -413,7 +433,7 @@ function RealtimeMonitor() {
 
             fieldStatus.classList.add( winningClassName );
 
-            const suffix = document.getElementById( ID_STUB_SUFFIX + prop + panelNum );
+            const suffix = document.getElementById( panelId + ID_STUB_SUFFIX + prop );
 
             if( suffix ) {
                suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );
