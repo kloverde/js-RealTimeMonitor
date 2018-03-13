@@ -31,6 +31,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+@import url( "../realtimeMonitor.css" );
+
 .monitoringPanel {
    background-color: tan;
 }
