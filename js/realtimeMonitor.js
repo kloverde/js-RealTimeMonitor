@@ -50,7 +50,9 @@ function RealtimeMonitor() {
          CLASS_STATUS_NORMAL         = "normal",
          CLASS_STATUS_WARN           = "warn",
          CLASS_STATUS_DANGER         = "danger",
-         CLASS_STATUS_NONE           = "none";
+         CLASS_STATUS_NONE           = "none",
+         CLASS_HIGH_LOW_LABEL        = "highLowLabel",
+         CLASS_HIGH_LOW_VALUE        = "highLowValue";
 
    const ID_STUB_PANEL               = "panel",
          ID_STUB_TITLE               = "title",
@@ -202,16 +204,21 @@ function RealtimeMonitor() {
          const fieldContainer = document.createElement( "div" );
          const label = document.createElement( "label" );
          const val = document.createElement( "span" );
+
          let status = null;
+
+         let highLowClass = null;
 
          fieldContainer.className = CLASS_FIELD_CONTAINER;
 
          if( fieldType === FIELD_TYPE_LOWEST ) {
             propName = PROP_STUB_LOWEST + propName;
             labelText = TEXT_LABEL_LOWEST + " " + labelText;
+            highLowClass = CLASS_HIGH_LOW_VALUE;
          } else if( fieldType === FIELD_TYPE_HIGHEST ) {
             propName = PROP_STUB_HIGHEST + propName;
             labelText = TEXT_LABEL_HIGHEST + " " + labelText;
+            highLowClass = CLASS_HIGH_LOW_VALUE;
          } else if( fieldType === FIELD_TYPE_FIELD ) {
             status = document.createElement( "div" );
             status.id = panelId + ID_STUB_STATUS + propName;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
@@ -228,6 +235,11 @@ function RealtimeMonitor() {
 
          val.id = panelId + propName;
 
+         if( highLowClass ) {
+            label.className = CLASS_HIGH_LOW_LABEL;
+            val.className = highLowClass;
+         }
+
          label.setAttribute( "for", val.id );
          label.appendChild( document.createTextNode(labelText) );
          fieldContainer.appendChild( label );
@@ -235,7 +247,7 @@ function RealtimeMonitor() {
          fieldContainer.appendChild( val );
 
          if( suffix ) {
-            fieldContainer.appendChild( newSuffix(suffix, propName, panelId) );
+            fieldContainer.appendChild( newSuffix(highLowClass, suffix, propName, panelId) );
          }
 
          return fieldContainer;
@@ -247,11 +259,18 @@ function RealtimeMonitor() {
          }
       }
 
-      function newSuffix( suffix, prop, panelId ) {
+      function newSuffix( highLowClass, suffix, prop, panelId ) {
          const elem = document.createElement( "span" );
+
          elem.id = panelId + ID_STUB_SUFFIX + prop;
          elem.className = CLASS_VISIBILITY_HIDDEN;
+
+         if( highLowClass ) {
+            elem.classList.add( highLowClass );
+         }
+
          elem.appendChild( document.createTextNode(suffix) );
+
          return elem;
       }
 
@@ -301,7 +320,6 @@ function RealtimeMonitor() {
    }
 
    function connectDisconnect( panelId ) {
-      const cfg = settings[ panelId ];
       const btn = document.getElementById( panelId + ID_STUB_CONNECT_BUTTON );
       const connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
 
@@ -309,14 +327,14 @@ function RealtimeMonitor() {
          disconnect( panelId );
          btn.innerHTML = TEXT_BUTTON_CONNECT;
       } else {
-         connect( panelId, cfg.url );
+         connect( panelId );
          btn.innerHTML = TEXT_BUTTON_DISCONNECT;
       }
    }
 
    let simulator = null;
 
-   function connect( panelId, url ) {
+   function connect( panelId ) {
       simulator = window.setInterval( function() {
          const jsonResponse = JSON.stringify( {
             load         : random( 50, 100 ),
@@ -428,18 +446,28 @@ function RealtimeMonitor() {
             }
 
             if( fieldStatus ) {
-               fieldStatus.classList.remove( CLASS_STATUS_NONE );
-               fieldStatus.classList.remove( CLASS_STATUS_NORMAL );
-               fieldStatus.classList.remove( CLASS_STATUS_WARN );
-               fieldStatus.classList.remove( CLASS_STATUS_DANGER );
-
-               fieldStatus.classList.add( winningClassName );
+               setStatusColor( fieldStatus, winningClassName );
             }
 
             const suffix = document.getElementById( panelId + ID_STUB_SUFFIX + prop );
 
             if( suffix ) {
                suffix.classList.remove( CLASS_VISIBILITY_HIDDEN );
+            }
+
+            if( isLowField || isHighField ) {
+               setStatusColor( field, winningClassName );
+
+               if( suffix ) {
+                  setStatusColor( suffix, winningClassName );
+               }
+            }
+
+            function setStatusColor( element, className ) {
+               element.classList.remove( CLASS_STATUS_NORMAL );
+               element.classList.remove( CLASS_STATUS_WARN );
+               element.classList.remove( CLASS_STATUS_DANGER );
+               element.classList.add( className );
             }
 
             function checkAgainstLow() {

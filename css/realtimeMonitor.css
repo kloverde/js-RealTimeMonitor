@@ -165,6 +165,18 @@
    cursor: pointer;
 }
 
+.monitoringPanel .fieldContainer .highLowValue.normal {
+   color: #00FF00;
+}
+
+.monitoringPanel .fieldContainer .highLowValue.warn {
+   color: #FFFF00;
+}
+
+.monitoringPanel .fieldContainer .highLowValue.danger{
+   color: #FF0000;
+}
+
 .monitoringPanel .fieldSeparator {
    height: 11px;
 }
