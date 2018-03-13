@@ -200,30 +200,31 @@ function RealtimeMonitor() {
 
       function newField( fieldType, propName, panelId, labelText, suffix ) {
          const fieldContainer = document.createElement( "div" );
-         const status = document.createElement( "div" );
          const label = document.createElement( "label" );
          const val = document.createElement( "span" );
+         let status = null;
 
          fieldContainer.className = CLASS_FIELD_CONTAINER;
 
-         if( FIELD_TYPE_LOWEST === fieldType ) {
+         if( fieldType === FIELD_TYPE_LOWEST ) {
             propName = PROP_STUB_LOWEST + propName;
             labelText = TEXT_LABEL_LOWEST + " " + labelText;
-         } else if( FIELD_TYPE_HIGHEST === fieldType ) {
+         } else if( fieldType === FIELD_TYPE_HIGHEST ) {
             propName = PROP_STUB_HIGHEST + propName;
             labelText = TEXT_LABEL_HIGHEST + " " + labelText;
-         } else if( FIELD_TYPE_FIELD === fieldType ) {
+         } else if( fieldType === FIELD_TYPE_FIELD ) {
+            status = document.createElement( "div" );
+            status.id = panelId + ID_STUB_STATUS + propName;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
+            status.className = CLASS_STATUS;
+
             fieldContainer.classList.add( CLASS_CURRENT_VALUE );
             fieldContainer.classList.add( CLASS_HAS_GRAPH );
+            fieldContainer.appendChild( status );
 
             label.addEventListener( "click", function(event) {
                showGraph( panelId + ID_STUB_GRAPH + propName );
             } );
          }
-
-         status.id = panelId + ID_STUB_STATUS + propName;  // Display color coding when there's an ID, otherwise keep the element for the sake of consistent indentation
-         status.className = CLASS_STATUS;
-         fieldContainer.appendChild( status );
 
          val.id = panelId + propName;
 
@@ -426,12 +427,14 @@ function RealtimeMonitor() {
                winningClassName = CLASS_STATUS_DANGER;
             }
 
-            fieldStatus.classList.remove( CLASS_STATUS_NONE );
-            fieldStatus.classList.remove( CLASS_STATUS_NORMAL );
-            fieldStatus.classList.remove( CLASS_STATUS_WARN );
-            fieldStatus.classList.remove( CLASS_STATUS_DANGER );
+            if( fieldStatus ) {
+               fieldStatus.classList.remove( CLASS_STATUS_NONE );
+               fieldStatus.classList.remove( CLASS_STATUS_NORMAL );
+               fieldStatus.classList.remove( CLASS_STATUS_WARN );
+               fieldStatus.classList.remove( CLASS_STATUS_DANGER );
 
-            fieldStatus.classList.add( winningClassName );
+               fieldStatus.classList.add( winningClassName );
+            }
 
             const suffix = document.getElementById( panelId + ID_STUB_SUFFIX + prop );
 
