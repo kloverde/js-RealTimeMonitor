@@ -32,7 +32,7 @@
  */
 
 .monitoringPanel {
-   background-color: darkslategray;
+   background-color: #2F4F4F;
 }
 
 .monitoringPanel .fieldContainer label.highLowLabel {
