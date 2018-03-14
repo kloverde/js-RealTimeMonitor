@@ -60,6 +60,7 @@
 }
 
 .monitoringPanel .titleBar {
+   cursor: default;
    font-family: arial;
    font-size: 20px;
    font-weight: bold;
