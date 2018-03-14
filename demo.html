@@ -37,22 +37,35 @@
          OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       -->
 
-      <link rel="stylesheet" href="css/realtimeMonitor.css" title="Default"/>
-      <link rel="stylesheet" href="css/themes/black.css" title="Black"/>
-      <link rel="stylesheet" href="css/themes/burlywood.css" title="Burly Wood"/>
-      <link rel="stylesheet" href="css/themes/darkseagreen.css" title="Dark Sea Green"/>
-      <link rel="stylesheet" href="css/themes/darkslategray.css" title="Dark Slate Gray"/>
-      <link rel="stylesheet" href="css/themes/dimgray.css" title="Dim Gray"/>
-      <link rel="stylesheet" href="css/themes/lightslategray.css" title="Light Slate Gray"/>
-      <link rel="stylesheet" href="css/themes/lightsteelblue.css" title="Light Steel Blue"/>
-      <link rel="stylesheet" href="css/themes/silver.css" title="Silver"/>
-      <link rel="stylesheet" href="css/themes/tan.css" title="Tan"/>
-      <link rel="stylesheet" href="css/themes/thistle.css" title="Thistle"/>
-      <link rel="stylesheet" href="css/themes/wheat.css" title="Wheat"/>
+      <title>RealTimeMonitor Demo</title>
 
-      <script type="text/javascript" src="js/realtimeMonitor.js"></script>
+      <!-- The base stylesheet must always be imported -->
+      <link rel="stylesheet" href="css/realtimeMonitor.css"/>
 
-      <script type="text/javascript">
+      <!--
+         Theme stylesheets are optional.  Everything will work with just the base.
+         Chrome doesn't provide a means for selecting alternate stylesheets, but
+         Firefox and IE do.
+
+         Import theme stylesheets however you wish.  If you want the user to be able
+         to choose themes from a supporting browser, include them as alternate
+         stylesheets as I have done.
+
+         If you want to force a specific theme:  import just that one after the base
+         stylesheet, remove "alternate " from the rel attribute and remove the title
+         attribute.
+      -->
+      <link rel="alternate stylesheet" href="css/themes/black.css" title="Black"/>
+      <link rel="alternate stylesheet" href="css/themes/burlywood.css" title="Burly Wood"/>
+      <link rel="alternate stylesheet" href="css/themes/darkslategray.css" title="Dark Slate Gray"/>
+      <link rel="alternate stylesheet" href="css/themes/dimgray.css" title="Dim Gray"/>
+      <link rel="alternate stylesheet" href="css/themes/lightslategray.css" title="Light Slate Gray"/>
+      <link rel="alternate stylesheet" href="css/themes/lightsteelblue.css" title="Light Steel Blue"/>
+      <link rel="alternate stylesheet" href="css/themes/silver.css" title="Silver"/>
+
+      <script src="js/realtimeMonitor.js"></script>
+
+      <script>
          "use strict";
 
          var configuration = [ {

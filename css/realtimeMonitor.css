@@ -72,7 +72,7 @@
 }
 
 .monitoringPanel .titleBar.warn {
-   background: linear-gradient( to right, #FFFFFF, #FFFF00 );
+   background: linear-gradient( to right, #FFFFFF, #FFBB00 );
 }
 
 .monitoringPanel .titleBar.danger {
@@ -141,7 +141,7 @@
 }
 
 .monitoringPanel .fieldContainer .status.warn {
-   background-color: #FFFF00;
+   background-color: #FFBB00;
    border: 1px solid black;
 }
 
@@ -166,11 +166,11 @@
 }
 
 .monitoringPanel .fieldContainer .highLowValue.normal {
-   color: #00FF00;
+   color: #06CF2B;
 }
 
 .monitoringPanel .fieldContainer .highLowValue.warn {
-   color: #FFFF00;
+   color: #FFBB00;
 }
 
 .monitoringPanel .fieldContainer .highLowValue.danger{

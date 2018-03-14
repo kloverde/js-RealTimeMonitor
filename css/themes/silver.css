@@ -31,8 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@import url( "../realtimeMonitor.css" );
-
 .monitoringPanel {
    background-color: silver;
+}
+
+.monitoringPanel .titleBar.warn {
+   background: linear-gradient( to right, #FFFFFF, #FFFF00 );
+}
+
+.monitoringPanel .fieldContainer .status.warn {
+   background-color: #FFFF00;
+}
+
+.monitoringPanel .fieldContainer .highLowValue.warn {
+   color: #FFFF00;
+}
+
+.monitoringPanel .fieldContainer .highLowValue.normal {
+   color: #00FF00;
 }

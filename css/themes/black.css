@@ -31,12 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@import url( "../realtimeMonitor.css" );
-
 .monitoringPanel {
    background-color: #000000;
 }
 
-.monitoringPanel .fieldContainer label.highLowLabel {
+.monitoringPanel .fieldContainer.currentValue {
+   background-color: dimgrey;
+}
+
+.monitoringPanel .fieldContainer {
+   color: #DCDCDC;
+}
+
+.monitoringPanel .fieldContainer.hasGraph label:hover {
    color: #FFFFFF;
+}
+
+.monitoringPanel .fieldContainer .highLowValue.normal {
+   color: #00FF00;
 }
