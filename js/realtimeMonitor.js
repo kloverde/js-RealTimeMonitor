@@ -40,6 +40,8 @@
 function RealtimeMonitor() {
    const CLASS_MONITORING_PANEL      = "monitoringPanel",
          CLASS_TITLEBAR              = "titleBar",
+         CLASS_TITLEBAR_TITLE        = "titleBarTitle",
+         CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -109,7 +111,11 @@ function RealtimeMonitor() {
          const panelCfg = appCfg[i];
 
          const panel = document.createElement( "div" );
-         const titleBar = document.createElement( "div" );
+
+         const titleBar = document.createElement( "div" ),
+               titleBarTitle = document.createElement( "div" ),
+               titleBarControls = document.createElement( "div" );
+
          const btnMinMax = document.createElement( "button" );
          const fieldsContainer = document.createElement( "div" );
          const btnConnectContainer = document.createElement( "div" );
@@ -129,7 +135,11 @@ function RealtimeMonitor() {
 
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
-         titleBar.appendChild( document.createTextNode(panelCfg.title) );
+         titleBarTitle.className = CLASS_TITLEBAR_TITLE;
+         titleBarTitle.appendChild( document.createTextNode(panelCfg.title) );
+         titleBarControls.className = CLASS_TITLEBAR_CONTROLS;
+         titleBar.appendChild( titleBarTitle );
+         titleBar.appendChild( titleBarControls );
 
          btnMinMax.id = panel.id + ID_STUB_MIN_MAX_BUTTON;
          btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
@@ -140,7 +150,7 @@ function RealtimeMonitor() {
             } );
          } )( panel.id );
 
-         titleBar.appendChild( btnMinMax );
+         titleBarControls.appendChild( btnMinMax );
 
          panel.appendChild( titleBar );
 
