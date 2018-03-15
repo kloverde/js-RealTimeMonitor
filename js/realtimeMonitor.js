@@ -405,13 +405,14 @@ function RealtimeMonitor() {
 
          const value = data[ prop ];
 
-         const field = document.getElementById( panelId + prop ),
-               isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0 && field && field.id == panelId + prop,
-               isHighField = prop.indexOf( PROP_STUB_HIGHEST ) === 0 && field && field.id == panelId + prop
+         const field = document.getElementById( panelId + prop );
 
          showStatusInTitleBar = !showStatusInTitleBar && (something(lowThresholds) || something(highThresholds));
 
          if( field ) {
+            const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
+                  isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
+
             const fieldStatus = document.getElementById( panelId + ID_STUB_STATUS + prop );
 
             let classNameFromLowThreshold  = null,
