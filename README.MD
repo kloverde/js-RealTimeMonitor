@@ -9,7 +9,7 @@ This is a pure JavaScript application (no jQuery, etc.) that displays numeric da
 
 Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
-Compatibility is limited to browsers which support `[const](https://caniuse.com/#search=const)` and `[let](https://caniuse.com/#search=let)`, which means anything loosely modern, including the aging IE 11.
+Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const) and [let](https://caniuse.com/#search=let), which means anything loosely modern, including the aging IE 11.
 
 
 ## Color Coding
