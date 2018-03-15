@@ -1,26 +1,28 @@
-This application will use Web sockets to display data from a remote service in real time.  It gives visual feedback if the data falls outside of defined boundaries.  This software is limited to handling numeric data.
+RealTimeMonitor
+===============
 
-I threw this together because I wanted to play around with Web sockets and other technologies, and I was at a loss for a project idea.  I decided to simulate remote monitoring of an unspecified piece of equipment by returning randomly-generated data.
+See LICENSE for this software's licensing terms.
 
-I'm considering writing multiple front ends.  The current one uses vanilla JavaScript; I might do another in Angular, etc.  I've done enough jQuery projects both personally and professionally, so there definitely won't be a jQuery front end.
+This application is still being developed - it's not yet ready for use.
 
-With some modification, you can use this code as a starting point for a real application that does real-time web-based monitoring.
+This is a pure JavaScript application (no jQuery, etc.) that displays numeric data from a server in real time.  The basic premise is you define the fields you're expecting to get back, and you get constant updates.  This could be useful for remotely monitoring various types of sensors, etc.  Configuration is provided by a JavaScript object.  The fields are laid out vertically in a panel, and you can create as many panels as you wish.
 
-You're free to use this software to your heart's content, but because this isn't a "real" application, there will never be a release.  Please don't contact me about this project - I only respond to questions about projects that have releases.
+Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
-Compatibility is limited to browsers which support 'const' and 'let'.  If the script doesn't work for you, you're overdue for a browser upgrade.
+Compatibility is limited to browsers which support `[const](https://caniuse.com/#search=const)` and `[let](https://caniuse.com/#search=let)`, which means anything loosely modern, including the aging IE 11.
 
-# Color Coding
+
+## Color Coding
 
 Assuming you've declared thresholds for a field, each status (normal, warning and danger) has a different color associated with it.  Color coding is used in three ways:
 
-1. The status of the current reading is displayed as a colored square to the left of the field.  The status is determined by comparing the value to the high and low thresholds.
+1. The status of the latest reading is represented as a colored square to the left of the field.  The status is determined by comparing the value to the high and low thresholds.
 
-2. The highest & lowest (historical) readings are displayed as colored text.  These values are also compared against the high and low thresholds.  Unlike the real-time reading, these fields only change color if the values deteriorate to the point that a worse threshold is breached.  In other words, once it reaches 'warning', it can't get back to 'normal', and once it reaches 'danger', it's stuck there forever.
+2. The highest & lowest (the historical) readings are displayed as colored text.  These values are also compared against the high and low thresholds.  Unlike the real-time reading, these fields only change color if the values deteriorate to the point that a worse threshold is breached.  In other words, once it reaches 'warning', it can't get back to 'normal', and once it reaches 'danger', it remains there forever.
 
-3.  The titlebar indicates the worst status among the current readings of all fields.
+3.  The color of the titlebar indicates the worst status among the latest readings of all fields.
 
 
-# Themes
+## Themes
 
-Different colors are used to represent statuses of normal/warning/danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the background color of the panel.
+Different colors are used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the background color of the panel.

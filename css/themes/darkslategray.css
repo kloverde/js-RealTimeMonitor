@@ -7,6 +7,10 @@
  *
  * Donations:  https://paypal.me/KurtisLoVerde/5
  *
+ * This software is not licensed for use by a business or any for-profit entity,
+ * or for any for-profit purpose.  For all other use, this software is licensed
+ * under the following terms:
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
