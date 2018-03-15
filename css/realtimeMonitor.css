@@ -79,6 +79,7 @@
    white-space: nowrap;
    overflow-x: hidden;
    text-overflow: ellipsis;
+   margin-left: 30px;
 }
 
 .monitoringPanel .titleBar .titleBarControls {
