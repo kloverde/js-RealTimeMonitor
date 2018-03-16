@@ -1,4 +1,4 @@
-RealTimeMonitor
+RealtimeMonitor
 ===============
 
 See LICENSE for this software's licensing terms.
