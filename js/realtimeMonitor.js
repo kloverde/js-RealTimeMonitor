@@ -113,11 +113,11 @@ function RealtimeMonitor() {
          const panelCfg = appCfg[i];
 
          const panel = document.createElement( "div" );
-         const titleBar = document.createElement( "div" ),
+         const titleBar = document.createElement( "div" );
          const titleBarTitle = document.createElement( "div" );
          const fieldsContainer = document.createElement( "div" );
          const btnConnectContainer = document.createElement( "div" );
-         const btnConnect = document.createElement( "button" );
+         const btnConnect;
          const graphContainer = document.createElement( "div" );
          const graphs = [];
 
@@ -145,9 +145,7 @@ function RealtimeMonitor() {
                let c = panelCfg.controls[i];
 
                if( c === "minimize" ) {
-                  const btnMinMax = document.createElement( "button" );
-                  btnMinMax.id = panel.id + ID_STUB_MIN_MAX_BUTTON;
-                  btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
+                  const btnMinMax = newButton( panel.id + ID_STUB_MIN_MAX_BUTTON, TEXT_BUTTON_MINIMIZE );
 
                   ( function(panelId) {
                      btnMinMax.addEventListener( "click", function(event) {
@@ -158,9 +156,7 @@ function RealtimeMonitor() {
                   titleBarControls.appendChild( btnMinMax );
                   numButtons++;
                } else if( c === "close" ) {
-                  const btnClose = document.createElement( "button" );
-                  btnClose.id = panel.id + ID_STUB_CLOSE_BUTTON;
-                  btnClose.innerHTML = TEXT_BUTTON_CLOSE;
+                  const btnClose = newButton( panel.id + ID_STUB_CLOSE_BUTTON, TEXT_BUTTON_CLOSE );
 
                   ( function(panelId) {
                      btnClose.addEventListener( "click", function(event) {
@@ -231,7 +227,7 @@ function RealtimeMonitor() {
          panel.appendChild( graphContainer );
 
          btnConnectContainer.className = CLASS_CONNECT_BTN_CONTAINER;
-         btnConnect.id = panel.id + ID_STUB_CONNECT_BUTTON;
+         btnConnect = newButton( panel.id + ID_STUB_CONNECT_BUTTON, TEXT_BUTTON_CONNECT );
 
          ( function(panelId) {
             btnConnect.addEventListener( "click", function(event) {
@@ -239,7 +235,6 @@ function RealtimeMonitor() {
             } );
          } )( panel.id );
 
-         btnConnect.appendChild( document.createTextNode(TEXT_BUTTON_CONNECT) );
          btnConnectContainer.appendChild( btnConnect );
 
          panel.appendChild( btnConnectContainer );
@@ -347,6 +342,13 @@ function RealtimeMonitor() {
          graph.appendChild( document.createTextNode(graph.id) );
 
          return graph;
+      }
+
+      function newButton( id, text ) {
+         const btn = document.createElement( "button" );
+         btn.id = id;
+         btn.appendChild( document.createTextNode(text) );
+         return btn;
       }
    };
 
