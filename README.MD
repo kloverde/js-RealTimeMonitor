@@ -25,4 +25,6 @@ Assuming you've declared thresholds for a field, each status (normal, warning an
 
 ## Themes
 
-Different colors are used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the background color of the panel.
+The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Use of themes requires a supporting browser such as Firefox or IE.  Chrome does not have built-in support for this (ahem - quite old, well-established) technology.  I've read that third party addons are available for Chrome, but haven't tried any.
+
+Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
