@@ -503,7 +503,7 @@ function RealtimeMonitor() {
                }
 
                if( !settings[panelId].fields[prop].showHighest ) {
-                  label.title += (!settings[panelId].fields[prop].showHighest ? ", " : "") + TEXT_TOOLTIP_HIGHEST + panelData[panelId][PROP_STUB_HIGHEST + prop];
+                  label.title += (!settings[panelId].fields[prop].showLowest ? ", " : "") + TEXT_TOOLTIP_HIGHEST + panelData[panelId][PROP_STUB_HIGHEST + prop];
                }
             }
 
