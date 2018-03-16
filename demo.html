@@ -75,6 +75,7 @@
             url    : "http://localhost/RealtimeMonitor/status/site1",
             autoConnect : true,
             startMinimized : false,
+            controls : [ "minimize", "close" ],
             // draggable : true/false (default false)  // TODO
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
@@ -98,7 +99,7 @@
 
          document.addEventListener( "DOMContentLoaded", function() {
             new RealtimeMonitor().initialize( configuration );
-            configuration = null;
+            configuration = undefined;
          } );
       </script>
    </head>

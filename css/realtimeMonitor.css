@@ -77,13 +77,30 @@
    white-space: nowrap;
    overflow-x: hidden;
    text-overflow: ellipsis;
-   margin-left: 30px;
+}
+
+.monitoringPanel .titleBar .titleBarTitle.oneButton {
+   margin-left: 30px;  /* Match the width of .titleBarControls (one button) so that text centering will be based on panel width, not the width of the text container */
+}
+
+.monitoringPanel .titleBar .titleBarTitle.twoButtons {
+   margin-left: 45px;  /* Match the width of .titleBarControls.twoButtons so that text centering will be based on panel width, not the width of the text container */
 }
 
 .monitoringPanel .titleBar .titleBarControls {
    height: 100%;
-   width: 30px;
    text-align: center;
+   flex-basis: 30px;
+   flex-grow: 0;
+   flex-shrink: 0;
+}
+
+.monitoringPanel .titleBar .titleBarControls.twoButtons {
+   flex-basis: 45px;
+}
+
+.monitoringPanel .titleBar .titleBarControls.twoButtons button:nth-of-type(2) {
+   margin-left: 2px;
 }
 
 .monitoringPanel .titleBar.normal {

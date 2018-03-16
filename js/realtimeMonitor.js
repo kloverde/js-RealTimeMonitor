@@ -40,6 +40,8 @@ function RealtimeMonitor() {
          CLASS_TITLEBAR              = "titleBar",
          CLASS_TITLEBAR_TITLE        = "titleBarTitle",
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
+         CLASS_TITLEBAR_ONE_BUTTON   = "oneButton",
+         CLASS_TITLEBAR_TWO_BUTTONS  = "twoButtons",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -61,6 +63,7 @@ function RealtimeMonitor() {
    const ID_STUB_PANEL               = "panel",
          ID_STUB_TITLE               = "title",
          ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
+         ID_STUB_CLOSE_BUTTON        = "btnClose",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_STATUS              = "status",
@@ -68,6 +71,7 @@ function RealtimeMonitor() {
 
    const TEXT_BUTTON_MINIMIZE        = "-",
          TEXT_BUTTON_MAXIMIZE        = "+",
+         TEXT_BUTTON_CLOSE           = "x",
          TEXT_BUTTON_CONNECT         = "Connect",
          TEXT_BUTTON_DISCONNECT      = "Disconnect",
          TEXT_LABEL_HIGHEST          = "Highest",
@@ -109,12 +113,8 @@ function RealtimeMonitor() {
          const panelCfg = appCfg[i];
 
          const panel = document.createElement( "div" );
-
          const titleBar = document.createElement( "div" ),
-               titleBarTitle = document.createElement( "div" ),
-               titleBarControls = document.createElement( "div" );
-
-         const btnMinMax = document.createElement( "button" );
+         const titleBarTitle = document.createElement( "div" );
          const fieldsContainer = document.createElement( "div" );
          const btnConnectContainer = document.createElement( "div" );
          const btnConnect = document.createElement( "button" );
@@ -135,20 +135,59 @@ function RealtimeMonitor() {
          titleBar.className = CLASS_TITLEBAR;
          titleBarTitle.className = CLASS_TITLEBAR_TITLE;
          titleBarTitle.appendChild( document.createTextNode(panelCfg.title) );
-         titleBarControls.className = CLASS_TITLEBAR_CONTROLS;
          titleBar.appendChild( titleBarTitle );
-         titleBar.appendChild( titleBarControls );
 
-         btnMinMax.id = panel.id + ID_STUB_MIN_MAX_BUTTON;
-         btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
+         if( panelCfg.controls ) {
+            const titleBarControls = document.createElement( "div" );
+            let numButtons = 0;
 
-         ( function(panelId) {
-            btnMinMax.addEventListener( "click", function(event) {
-               minimizeMaximize( panelId );
-            } );
-         } )( panel.id );
+            for( let i = 0; i < panelCfg.controls.length; i++ ) {
+               let c = panelCfg.controls[i];
 
-         titleBarControls.appendChild( btnMinMax );
+               if( c === "minimize" ) {
+                  const btnMinMax = document.createElement( "button" );
+                  btnMinMax.id = panel.id + ID_STUB_MIN_MAX_BUTTON;
+                  btnMinMax.innerHTML = TEXT_BUTTON_MINIMIZE;
+
+                  ( function(panelId) {
+                     btnMinMax.addEventListener( "click", function(event) {
+                        minimizeMaximize( panelId );
+                     } );
+                  } )( panel.id );
+
+                  titleBarControls.appendChild( btnMinMax );
+                  numButtons++;
+               } else if( c === "close" ) {
+                  const btnClose = document.createElement( "button" );
+                  btnClose.id = panel.id + ID_STUB_CLOSE_BUTTON;
+                  btnClose.innerHTML = TEXT_BUTTON_CLOSE;
+
+                  ( function(panelId) {
+                     btnClose.addEventListener( "click", function(event) {
+                        close( panelId );
+                     } );
+                  } )( panel.id );
+
+                  titleBarControls.appendChild( btnClose );
+                  numButtons++;
+               }
+            }
+
+            if( numButtons > 0 ) {
+               titleBarControls.className = CLASS_TITLEBAR_CONTROLS;
+
+               if( numButtons === 1 ) {
+                  titleBarTitle.classList.add( CLASS_TITLEBAR_ONE_BUTTON );
+               }
+
+               if( numButtons === 2 ) {
+                  titleBarTitle.classList.add( CLASS_TITLEBAR_TWO_BUTTONS );
+                  titleBarControls.classList.add( CLASS_TITLEBAR_TWO_BUTTONS );
+               }
+
+               titleBar.appendChild( titleBarControls );
+            }
+         }
 
          panel.appendChild( titleBar );
 
@@ -227,7 +266,6 @@ function RealtimeMonitor() {
          const val = document.createElement( "span" );
 
          let status = null;
-
          let highLowClass = null;
 
          fieldContainer.className = CLASS_FIELD_CONTAINER;
@@ -377,6 +415,19 @@ function RealtimeMonitor() {
 
    function disconnect( panelId ) {
       window.clearInterval( simulator );
+   }
+
+   function close( panelId ) {
+      disconnect( panelId );
+
+      const panel = document.getElementById( panelId );
+
+      if( panel ) {
+         panel.parentNode.removeChild( panel );
+      }
+
+      panelData[ panelId ] = undefined;
+      settings[ panelId ] = undefined;
    }
 
    function updateStats( panelId, jsonResponse ) {
