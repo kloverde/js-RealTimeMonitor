@@ -117,7 +117,7 @@ function RealtimeMonitor() {
          const titleBarTitle = document.createElement( "div" );
          const fieldsContainer = document.createElement( "div" );
          const btnConnectContainer = document.createElement( "div" );
-         const btnConnect;
+         let   btnConnect;
          const graphContainer = document.createElement( "div" );
          const graphs = [];
 
