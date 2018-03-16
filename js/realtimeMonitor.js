@@ -209,7 +209,16 @@ function RealtimeMonitor() {
             graphContainer.appendChild( graphs[j] );
          }
 
+         if( panelCfg.startMinimized ) {
+            panel.classList.add( CLASS_VISIBILITY_HIDDEN );
+         }
+
          document.body.appendChild( panel );
+
+         if( panelCfg.startMinimized ) {
+            minimizeMaximize( panel.id );
+            panel.classList.remove( CLASS_VISIBILITY_HIDDEN );
+         }
       }
 
       function newField( fieldType, propName, panelId, labelText, suffix ) {

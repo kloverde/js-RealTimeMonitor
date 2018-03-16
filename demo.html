@@ -74,8 +74,8 @@
             title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
             autoConnect : true,
-            // startMinimized : true/false (default true) - true will force autoConnect to true
-            // draggable : true/false (default false)
+            startMinimized : false,
+            // draggable : true/false (default false)  // TODO
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
                         { prop : "rpm", label : "RPM:",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showLowest : true, showHighest : true },
