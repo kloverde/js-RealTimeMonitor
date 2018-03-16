@@ -64,6 +64,7 @@ function RealtimeMonitor() {
          ID_STUB_TITLE               = "title",
          ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
          ID_STUB_CLOSE_BUTTON        = "btnClose",
+         ID_STUB_LABEL               = "label",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_STATUS              = "status",
@@ -74,8 +75,10 @@ function RealtimeMonitor() {
          TEXT_BUTTON_CLOSE           = "x",
          TEXT_BUTTON_CONNECT         = "Connect",
          TEXT_BUTTON_DISCONNECT      = "Disconnect",
+         TEXT_LABEL_LOWEST           = "Lowest",
          TEXT_LABEL_HIGHEST          = "Highest",
-         TEXT_LABEL_LOWEST           = "Lowest";
+         TEXT_TOOLTIP_LOWEST         = "lowest: ",
+         TEXT_TOOLTIP_HIGHEST        = "highest: ";
 
    const PROP_STUB_HIGHEST           = "highest",
          PROP_STUB_LOWEST            = "lowest";
@@ -130,6 +133,7 @@ function RealtimeMonitor() {
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
          settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
+         settings[panel.id].fields = {};
 
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
@@ -204,12 +208,20 @@ function RealtimeMonitor() {
 
             fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
 
+            settings[panel.id].fields[fieldCfg.prop] = {};
+
             if( fieldCfg.showLowest ) {
                fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
+               settings[panel.id].fields[fieldCfg.prop].showLowest = true;
+            } else {
+               settings[panel.id].fields[fieldCfg.prop].showLowest = false;
             }
 
             if( fieldCfg.showHighest ) {
                fieldsContainer.appendChild( newField(FIELD_TYPE_HIGHEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
+               settings[panel.id].fields[fieldCfg.prop].showHighest = true;
+            } else {
+               settings[panel.id].fields[fieldCfg.prop].showHighest = false;
             }
 
             panelData[ID_STUB_PANEL + i][fieldCfg.prop] = null;
@@ -217,7 +229,6 @@ function RealtimeMonitor() {
             panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
 
             fieldsContainer.appendChild( newFieldSeparator() );
-
             graphs.push( newGraph(panel.id, fieldCfg.prop) );
          }
 
@@ -294,6 +305,7 @@ function RealtimeMonitor() {
             val.className = highLowClass;
          }
 
+         label.id = ID_STUB_LABEL + val.id;
          label.setAttribute( "for", val.id );
          label.appendChild( document.createTextNode(labelText) );
          fieldContainer.appendChild( label );
@@ -470,6 +482,8 @@ function RealtimeMonitor() {
          showStatusInTitleBar = !showStatusInTitleBar && (something(lowThresholds) || something(highThresholds));
 
          if( field ) {
+            const label = document.getElementById( ID_STUB_LABEL + panelId + prop );
+   
             const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
                   isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
 
@@ -479,8 +493,19 @@ function RealtimeMonitor() {
                 classNameFromHighThreshold = null,
                 winningClassName = lowThresholds || highThresholds ? CLASS_STATUS_NORMAL : CLASS_STATUS_NONE;
 
+            label.title = "";
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
+
+            if( !isHighField && !isLowField ) {
+               if( !settings[panelId].fields[prop].showLowest ) {
+                  label.title += TEXT_TOOLTIP_LOWEST + panelData[panelId][PROP_STUB_LOWEST + prop];
+               }
+
+               if( !settings[panelId].fields[prop].showHighest ) {
+                  label.title += (!settings[panelId].fields[prop].showHighest ? ", " : "") + TEXT_TOOLTIP_HIGHEST + panelData[panelId][PROP_STUB_HIGHEST + prop];
+               }
+            }
 
             if( lowThresholds ) {
                classNameFromLowThreshold = checkAgainstLow();
