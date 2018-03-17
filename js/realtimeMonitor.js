@@ -87,29 +87,74 @@ function RealtimeMonitor() {
          FIELD_TYPE_LOWEST           = 1,
          FIELD_TYPE_HIGHEST          = 2;
 
+   const NOTIFICATION_ICON_WARN      = "img/notification-warn.png", 
+         NOTIFICATION_ICON_DANGER    = "img/notification-danger.png",
+         NOTIFICATION_TITLE_WARN     = "Warning",
+         NOTIFICATION_TITLE_DANGER   = "Danger",
+         NOTIFICATION_BODY_WARN      = " has reached a warning level",
+         NOTIFICATION_BODY_DANGER    = " has reached a danger level"
+
+
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+   let notificationsOk = false;
+
+   areNotificationsOk();
+
+   // Modifies a global variable because Notification.requestPermission() uses promises
+   function areNotificationsOk() {
+      if( !("Notification" in window)) {
+         //console.log( "Browser does not support notifications" );
+         return;
+      }
+
+      if( Notification.permission === "denied" ) {
+         //console.log( "Notification permission denied" );
+         return;
+      }
+
+      if( Notification.permission === "granted" ) {
+         //console.log( "Notifications allowed" );
+         notificationsOk = true;
+         return;
+      }
+
+      if( Notification.permission === "default" ) {
+         //console.log( "Asking permission to display notifications" );
+
+         var blah = Notification.requestPermission( function(permission) {
+            if( permission === "granted" ) {
+               notificationsOk = true;
+            }
+         } );
+      }
+   }
 
    /*
     * The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
     * of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
     * following members:
     *
-    * title :  Text displayed at the top of the panel
-    * url   :  The URL used to update the panel
-    * fields:  An array of objects specifying field configuration:
-    *             prop       : The property name present in the JSON response - also used in the HTML ID
-    *             label      : Text displayed in front of the value
-    *             suffix     : Text displayed after the value.  Optional.
-    *             lowThresholds  : An optional object specifying warning and danger levels - used to drive visual feedback.
-    *                              Supports only numeric values, so if your data is text you'll have to map it to a number.
-    *                                 warn   : The warning threshold
-    *                                 danger : The danger threshold
-    *             highThresholds : Same as lowThresholds
-    *             showLowest/showHighest : A boolean which specifies whether to display the smallest/largest recorded value for 'prop'.
-    *                                      Assumes numeric values, so if your data is text you'll have to map it to a number.  When
-    *                                      set to true, the value will appear as a separate field immediately beneath the field being
-    *                                      tracked.  When set to false, the low/high will viewable as a tooltip.
+    * title : (string) Text displayed at the top of the panel
+    * url : (string) The URL used to update the panel
+    * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
+    * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
+    * controls : (object array) Specifies which window controls to display in the title bar.  Possible values are:
+    *            "minimize" : Display a minimize/maximize button.  It would be a bad idea to start the panel minimized without also including this...
+    *            "close"    : Display a close button
+    * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
+    * fields : (object array) Specifies field configuration.  Each element of the array contains the configuration for a single field.  Object members are:
+    *          prop   : (string) The property name present in the JSON response - also used in the HTML ID
+    *          label  : (string) Text displayed in front of the value
+    *          suffix : (string) Text displayed after the value.  Optional.
+    *          lowThresholds : (object) An optional object specifying numeric warning and danger levels - used to drive visual feedback.
+    *                          warn   : (number) The warning threshold
+    *                          danger : (number) The danger threshold
+    *          highThresholds : Same idea as lowThresholds
+    *          showLowest : (boolean) Specifies whether to display the lowest recorded value for 'prop'.  When set to true,
+    *                       the value will appear as a separate field immediately beneath the field being tracked.
+    *                       When set to false, the value will still be viewable as a tooltip on the field name.
+    *          showHighest : Same idea as showLowest
     */
    this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
@@ -129,10 +174,12 @@ function RealtimeMonitor() {
 
          // The settings object gets built piecemeal - as the opportunity arises.
          settings[panel.id] = {};
+         settings[panel.id].title = panelCfg.title;
          settings[panel.id].url = appCfg[i].url;
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
          settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
+         settings[panel.id].notifications = panelCfg.notifications;
          settings[panel.id].fields = {};
 
          titleBar.id = panel.id + ID_STUB_TITLE;
@@ -420,7 +467,7 @@ function RealtimeMonitor() {
 
          updateStats( panelId, jsonResponse );
          updateUI( panelId );
-      }, 2000 );
+      }, 5000 );
 
       function random( from, to ) {
          return Math.floor( Math.random() * (to - from + 1) ) + from;
@@ -600,19 +647,37 @@ function RealtimeMonitor() {
       titleBar.classList.remove( CLASS_STATUS_WARN );
       titleBar.classList.remove( CLASS_STATUS_DANGER );
 
-      // Pick the worst outcome as the winning title bar status
+      // Pick the worst outcome as the winning title bar status, and create a notification (if applicable)
 
       if( showStatusInTitleBar ) {
          if( anyDanger ) {
             titleBar.classList.add( CLASS_STATUS_DANGER );
+
+            if( notificationsOk && settings[panelId].notifications ) {
+               createNotification( NOTIFICATION_ICON_DANGER, NOTIFICATION_TITLE_DANGER, NOTIFICATION_BODY_DANGER, settings[panelId].title );
+            }
          } else if( anyWarn ) {
             titleBar.classList.add( CLASS_STATUS_WARN );
+
+            if( notificationsOk && settings[panelId].notifications ) {
+               createNotification( NOTIFICATION_ICON_WARN, NOTIFICATION_TITLE_WARN, NOTIFICATION_BODY_WARN, settings[panelId].title );
+            }
          } else {
             titleBar.classList.add( CLASS_STATUS_NORMAL );
          }
       } else {
          titleBar.classList.add( CLASS_STATUS_NONE );
       }
+   }
+
+   function createNotification( icon, title, body, panelTitle ) {
+     var opts = {
+       body: panelTitle + body,
+       icon: icon
+     }
+
+     var n = new Notification( title, opts );
+
    }
 
    function defined( obj ) {

@@ -25,6 +25,27 @@ Assuming you've declared thresholds for a field, each status (normal, warning an
 
 ## Themes
 
-The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Use of themes requires a supporting browser such as Firefox or IE.  Chrome does not have built-in support for this (ahem - quite old, well-established) technology.  I've read that third party addons are available for Chrome, but haven't tried any.
+The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Use of themes requires a supporting browser such as Firefox or IE.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
+
+
+## Notifications
+
+If configured, and if your browser supports it, the application will show native system notifications when a warning or danger threshold is reached.
+
+Internet Explorer does not support notifications.
+
+Firefox supports notifications, and they will work if the demo is opened straight from your filesystem.
+
+Chrome supports notifications, but they won't work if the demo is opened straight from your filesystem.  Chrome only displays notifications over HTTPS.  Thankfully, NPM makes it effortless to set up a quick-and-dirty HTTPS server:
+
+`$ npm install http-server -g
+$ cd js-RealtimeMonitor
+$ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+$ http-server --ssl`
+
+
+## Third-party Attribution
+
+The [https://pixabay.com/en/sign-triangle-caution-yellow-36071](warning) and [https://pixabay.com/en/sign-triangle-attention-warning-36070](danger) notification icons were provided by Pixabay user [https://pixabay.com/en/users/Clker-Free-Vector-Images-3736](Clker-Free-Vector-Images).
