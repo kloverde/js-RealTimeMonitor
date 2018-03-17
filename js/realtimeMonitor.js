@@ -89,11 +89,10 @@ function RealtimeMonitor() {
 
    const NOTIFICATION_ICON_WARN      = "img/notification-warn.png", 
          NOTIFICATION_ICON_DANGER    = "img/notification-danger.png",
-         NOTIFICATION_TITLE_WARN     = "Warning",
-         NOTIFICATION_TITLE_DANGER   = "Danger",
+         NOTIFICATION_TITLE_WARN     = "Warning:  ",
+         NOTIFICATION_TITLE_DANGER   = "Danger:  ",
          NOTIFICATION_BODY_WARN      = " has reached a warning level",
          NOTIFICATION_BODY_DANGER    = " has reached a danger level"
-
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
@@ -465,7 +464,7 @@ function RealtimeMonitor() {
 
          updateStats( panelId, jsonResponse );
          updateUI( panelId );
-      }, 5000 );
+      }, 2000 );
 
       function random( from, to ) {
          return Math.floor( Math.random() * (to - from + 1) ) + from;
@@ -652,13 +651,13 @@ function RealtimeMonitor() {
             titleBar.classList.add( CLASS_STATUS_DANGER );
 
             if( settings[panelId].notifications ) {
-               createNotification( NOTIFICATION_ICON_DANGER, NOTIFICATION_TITLE_DANGER, NOTIFICATION_BODY_DANGER, settings[panelId].title );
+               createNotification( panelId, NOTIFICATION_ICON_DANGER, NOTIFICATION_TITLE_DANGER + settings[panelId].title, NOTIFICATION_BODY_DANGER );
             }
          } else if( anyWarn ) {
             titleBar.classList.add( CLASS_STATUS_WARN );
 
             if( settings[panelId].notifications ) {
-               createNotification( NOTIFICATION_ICON_WARN, NOTIFICATION_TITLE_WARN, NOTIFICATION_BODY_WARN, settings[panelId].title );
+               createNotification( panelId, NOTIFICATION_ICON_WARN, NOTIFICATION_TITLE_WARN  + settings[panelId].title, NOTIFICATION_BODY_WARN );
             }
          } else {
             titleBar.classList.add( CLASS_STATUS_NORMAL );
@@ -668,13 +667,14 @@ function RealtimeMonitor() {
       }
    }
 
-   function createNotification( icon, title, body, panelTitle ) {
+   function createNotification( panelId, icon, title, body ) {
       areNotificationsOk();
 
       if( notificationsOk ) {
          var opts = {
-            body: panelTitle + body,
-            icon: icon
+            body : settings[panelId].title + body,
+            icon : icon,
+            tag  : panelId
          }
 
          new Notification( title, opts );
