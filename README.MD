@@ -40,12 +40,14 @@ Firefox supports notifications, and they will work if the demo is opened straigh
 
 Chrome supports notifications, but they won't work if the demo is opened straight from your filesystem.  Chrome only displays notifications over HTTPS.  Thankfully, NPM makes it effortless to set up a quick-and-dirty HTTPS server:
 
-`$ npm install http-server -g
+```shell
+$ npm install http-server -g
 $ cd js-RealtimeMonitor
 $ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-$ http-server --ssl`
+$ http-server --ssl
+```
 
 
 ## Third-party Attribution
 
-The [https://pixabay.com/en/sign-triangle-caution-yellow-36071](warning) and [https://pixabay.com/en/sign-triangle-attention-warning-36070](danger) notification icons were provided by Pixabay user [https://pixabay.com/en/users/Clker-Free-Vector-Images-3736](Clker-Free-Vector-Images).
+The [warning](https://pixabay.com/en/sign-triangle-caution-yellow-36071) and [danger](https://pixabay.com/en/sign-triangle-attention-warning-36070) notification icons were provided by Pixabay user [Clker-Free-Vector-Images](https://pixabay.com/en/users/Clker-Free-Vector-Images-3736).
