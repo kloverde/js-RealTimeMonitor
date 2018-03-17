@@ -101,28 +101,26 @@ function RealtimeMonitor() {
 
    areNotificationsOk();
 
-   // Modifies a global variable because Notification.requestPermission() uses promises
+   // Modifies a global variable because Notification.requestPermission() uses promises.
+   // Called repeatedly - not just at initialization, because the user can change their browser settings at any time.
    function areNotificationsOk() {
       if( !("Notification" in window)) {
-         //console.log( "Browser does not support notifications" );
+         notificationsOk = false;
          return;
       }
 
-      if( Notification.permission === "denied" ) {
-         //console.log( "Notification permission denied" );
+      if( Notification.permission === "denied" || Notification.permission === "blocked" ) {
+         notificationsOk = false;
          return;
       }
 
       if( Notification.permission === "granted" ) {
-         //console.log( "Notifications allowed" );
          notificationsOk = true;
          return;
       }
 
       if( Notification.permission === "default" ) {
-         //console.log( "Asking permission to display notifications" );
-
-         var blah = Notification.requestPermission( function(permission) {
+         Notification.requestPermission( function(permission) {
             if( permission === "granted" ) {
                notificationsOk = true;
             }
@@ -653,13 +651,13 @@ function RealtimeMonitor() {
          if( anyDanger ) {
             titleBar.classList.add( CLASS_STATUS_DANGER );
 
-            if( notificationsOk && settings[panelId].notifications ) {
+            if( settings[panelId].notifications ) {
                createNotification( NOTIFICATION_ICON_DANGER, NOTIFICATION_TITLE_DANGER, NOTIFICATION_BODY_DANGER, settings[panelId].title );
             }
          } else if( anyWarn ) {
             titleBar.classList.add( CLASS_STATUS_WARN );
 
-            if( notificationsOk && settings[panelId].notifications ) {
+            if( settings[panelId].notifications ) {
                createNotification( NOTIFICATION_ICON_WARN, NOTIFICATION_TITLE_WARN, NOTIFICATION_BODY_WARN, settings[panelId].title );
             }
          } else {
@@ -671,13 +669,16 @@ function RealtimeMonitor() {
    }
 
    function createNotification( icon, title, body, panelTitle ) {
-     var opts = {
-       body: panelTitle + body,
-       icon: icon
-     }
+      areNotificationsOk();
 
-     var n = new Notification( title, opts );
+      if( notificationsOk ) {
+         var opts = {
+            body: panelTitle + body,
+            icon: icon
+         }
 
+         new Notification( title, opts );
+      }
    }
 
    function defined( obj ) {

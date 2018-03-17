@@ -38,7 +38,7 @@ Internet Explorer does not support notifications.
 
 Firefox supports notifications, and they will work if the demo is opened straight from your filesystem.
 
-Chrome supports notifications, but they won't work if the demo is opened straight from your filesystem.  Chrome only displays notifications over HTTPS.  Thankfully, NPM makes it effortless to set up a quick-and-dirty HTTPS server:
+Chrome supports notifications, but they won't work if the demo is opened straight from your filesystem.  Chrome only displays notifications over HTTPS.  Thankfully, Node makes it effortless to set up a quick-and-dirty HTTPS server:
 
 ```shell
 $ npm install http-server -g
