@@ -408,6 +408,10 @@ function RealtimeMonitor() {
       }
    };
 
+   this.toggleNotifications = function( panelId ) {
+      settings[panelId].notifications = !settings[panelId].notifications;
+   };
+
    function minimizeMaximize( panelId ) {
       const panel = document.getElementById( panelId ),
             btn   = document.getElementById( panelId + ID_STUB_MIN_MAX_BUTTON );
