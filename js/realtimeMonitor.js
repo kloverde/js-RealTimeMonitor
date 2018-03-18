@@ -92,18 +92,18 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_TAG          = "threshold",
          THRESHOLD_NOTIFICATION_TITLE_WARN   = "Warning:  ",
          THRESHOLD_NOTIFICATION_TITLE_DANGER = "Danger:  ",
-         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached warning level",
-         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached danger level";
+         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached the warning threshold on ",
+         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached the danger threshold on ";
 
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
    let thresholdNotifications = [];
+   let notificationsOk = false;
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
 
-   let notificationsOk = false;
 
    cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
@@ -442,6 +442,10 @@ function RealtimeMonitor() {
       settings[panelId].notifications = !settings[panelId].notifications;
    };
 
+   this.setNotificationsEnabled = function( enabled ) {
+      settings[panelId].notifications = enabled;
+   }
+
    function minimizeMaximize( panelId ) {
       const panel = document.getElementById( panelId ),
             btn   = document.getElementById( panelId + ID_STUB_MIN_MAX_BUTTON );
@@ -563,7 +567,7 @@ function RealtimeMonitor() {
 
          if( field ) {
             const label = document.getElementById( ID_STUB_LABEL + panelId + prop );
-   
+
             const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
                   isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
 
@@ -703,33 +707,51 @@ function RealtimeMonitor() {
       }
    }
 
-   function thresholdNotificationCloseCallback( panelId ) {
-      thresholdNotifications[panelId] = null;
+   function thresholdNotificationCloseCallback( event ) {
+      thresholdNotifications[ event.target.data.panelId ] = null;
    }
 
    function createThresholdNotification( type, panelId ) {
-      const notif = thresholdNotifications[panelId];
+      let currNotif = thresholdNotifications[panelId];
 
-      if( !something(notif) || notif.data.type !== type ) {
-         let icon, title, body;
+      const isFirstNotification = !something( currNotif ),
+            isReplacementNotification = !isFirstNotification && currNotif.data.type < type;
+
+      if( isFirstNotification || isReplacementNotification ) {
+         if( isReplacementNotification ) {
+            currNotif.removeEventListener( "close", thresholdNotificationCloseCallback );
+            currNotif.close();
+            currNotif = null;
+         }
+
+         let icon, title, body, now = new Date();
+
+         const dateOpts = { year : "numeric", month : "long", day : "numeric" };
+         const timeOpts = { hour12 : true };
+
+         const dateStr = now.toLocaleDateString( dateOpts ),
+               timeStr = now.toLocaleTimeString( timeOpts ),
+               dateTimeStr = dateStr + " " + timeStr;
 
          if( type === THRESHOLD_NOTIFICATION_TYPE_WARN ) {
             icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_WARN ];
             title = THRESHOLD_NOTIFICATION_TITLE_WARN + settings[panelId].title;
-            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_WARN;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_WARN + dateTimeStr;
          } else if( type === THRESHOLD_NOTIFICATION_TYPE_DANGER ) {
             icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_DANGER ];
             title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
-            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER + dateTimeStr;
          } else {
             throw "Invalid threshold notification type";
          }
 
-         thresholdNotifications[panelId] = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, false, thresholdNotificationCloseCallback(panelId) );
+         const newNotif = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, true );
+         newNotif.addEventListener( "close", thresholdNotificationCloseCallback );
+         thresholdNotifications[panelId] = newNotif;
       }
    }
 
-   function createNotification( type, panelId, icon, title, body, tag, autoClose, onCloseFunc ) {
+   function createNotification( type, panelId, icon, title, body, tag, requireInteraction ) {
       let notification = null;
 
       areNotificationsOk();  // If notifications were disabled in the browser when the page loaded, then re-enabled later, we want to know
@@ -739,24 +761,10 @@ function RealtimeMonitor() {
             body : body,
             icon : icon,
             tag  : tag,
-            data : { type : type },
-            requireInteraction : autoClose,
-            onclose : thresholdNotificationCloseCallback
+            data : { type : type, panelId : panelId },
+            requireInteraction : requireInteraction
          };
-/*
-            actions : [ {
-                           action : 'dismissAction',
-                           title  : "Dismiss"
-                        },
 
-                        {
-                           action : "ignoreAction",
-                           title  : "Don't display again"
-                     } ]
-         }
-
-         ServiceWorkerRegistration.showNotification( title, opts );//.then(function(NotificationEvent) { ... });
-*/
          notification = new Notification( title, opts );
       }
 
