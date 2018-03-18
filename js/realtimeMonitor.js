@@ -90,22 +90,48 @@ function RealtimeMonitor() {
    const THRESHOLD_NOTIFICATION_TYPE_WARN    = 0,
          THRESHOLD_NOTIFICATION_TYPE_DANGER  = 1,
          THRESHOLD_NOTIFICATION_TAG          = "threshold",
-         THRESHOLD_NOTIFICATION_ICON_WARN    = "img/notification-warn.png", 
-         THRESHOLD_NOTIFICATION_ICON_DANGER  = "img/notification-danger.png",
          THRESHOLD_NOTIFICATION_TITLE_WARN   = "Warning:  ",
          THRESHOLD_NOTIFICATION_TITLE_DANGER = "Danger:  ",
-         THRESHOLD_NOTIFICATION_BODY_WARN    = " has reached a warning level",
-         THRESHOLD_NOTIFICATION_BODY_DANGER  = " has reached a danger level";
+         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached warning level",
+         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached danger level";
+
+   const CACHE = [],
+         THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
+         THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
    let thresholdNotifications = [];
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
 
    let notificationsOk = false;
+
+   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
+                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
    areNotificationsOk();
 
+   function cacheImages( cache, images ) {
+      for( let i = 0; i < images.length; i++ ) {
+         const img = new Image();
+         img.src = images[i][1];
+         img.onload = function() {
+            cache[ images[i][0] ] = convertImgToDataUri( img );
+         };
+      }
+   }
+
+   function convertImgToDataUri( img ) {
+      const canvas = document.createElement( "canvas"),
+            context = canvas.getContext( "2d" );
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      context.drawImage( img, 0, 0, img.width, img.height );
+
+      return canvas.toDataURL( "image/" + img.src.replace(/^.*\./, "") );
+   }
+
    // Modifies a global variable because Notification.requestPermission() uses promises.
-   // Called repeatedly - not just at initialization, because the user can change their browser settings at any time.
+   // Called repeatedly - not just at initialization - because the user can change their browser settings at any time.
    function areNotificationsOk() {
       if( !("Notification" in window)) {
          notificationsOk = false;
@@ -457,22 +483,24 @@ function RealtimeMonitor() {
       }
    }
 
-   let simulator = null;
+   let simulators = [];
 
    function connect( panelId ) {
-      simulator = window.setInterval( function() {
-         const jsonResponse = JSON.stringify( {
-            load         : random( 50, 100 ),
-            rpm          : random( 200, 2700 ),
-            ambientTemp  : random( 70, 75 ),
-            internalTemp : random( 175, 260 ),
-            rhinocerous  : 45,  // unrecognized properties do not cause errors
-            jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
-         } );
+      if( !simulators[panelId] ) {
+         simulators[panelId] = window.setInterval( function() {
+            const jsonResponse = JSON.stringify( {
+               load         : random( 50, 100 ),
+               rpm          : random( 200, 2700 ),
+               ambientTemp  : random( 70, 75 ),
+               internalTemp : random( 175, 260 ),
+               rhinocerous  : 45,  // unrecognized properties do not cause errors
+               jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
+            } );
 
-         updateStats( panelId, jsonResponse );
-         updateUI( panelId );
-      }, 2000 );
+            updateStats( panelId, jsonResponse );
+            updateUI( panelId );
+         }, 2000 );
+      }
 
       function random( from, to ) {
          return Math.floor( Math.random() * (to - from + 1) ) + from;
@@ -480,7 +508,7 @@ function RealtimeMonitor() {
    }
 
    function disconnect( panelId ) {
-      window.clearInterval( simulator );
+      window.clearInterval( simulators[panelId] );
    }
 
    function close( panelId ) {
@@ -686,11 +714,11 @@ function RealtimeMonitor() {
          let icon, title, body;
 
          if( type === THRESHOLD_NOTIFICATION_TYPE_WARN ) {
-            icon  = THRESHOLD_NOTIFICATION_ICON_WARN;
+            icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_WARN ];
             title = THRESHOLD_NOTIFICATION_TITLE_WARN + settings[panelId].title;
             body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_WARN;
          } else if( type === THRESHOLD_NOTIFICATION_TYPE_DANGER ) {
-            icon  = THRESHOLD_NOTIFICATION_ICON_DANGER;
+            icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_DANGER ];
             title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
             body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER;
          } else {
