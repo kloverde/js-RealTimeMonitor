@@ -87,17 +87,21 @@ function RealtimeMonitor() {
          FIELD_TYPE_LOWEST           = 1,
          FIELD_TYPE_HIGHEST          = 2;
 
-   const NOTIFICATION_ICON_WARN      = "img/notification-warn.png", 
-         NOTIFICATION_ICON_DANGER    = "img/notification-danger.png",
-         NOTIFICATION_TITLE_WARN     = "Warning:  ",
-         NOTIFICATION_TITLE_DANGER   = "Danger:  ",
-         NOTIFICATION_BODY_WARN      = " has reached a warning level",
-         NOTIFICATION_BODY_DANGER    = " has reached a danger level"
+   const THRESHOLD_NOTIFICATION_TYPE_WARN    = 0,
+         THRESHOLD_NOTIFICATION_TYPE_DANGER  = 1,
+         THRESHOLD_NOTIFICATION_TAG          = "threshold",
+         THRESHOLD_NOTIFICATION_ICON_WARN    = "img/notification-warn.png", 
+         THRESHOLD_NOTIFICATION_ICON_DANGER  = "img/notification-danger.png",
+         THRESHOLD_NOTIFICATION_TITLE_WARN   = "Warning:  ",
+         THRESHOLD_NOTIFICATION_TITLE_DANGER = "Danger:  ",
+         THRESHOLD_NOTIFICATION_BODY_WARN    = " has reached a warning level",
+         THRESHOLD_NOTIFICATION_BODY_DANGER  = " has reached a danger level";
 
+   let thresholdNotifications = [];
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
-   let notificationsOk = false;
 
+   let notificationsOk = false;
    areNotificationsOk();
 
    // Modifies a global variable because Notification.requestPermission() uses promises.
@@ -655,13 +659,13 @@ function RealtimeMonitor() {
             titleBar.classList.add( CLASS_STATUS_DANGER );
 
             if( settings[panelId].notifications ) {
-               createNotification( panelId, NOTIFICATION_ICON_DANGER, NOTIFICATION_TITLE_DANGER + settings[panelId].title, NOTIFICATION_BODY_DANGER );
+               createThresholdNotification( THRESHOLD_NOTIFICATION_TYPE_DANGER, panelId );
             }
          } else if( anyWarn ) {
             titleBar.classList.add( CLASS_STATUS_WARN );
 
             if( settings[panelId].notifications ) {
-               createNotification( panelId, NOTIFICATION_ICON_WARN, NOTIFICATION_TITLE_WARN  + settings[panelId].title, NOTIFICATION_BODY_WARN );
+               createThresholdNotification( THRESHOLD_NOTIFICATION_TYPE_WARN, panelId );
             }
          } else {
             titleBar.classList.add( CLASS_STATUS_NORMAL );
@@ -671,18 +675,64 @@ function RealtimeMonitor() {
       }
    }
 
-   function createNotification( panelId, icon, title, body ) {
-      areNotificationsOk();
+   function thresholdNotificationCloseCallback( panelId ) {
+      thresholdNotifications[panelId] = null;
+   }
+
+   function createThresholdNotification( type, panelId ) {
+      const notif = thresholdNotifications[panelId];
+
+      if( !something(notif) || notif.data.type !== type ) {
+         let icon, title, body;
+
+         if( type === THRESHOLD_NOTIFICATION_TYPE_WARN ) {
+            icon  = THRESHOLD_NOTIFICATION_ICON_WARN;
+            title = THRESHOLD_NOTIFICATION_TITLE_WARN + settings[panelId].title;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_WARN;
+         } else if( type === THRESHOLD_NOTIFICATION_TYPE_DANGER ) {
+            icon  = THRESHOLD_NOTIFICATION_ICON_DANGER;
+            title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER;
+         } else {
+            throw "Invalid threshold notification type";
+         }
+
+         thresholdNotifications[panelId] = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, false, thresholdNotificationCloseCallback(panelId) );
+      }
+   }
+
+   function createNotification( type, panelId, icon, title, body, tag, autoClose, onCloseFunc ) {
+      let notification = null;
+
+      areNotificationsOk();  // If notifications were disabled in the browser when the page loaded, then re-enabled later, we want to know
 
       if( notificationsOk ) {
          var opts = {
-            body : settings[panelId].title + body,
+            body : body,
             icon : icon,
-            tag  : panelId
+            tag  : tag,
+            data : { type : type },
+            requireInteraction : autoClose,
+            onclose : thresholdNotificationCloseCallback
+         };
+/*
+            actions : [ {
+                           action : 'dismissAction',
+                           title  : "Dismiss"
+                        },
+
+                        {
+                           action : "ignoreAction",
+                           title  : "Don't display again"
+                     } ]
          }
 
-         new Notification( title, opts );
+         ServiceWorkerRegistration.showNotification( title, opts );//.then(function(NotificationEvent) { ... });
+*/
+         notification = new Notification( title, opts );
       }
+
+      return notification;
    }
 
    function defined( obj ) {
