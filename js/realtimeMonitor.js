@@ -227,7 +227,7 @@ function RealtimeMonitor() {
                toggleApplicationMenu(panelId)
             } );
 
-            // Register a double click event for the sole purpose of killing event bubbling to the title bar (prevents minimizing when double clicking the menu button)
+            // Register a double click event for the sole purpose of stopping event bubbling to the title bar (prevents minimizing when double clicking the menu button)
             menuBtn.addEventListener( "dblclick", function(event) {
                event.stopPropagation();
             } );
@@ -323,7 +323,7 @@ function RealtimeMonitor() {
          item.appendChild( document.createTextNode(text) );
          item.addEventListener( "click", function() {
             clickCallback();
-            toggleApplicationMenu( panelId );
+            closeApplicationMenu( panelId );
          } );
 
          return item;
