@@ -74,9 +74,9 @@
          var configuration = [ {
             title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
-            autoConnect : false,
+            autoConnect : true,
             startMinimized : false,
-            notifications : false,
+            notifications : true,
             // draggable : true/false (default false)  // TODO
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
@@ -92,7 +92,7 @@
             autoConnect : true,
             startMinimized : false,
             controls : [ "minimize", "close" ],
-            notifications : false,
+            notifications : true,
             // draggable : true/false (default false)  // TODO
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
@@ -119,8 +119,6 @@
 
             monitor.initialize( configuration );
             configuration = undefined;
-
-            //monitor.toggleNotifications( "panel0" );
          } );
       </script>
    </head>

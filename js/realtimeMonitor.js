@@ -254,10 +254,10 @@ function RealtimeMonitor() {
          appMenu.id = panel.id + ID_STUB_APP_MENU;
          appMenu.className = CLASS_APPLICATION_MENU;
          appMenu.classList.add( CLASS_VISIBILITY_HIDDEN );
-         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){connectDisconnect(panel.id);}) );
-         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id);}) );
-         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){}) );
-         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CLOSE,   TEXT_MENUITEM_CLOSE,    function(){close(panel.id);}) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){ connectDisconnect(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){ toggleNotifications(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CLOSE,   TEXT_MENUITEM_CLOSE,    function(){ close(panel.id); }) );
 
          panel.appendChild( appMenu );
 
@@ -436,7 +436,9 @@ function RealtimeMonitor() {
       }
    };
 
-   this.toggleNotifications = function( panelId ) {
+   function toggleNotifications( panelId ) {
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE );
+      menuItem.innerText = settings[panelId].notifications ? TEXT_MENUITEM_UNMUTE : TEXT_MENUITEM_MUTE;
       settings[panelId].notifications = !settings[panelId].notifications;
    };
 
@@ -686,7 +688,7 @@ function RealtimeMonitor() {
             }
 
             function checkAgainstLow() {
-               var className = CLASS_STATUS_NORMAL;
+               let className = CLASS_STATUS_NORMAL;
 
                if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
                   className = CLASS_STATUS_DANGER;
@@ -698,7 +700,7 @@ function RealtimeMonitor() {
             }
 
             function checkAgainstHigh() {
-               var className = CLASS_STATUS_NORMAL;
+               let className = CLASS_STATUS_NORMAL;
 
                if( something(highThresholds.danger) && value >= highThresholds.danger ) {
                   className = CLASS_STATUS_DANGER;
@@ -788,7 +790,7 @@ function RealtimeMonitor() {
       areNotificationsOk();  // If notifications were disabled in the browser when the page loaded, then re-enabled later, we want to know
 
       if( notificationsOk ) {
-         var opts = {
+         const opts = {
             body : body,
             icon : icon,
             tag  : tag,
