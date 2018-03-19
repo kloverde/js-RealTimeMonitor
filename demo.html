@@ -63,7 +63,7 @@
       <link rel="alternate stylesheet" href="css/themes/dimgray.css" title="Dim Gray"/>
       <link rel="alternate stylesheet" href="css/themes/lightslategray.css" title="Light Slate Gray"/>
       <link rel="alternate stylesheet" href="css/themes/lightsteelblue.css" title="Light Steel Blue"/>
-      <link rel="alternate stylesheet" href="css/themes/purple.css" title="Purple"/>
+      <link rel="alternate stylesheet" href="css/themes/deeppurple.css" title="Deep Purple"/>
       <link rel="alternate stylesheet" href="css/themes/silver.css" title="Silver"/>
 
       <script src="js/realtimeMonitor.js"></script>
@@ -77,6 +77,23 @@
             autoConnect : true,
             startMinimized : false,
             controls : [ "minimize", "close" ],
+            notifications : true,
+            // draggable : true/false (default false)  // TODO
+            fields : [
+                        { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
+                        { prop : "rpm", label : "RPM:",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showLowest : true, showHighest : true },
+                        { prop : "ambientTemp", label : "Ambient Temp:", suffix : "°F", showLowest : false, showHighest : false },
+                        { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
+                     ]
+         },
+
+         {
+            title  : "Location 2",
+            url    : "http://localhost/RealtimeMonitor/status/site1",
+            autoConnect : true,
+            startMinimized : false,
+            controls : [ "minimize", "close" ],
+            notifications : true,
             // draggable : true/false (default false)  // TODO
             fields : [
                         { prop : "load", label : "Load:", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
@@ -99,8 +116,12 @@
          }*/ ];
 
          document.addEventListener( "DOMContentLoaded", function() {
-            new RealtimeMonitor().initialize( configuration );
+            var monitor = new RealtimeMonitor();
+
+            monitor.initialize( configuration );
             configuration = undefined;
+
+            //monitor.toggleNotifications( "panel0" );
          } );
       </script>
    </head>

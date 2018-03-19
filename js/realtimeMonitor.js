@@ -87,29 +87,101 @@ function RealtimeMonitor() {
          FIELD_TYPE_LOWEST           = 1,
          FIELD_TYPE_HIGHEST          = 2;
 
+   const THRESHOLD_NOTIFICATION_TYPE_WARN    = 0,
+         THRESHOLD_NOTIFICATION_TYPE_DANGER  = 1,
+         THRESHOLD_NOTIFICATION_TAG          = "threshold",
+         THRESHOLD_NOTIFICATION_TITLE_WARN   = "Warning:  ",
+         THRESHOLD_NOTIFICATION_TITLE_DANGER = "Danger:  ",
+         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
+         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
+
+   const CACHE = [],
+         THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
+         THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
+
+   let thresholdNotifications = [];
+   let notificationsOk = false;
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+
+
+   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
+                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
+   areNotificationsOk();
+
+   function cacheImages( cache, images ) {
+      for( let i = 0; i < images.length; i++ ) {
+         const img = new Image();
+         img.src = images[i][1];
+         img.onload = function() {
+            cache[ images[i][0] ] = convertImgToDataUri( img );
+         };
+      }
+   }
+
+   function convertImgToDataUri( img ) {
+      const canvas = document.createElement( "canvas"),
+            context = canvas.getContext( "2d" );
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      context.drawImage( img, 0, 0, img.width, img.height );
+
+      return canvas.toDataURL( "image/" + img.src.replace(/^.*\./, "") );
+   }
+
+   // Modifies a global variable because Notification.requestPermission() uses promises.
+   // Called repeatedly - not just at initialization - because the user can change their browser settings at any time.
+   function areNotificationsOk() {
+      if( !("Notification" in window)) {
+         notificationsOk = false;
+         return;
+      }
+
+      if( Notification.permission === "denied" || Notification.permission === "blocked" ) {
+         notificationsOk = false;
+         return;
+      }
+
+      if( Notification.permission === "granted" ) {
+         notificationsOk = true;
+         return;
+      }
+
+      if( Notification.permission === "default" ) {
+         Notification.requestPermission( function(permission) {
+            if( permission === "granted" ) {
+               notificationsOk = true;
+            }
+         } );
+      }
+   }
 
    /*
     * The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
     * of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
     * following members:
     *
-    * title :  Text displayed at the top of the panel
-    * url   :  The URL used to update the panel
-    * fields:  An array of objects specifying field configuration:
-    *             prop       : The property name present in the JSON response - also used in the HTML ID
-    *             label      : Text displayed in front of the value
-    *             suffix     : Text displayed after the value.  Optional.
-    *             lowThresholds  : An optional object specifying warning and danger levels - used to drive visual feedback.
-    *                              Supports only numeric values, so if your data is text you'll have to map it to a number.
-    *                                 warn   : The warning threshold
-    *                                 danger : The danger threshold
-    *             highThresholds : Same as lowThresholds
-    *             showLowest/showHighest : A boolean which specifies whether to display the smallest/largest recorded value for 'prop'.
-    *                                      Assumes numeric values, so if your data is text you'll have to map it to a number.  When
-    *                                      set to true, the value will appear as a separate field immediately beneath the field being
-    *                                      tracked.  When set to false, the low/high will viewable as a tooltip.
+    * title : (string) Text displayed at the top of the panel
+    * url : (string) The URL used to update the panel
+    * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
+    * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
+    * controls : (object array) Specifies which window controls to display in the title bar.  Possible values are:
+    *            "minimize" : Display a minimize/maximize button.  It would be a bad idea to start the panel minimized without also including this...
+    *            "close"    : Display a close button
+    * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
+    * fields : (object array) Specifies field configuration.  Each element of the array contains the configuration for a single field.  Object members are:
+    *          prop   : (string) The property name present in the JSON response - also used in the HTML ID
+    *          label  : (string) Text displayed in front of the value
+    *          suffix : (string) Text displayed after the value.  Optional.
+    *          lowThresholds : (object) An optional object specifying numeric warning and danger levels - used to drive visual feedback.
+    *                          warn   : (number) The warning threshold
+    *                          danger : (number) The danger threshold
+    *          highThresholds : Same idea as lowThresholds
+    *          showLowest : (boolean) Specifies whether to display the lowest recorded value for 'prop'.  When set to true,
+    *                       the value will appear as a separate field immediately beneath the field being tracked.
+    *                       When set to false, the value will still be viewable as a tooltip on the field name.
+    *          showHighest : Same idea as showLowest
     */
    this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
@@ -129,10 +201,12 @@ function RealtimeMonitor() {
 
          // The settings object gets built piecemeal - as the opportunity arises.
          settings[panel.id] = {};
+         settings[panel.id].title = panelCfg.title;
          settings[panel.id].url = appCfg[i].url;
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
          settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
+         settings[panel.id].notifications = panelCfg.notifications;
          settings[panel.id].fields = {};
 
          titleBar.id = panel.id + ID_STUB_TITLE;
@@ -364,6 +438,14 @@ function RealtimeMonitor() {
       }
    };
 
+   this.toggleNotifications = function( panelId ) {
+      settings[panelId].notifications = !settings[panelId].notifications;
+   };
+
+   this.setNotificationsEnabled = function( enabled ) {
+      settings[panelId].notifications = enabled;
+   }
+
    function minimizeMaximize( panelId ) {
       const panel = document.getElementById( panelId ),
             btn   = document.getElementById( panelId + ID_STUB_MIN_MAX_BUTTON );
@@ -405,22 +487,24 @@ function RealtimeMonitor() {
       }
    }
 
-   let simulator = null;
+   let simulators = [];
 
    function connect( panelId ) {
-      simulator = window.setInterval( function() {
-         const jsonResponse = JSON.stringify( {
-            load         : random( 50, 100 ),
-            rpm          : random( 200, 2700 ),
-            ambientTemp  : random( 70, 75 ),
-            internalTemp : random( 175, 260 ),
-            rhinocerous  : 45,  // unrecognized properties do not cause errors
-            jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
-         } );
+      if( !simulators[panelId] ) {
+         simulators[panelId] = window.setInterval( function() {
+            const jsonResponse = JSON.stringify( {
+               load         : random( 50, 100 ),
+               rpm          : random( 200, 2700 ),
+               ambientTemp  : random( 70, 75 ),
+               internalTemp : random( 175, 260 ),
+               rhinocerous  : 45,  // unrecognized properties do not cause errors
+               jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
+            } );
 
-         updateStats( panelId, jsonResponse );
-         updateUI( panelId );
-      }, 2000 );
+            updateStats( panelId, jsonResponse );
+            updateUI( panelId );
+         }, 2000 );
+      }
 
       function random( from, to ) {
          return Math.floor( Math.random() * (to - from + 1) ) + from;
@@ -428,7 +512,16 @@ function RealtimeMonitor() {
    }
 
    function disconnect( panelId ) {
-      window.clearInterval( simulator );
+      window.clearInterval( simulators[panelId] );
+      simulators[panelId] = null;
+
+      if( thresholdNotifications ) {
+         const notif = thresholdNotifications[panelId];
+
+         if( notif ) {
+            notif.close();
+         }
+      }
    }
 
    function close( panelId ) {
@@ -483,7 +576,7 @@ function RealtimeMonitor() {
 
          if( field ) {
             const label = document.getElementById( ID_STUB_LABEL + panelId + prop );
-   
+
             const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
                   isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
 
@@ -600,19 +693,91 @@ function RealtimeMonitor() {
       titleBar.classList.remove( CLASS_STATUS_WARN );
       titleBar.classList.remove( CLASS_STATUS_DANGER );
 
-      // Pick the worst outcome as the winning title bar status
+      // Pick the worst outcome as the winning title bar status, and create a notification (if applicable)
 
       if( showStatusInTitleBar ) {
          if( anyDanger ) {
             titleBar.classList.add( CLASS_STATUS_DANGER );
+
+            if( settings[panelId].notifications ) {
+               createThresholdNotification( THRESHOLD_NOTIFICATION_TYPE_DANGER, panelId );
+            }
          } else if( anyWarn ) {
             titleBar.classList.add( CLASS_STATUS_WARN );
+
+            if( settings[panelId].notifications ) {
+               createThresholdNotification( THRESHOLD_NOTIFICATION_TYPE_WARN, panelId );
+            }
          } else {
             titleBar.classList.add( CLASS_STATUS_NORMAL );
          }
       } else {
          titleBar.classList.add( CLASS_STATUS_NONE );
       }
+   }
+
+   function thresholdNotificationCloseCallback( event ) {
+      thresholdNotifications[ event.target.data.panelId ] = null;
+   }
+
+   function createThresholdNotification( type, panelId ) {
+      let currNotif = thresholdNotifications[panelId];
+
+      const isFirstNotification = !something( currNotif ),
+            isReplacementNotification = !isFirstNotification && currNotif.data.type < type;
+
+      if( isFirstNotification || isReplacementNotification ) {
+         if( isReplacementNotification ) {
+            currNotif.removeEventListener( "close", thresholdNotificationCloseCallback );
+            currNotif.close();
+            currNotif = null;
+         }
+
+         let icon, title, body, now = new Date();
+
+         const dateOpts = { year : "numeric", month : "long", day : "numeric" };
+         const timeOpts = { hour12 : true };
+
+         const dateStr = now.toLocaleDateString( dateOpts ),
+               timeStr = now.toLocaleTimeString( timeOpts ),
+               dateTimeStr = dateStr + " " + timeStr;
+
+         if( type === THRESHOLD_NOTIFICATION_TYPE_WARN ) {
+            icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_WARN ];
+            title = THRESHOLD_NOTIFICATION_TITLE_WARN + settings[panelId].title;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_WARN + dateTimeStr;
+         } else if( type === THRESHOLD_NOTIFICATION_TYPE_DANGER ) {
+            icon  = CACHE[ THRESHOLD_NOTIFICATION_ICON_DANGER ];
+            title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
+            body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER + dateTimeStr;
+         } else {
+            throw "Invalid threshold notification type";
+         }
+
+         const newNotif = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, true );
+         newNotif.addEventListener( "close", thresholdNotificationCloseCallback );
+         thresholdNotifications[panelId] = newNotif;
+      }
+   }
+
+   function createNotification( type, panelId, icon, title, body, tag, requireInteraction ) {
+      let notification = null;
+
+      areNotificationsOk();  // If notifications were disabled in the browser when the page loaded, then re-enabled later, we want to know
+
+      if( notificationsOk ) {
+         var opts = {
+            body : body,
+            icon : icon,
+            tag  : tag,
+            data : { type : type, panelId : panelId },
+            requireInteraction : requireInteraction
+         };
+
+         notification = new Notification( title, opts );
+      }
+
+      return notification;
    }
 
    function defined( obj ) {
