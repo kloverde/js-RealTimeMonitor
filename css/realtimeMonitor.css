@@ -97,6 +97,7 @@
    display: flex;
    width: 100%;
    line-height: 29px;
+   background-color: #FFFFFF;  /* color before connected */
 }
 
 .monitoringPanel .titleBar .titleBarTitle {
