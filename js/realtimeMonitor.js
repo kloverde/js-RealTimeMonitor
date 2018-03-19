@@ -224,12 +224,21 @@ function RealtimeMonitor() {
 
          ( function(panelId) {
             menuBtn.addEventListener( "click", function(event) {
-               toggleApplicationMenu(panelId)
+               toggleApplicationMenu( panelId );
             } );
 
             // Register a double click event for the sole purpose of stopping event bubbling to the title bar (prevents minimizing when double clicking the menu button)
             menuBtn.addEventListener( "dblclick", function(event) {
                event.stopPropagation();
+            } );
+
+            // Close the menu when clicking away
+            panel.addEventListener( "click", function(event) {
+               const source = event.originalTarget || event.srcElement;
+
+               if( source !== menuBtn ) {
+                  closeApplicationMenu( panelId );
+               }
             } );
          } )( panel.id );
 
