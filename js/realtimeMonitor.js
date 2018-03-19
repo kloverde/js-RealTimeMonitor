@@ -211,7 +211,7 @@ function RealtimeMonitor() {
          const titleBar = document.createElement( "div" );
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
-         titleBar.addEventListener( "dblclick", function() {minimizeMaximize(panel.id);} );
+         titleBar.addEventListener( "dblclick", function(event) {minimizeMaximize(panel.id);} );
          const titleBarTitle = document.createElement( "div" );
          titleBarTitle.className = CLASS_TITLEBAR_TITLE;
          titleBarTitle.appendChild( document.createTextNode(panelCfg.title) );
@@ -221,8 +221,16 @@ function RealtimeMonitor() {
          const menuBtn = document.createElement( "img" );
          menuBtn.id = panel.id + ID_STUB_APP_MENU_BUTTON;
          menuBtn.src = "img/menu-icon.png";
+
          ( function(panelId) {
-            menuBtn.addEventListener( "click", function() {toggleApplicationMenu(panelId)} );
+            menuBtn.addEventListener( "click", function(event) {
+               toggleApplicationMenu(panelId)
+            } );
+
+            // Register a double click event for the sole purpose of killing event bubbling to the title bar (prevents minimizing when double clicking the menu button)
+            menuBtn.addEventListener( "dblclick", function(event) {
+               event.stopPropagation();
+            } );
          } )( panel.id );
 
          const titleBarControls = document.createElement( "div" );
