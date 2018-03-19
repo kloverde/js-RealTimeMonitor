@@ -40,11 +40,11 @@ Each panel displays a notification when one of its warning or danger thresholds 
 
 Now, onto the caveats.
 
-###Firefox
+### Firefox
 By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to true in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
 
-###Chrome
-Chrome only displays notifications if the page is loaded over HTTPS, so the included demo page won't work if opened straight from your filesystem.  What makes this even /more/ fun is that when you open a page straight from your filesystem, Chrome will /ask/ for permission to display notifications, but it doesn't actually honor the authorization.  So, if you open the included demo from your filesystem, you'll be endlessly prompted for permission to display notifications.  Thankfully, Node makes it effortless to set up a quick-and-dirty HTTPS server, so you can actually do development work in Chrome:
+### Chrome
+Chrome only displays notifications if the page is loaded over HTTPS, so the included demo page won't work if opened straight from your filesystem.  What makes this even *more* fun is that when you open a page straight from your filesystem, Chrome will *ask* for permission to display notifications, but it doesn't actually honor the authorization.  So, if you open the included demo from your filesystem, you'll be endlessly prompted for permission to display notifications.  Thankfully, Node makes it effortless to set up a quick-and-dirty HTTPS server, so you can actually do development work in Chrome:
 ```shell
 $ npm install http-server -g
 $ cd js-RealtimeMonitor
@@ -52,7 +52,7 @@ $ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out
 $ http-server --ssl
 ```
 
-Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  If the panel refreshes every few seconds, well, you get the picture.  There /is/ a notification API that allows you to put buttons in notifications; I wanted to use it to add an "Ignore all future messages" option, but the API is far more complicated than the one used by RealtimeMonitor, and it's currently only supported by Chrome anyway, so it wasn't worth the effort to implement.  As a compromise, an update is planned to allow muting of notifications from within the panel itself.  Stay tuned for that.
+Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  If the panel refreshes every few seconds, well, you get the picture.  There *is* a notification API that allows you to put buttons in notifications; I wanted to use it to add an "Ignore all future messages" option, but the API is far more complicated than the one used by RealtimeMonitor, and it's currently only supported by Chrome anyway, so it wasn't worth the effort to implement.  As a compromise, an update is planned to allow muting of notifications from within the panel itself.  Stay tuned for that.
 
 
 ## Third-party Attribution

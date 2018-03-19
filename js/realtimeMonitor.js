@@ -92,8 +92,8 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_TAG          = "threshold",
          THRESHOLD_NOTIFICATION_TITLE_WARN   = "Warning:  ",
          THRESHOLD_NOTIFICATION_TITLE_DANGER = "Danger:  ",
-         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached the warning threshold on ",
-         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached the danger threshold on ";
+         THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
+         THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
@@ -513,6 +513,14 @@ function RealtimeMonitor() {
 
    function disconnect( panelId ) {
       window.clearInterval( simulators[panelId] );
+
+      if( thresholdNotifications ) {
+         const notif = thresholdNotifications[panelId];
+
+         if( notif ) {
+            notif.close();
+         }
+      }
    }
 
    function close( panelId ) {
