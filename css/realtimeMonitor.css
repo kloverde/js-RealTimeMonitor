@@ -35,6 +35,7 @@
 
 .monitoringPanel {
    display: inline-block;
+   position: relative;
    width: 300px;
    border: 1px solid black;
    margin: 5px;
@@ -50,6 +51,39 @@
 
 .monitoringPanel .visibilityGone {
    display: none;
+}
+
+.monitoringPanel .applicationMenu {
+   position: absolute;
+   cursor: default;
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+   top: 29px;
+   right: 0;
+   width: 200px;
+   background-color: white;
+   border-style: solid;
+   border-width: 0px 0px 1px 0px;
+   border-color: #000000;
+   box-shadow: 0px 0px 5px 0px rgba( 0, 0, 0, 0.67 );
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem {
+   width: 100%;
+   font-family: arial;
+   font-size: 15px;
+   padding-top: 7px;
+   padding-bottom: 7px;
+   padding-left: 10px;
+   border: 1px solid #000000;
+   border-bottom: 0;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
+   background-color: #F0F0F0;
+   color: #008000;
 }
 
 .monitoringPanel button::-moz-focus-inner {
@@ -77,30 +111,25 @@
    white-space: nowrap;
    overflow-x: hidden;
    text-overflow: ellipsis;
-}
-
-.monitoringPanel .titleBar .titleBarTitle.oneButton {
-   margin-left: 30px;  /* Match the width of .titleBarControls (one button) so that text centering will be based on panel width, not the width of the text container */
-}
-
-.monitoringPanel .titleBar .titleBarTitle.twoButtons {
-   margin-left: 45px;  /* Match the width of .titleBarControls.twoButtons so that text centering will be based on panel width, not the width of the text container */
+   margin-left: 35px;  /* Match the width of .titleBarControls.twoButtons so that text centering will be based on panel width, not the width of the text container */
 }
 
 .monitoringPanel .titleBar .titleBarControls {
    height: 100%;
    text-align: center;
-   flex-basis: 30px;
+   flex-basis: 35px;
    flex-grow: 0;
    flex-shrink: 0;
 }
 
-.monitoringPanel .titleBar .titleBarControls.twoButtons {
-   flex-basis: 45px;
+.monitoringPanel .titleBar .titleBarControls img {
+   vertical-align: middle;
+   padding: 3px;
+   margin-bottom: 4px;
 }
 
-.monitoringPanel .titleBar .titleBarControls.twoButtons button:nth-of-type(2) {
-   margin-left: 2px;
+.monitoringPanel .titleBar .titleBarControls img:hover {
+   box-shadow: 0px 0px 5px 0px rgba( 0, 0, 0, 0.67 );
 }
 
 .monitoringPanel .titleBar.normal {
@@ -113,13 +142,6 @@
 
 .monitoringPanel .titleBar.danger {
    background: linear-gradient( to right, #FFFFFF, #FF0000 );
-}
-
-.monitoringPanel .titleBar button {
-   width: 16px;
-   height: 16px;
-   line-height: .6em;
-   padding: 0;
 }
 
 .monitoringPanel .graphContainer {
