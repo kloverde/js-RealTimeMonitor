@@ -513,6 +513,7 @@ function RealtimeMonitor() {
 
    function disconnect( panelId ) {
       window.clearInterval( simulators[panelId] );
+      simulators[panelId] = null;
 
       if( thresholdNotifications ) {
          const notif = thresholdNotifications[panelId];
