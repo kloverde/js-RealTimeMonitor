@@ -40,9 +40,9 @@ function RealtimeMonitor() {
          CLASS_TITLEBAR              = "titleBar",
          CLASS_TITLEBAR_TITLE        = "titleBarTitle",
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
-         CLASS_APPLICATION_MENU      = "applicationMenu",
-         CLASS_APPLICATION_MENU_ACTIVE = "menuActive",
-         CLASS_APPLICATION_MENU_ITEM = "applicationMenuItem",
+         CLASS_APP_MENU              = "applicationMenu",
+         CLASS_APP_MENU_ACTIVE       = "menuActive",
+         CLASS_APP_MENU_ITEM         = "applicationMenuItem",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -252,7 +252,7 @@ function RealtimeMonitor() {
 
          const appMenu = document.createElement( "div" );
          appMenu.id = panel.id + ID_STUB_APP_MENU;
-         appMenu.className = CLASS_APPLICATION_MENU;
+         appMenu.className = CLASS_APP_MENU;
          appMenu.classList.add( CLASS_VISIBILITY_HIDDEN );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){ connectDisconnect(panel.id); }) );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id); }) );
@@ -328,7 +328,7 @@ function RealtimeMonitor() {
          const item = document.createElement( "div" );
 
          item.id = panelId + menuItemIdStub;
-         item.className = CLASS_APPLICATION_MENU_ITEM;
+         item.className = CLASS_APP_MENU_ITEM;
          item.appendChild( document.createTextNode(text) );
          item.addEventListener( "click", function() {
             clickCallback();
@@ -453,10 +453,10 @@ function RealtimeMonitor() {
       if( menu && titleBarControls ) {
          if( menu.classList.contains(CLASS_VISIBILITY_HIDDEN) ) {
             menu.classList.remove( CLASS_VISIBILITY_HIDDEN );
-            titleBarControls.classList.add( CLASS_APPLICATION_MENU_ACTIVE );
+            titleBarControls.classList.add( CLASS_APP_MENU_ACTIVE );
          } else {
             menu.classList.add( CLASS_VISIBILITY_HIDDEN );
-            titleBarControls.classList.remove( CLASS_APPLICATION_MENU_ACTIVE );
+            titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );
          }
       }
    }
@@ -466,7 +466,7 @@ function RealtimeMonitor() {
       const menu = document.getElementById( panelId + ID_STUB_APP_MENU );
 
       menu.classList.add( CLASS_VISIBILITY_HIDDEN );
-      titleBarControls.classList.remove( CLASS_APPLICATION_MENU_ACTIVE );      
+      titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );      
    }
 
    function minimizeMaximize( panelId ) {
