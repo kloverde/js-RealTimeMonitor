@@ -42,7 +42,6 @@ function RealtimeMonitor() {
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
          CLASS_APPLICATION_MENU      = "applicationMenu",
          CLASS_APPLICATION_MENU_ACTIVE = "menuActive",
-         CLASS_APPLICATION_MENU_INACTIVE = "menuInactive",
          CLASS_APPLICATION_MENU_ITEM = "applicationMenuItem",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
@@ -212,6 +211,7 @@ function RealtimeMonitor() {
          const titleBar = document.createElement( "div" );
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
+         titleBar.addEventListener( "dblclick", function() {minimizeMaximize(panel.id);} );
          const titleBarTitle = document.createElement( "div" );
          titleBarTitle.className = CLASS_TITLEBAR_TITLE;
          titleBarTitle.appendChild( document.createTextNode(panelCfg.title) );
@@ -229,14 +229,14 @@ function RealtimeMonitor() {
          titleBarControls.id = panel.id + ID_STUB_TITLEBAR_CONTROLS;
          titleBarControls.appendChild( menuBtn );
          titleBarControls.classList.add( CLASS_TITLEBAR_CONTROLS )
-         titleBarControls.classList.add( CLASS_APPLICATION_MENU_INACTIVE );
-         
+
          titleBar.appendChild( titleBarControls );
          panel.appendChild( titleBar );
 
          const appMenu = document.createElement( "div" );
          appMenu.id = panel.id + ID_STUB_APP_MENU;
          appMenu.className = CLASS_APPLICATION_MENU;
+         appMenu.classList.add( CLASS_VISIBILITY_HIDDEN );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){connectDisconnect(panel.id);}) );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id);}) );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){}) );
@@ -442,16 +442,25 @@ function RealtimeMonitor() {
       }
    }
 
+   function closeApplicationMenu( panelId ) {
+      const titleBarControls = document.getElementById( panelId + ID_STUB_TITLEBAR_CONTROLS );
+      const menu = document.getElementById( panelId + ID_STUB_APP_MENU );
+
+      menu.classList.add( CLASS_VISIBILITY_HIDDEN );
+      titleBarControls.classList.remove( CLASS_APPLICATION_MENU_ACTIVE );      
+   }
+
    function minimizeMaximize( panelId ) {
       const panel = document.getElementById( panelId ),
             menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MIN_MAX );
 
-      if( panel.classList.contains(CLASS_MINIMIZED) ) {
+      if( panel.classList.contains(CLASS_MINIMIZED) ) {  // we're maximizing
          panel.classList.remove( CLASS_MINIMIZED );
          menuItem.innerHTML = TEXT_MENUITEM_MINIMIZE;
-      } else {
+      } else {  // we're minimizing
          panel.classList.add( CLASS_MINIMIZED );
          menuItem.innerHTML = TEXT_MENUITEM_MAXIMIZE;
+         closeApplicationMenu( panelId );
       }
    }
 

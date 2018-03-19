@@ -110,6 +110,10 @@
    overflow-x: hidden;
    text-overflow: ellipsis;
    margin-left: 35px;  /* Match the width of .titleBarControls.twoButtons so that text centering will be based on panel width, not the width of the text container */
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
 }
 
 .monitoringPanel .titleBar .titleBarControls {
@@ -122,17 +126,16 @@
 
 .monitoringPanel .titleBar .titleBarControls.menuActive {
    background-color: #FFFFFF;
-   border-left: 1px solid black;
+}
+
+.monitoringPanel .titleBar .titleBarControls img:hover, .monitoringPanel .titleBar .titleBarControls.menuActive img {
+   box-shadow: 0px 0px 5px 0px rgba( 0, 0, 0, 0.67 );
 }
 
 .monitoringPanel .titleBar .titleBarControls img {
    vertical-align: middle;
    padding: 3px;
    margin-bottom: 4px;
-}
-
-.monitoringPanel .titleBar .titleBarControls.menuInactive img:hover {
-   box-shadow: 0px 0px 5px 0px rgba( 0, 0, 0, 0.67 );
 }
 
 .monitoringPanel .titleBar.normal {
