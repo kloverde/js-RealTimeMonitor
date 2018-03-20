@@ -318,16 +318,11 @@ function RealtimeMonitor() {
             graphContainer.appendChild( graphs[j] );
          }
 
-         if( panelCfg.startMinimized ) {
-            panelBody.classList.add( CLASS_VISIBILITY_HIDDEN );
-         }
-
          panel.appendChild( panelBody );
          document.body.appendChild( panel );
 
          if( panelCfg.startMinimized ) {
             minimizeMaximize( panel.id );
-            panelBody.classList.remove( CLASS_VISIBILITY_HIDDEN );
          }
       }
 
