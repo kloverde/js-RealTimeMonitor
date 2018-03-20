@@ -16,7 +16,7 @@
          Redistribution and use in source and binary forms, with or without
          modification, are permitted provided that the following conditions are met:
 
-             1. This software is not to be used by any for-profit entity, whether a
+             1. This software may not be used by any for-profit entity, whether a
                 business, person or other, or for any for-profit purpose.
              2. Redistributions of source code must retain the above copyright
                 notice, this list of conditions and the following disclaimer.
@@ -74,7 +74,7 @@
          var configuration = [ {
             title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
-            autoConnect : false,
+            autoConnect : true,
             startMinimized : false,
             notifications : true,
             // draggable : true/false (default false)  // TODO
@@ -85,7 +85,7 @@
                         { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
                      ]
          },
-
+/*
          {
             title  : "Location 2",
             url    : "http://localhost/RealtimeMonitor/status/site1",
@@ -101,7 +101,7 @@
                         { prop : "internalTemp", label : "Internal Temp:", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
                      ]
          }
-
+*/
          /* You'll have to deactivate the visibilityHidden class to observe the XSS3 test, as suffixes are hidden until the 'Connect' button is clicked */
          /*
          ,{
