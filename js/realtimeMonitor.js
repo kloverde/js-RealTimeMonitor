@@ -326,6 +326,8 @@ function RealtimeMonitor() {
          if( panelCfg.startMinimized ) {
             minimizeMaximize( panel.id );
          }
+
+         setNotificationsEnabled( panel.id, settings[panel.id].notifications );
       }
 
       function newAppMenuItem( panelId, menuItemIdStub, text, clickCallback ) {
@@ -441,12 +443,13 @@ function RealtimeMonitor() {
    };
 
    function toggleNotifications( panelId ) {
-      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE );
-      menuItem.innerText = settings[panelId].notifications ? TEXT_MENUITEM_UNMUTE : TEXT_MENUITEM_MUTE;
-      settings[panelId].notifications = !settings[panelId].notifications;
+      var menuVal = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE ).innerText;
+      setNotificationsEnabled( panelId, !(menuVal === TEXT_MENUITEM_MUTE) );
    };
 
-   this.setNotificationsEnabled = function( enabled ) {
+   function setNotificationsEnabled( panelId, enabled ) {
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE );
+      menuItem.innerText = enabled ? TEXT_MENUITEM_MUTE : TEXT_MENUITEM_UNMUTE;
       settings[panelId].notifications = enabled;
    }
 
