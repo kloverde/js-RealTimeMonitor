@@ -37,6 +37,7 @@
 
 function RealtimeMonitor() {
    const CLASS_MONITORING_PANEL      = "monitoringPanel",
+         CLASS_PANEL_BODY            = "panelBody",
          CLASS_TITLEBAR              = "titleBar",
          CLASS_TITLEBAR_TITLE        = "titleBarTitle",
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
@@ -62,6 +63,7 @@ function RealtimeMonitor() {
          CLASS_HIGH_LOW_VALUE        = "highLowValue";
 
    const ID_STUB_PANEL               = "panel",
+         ID_STUB_PANEL_BODY          = "panelBody",
          ID_STUB_TITLE               = "title",
          ID_STUB_TITLEBAR_CONTROLS   = "titleBarControls",
          ID_STUB_APP_MENU            = "appMenu",
@@ -259,7 +261,11 @@ function RealtimeMonitor() {
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){ toggleNotifications(panel.id); }) );
          appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CLOSE,   TEXT_MENUITEM_CLOSE,    function(){ close(panel.id); }) );
 
-         panel.appendChild( appMenu );
+         titleBar.appendChild( appMenu );
+
+         const panelBody = document.createElement( "div" );
+         panelBody.id = panel.id + ID_STUB_PANEL_BODY;
+         panelBody.className = CLASS_PANEL_BODY;
 
          const fieldsContainer = document.createElement( "div" );
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
@@ -301,26 +307,27 @@ function RealtimeMonitor() {
             graphs.push( newGraph(panel.id, fieldCfg.prop) );
          }
 
-         panel.appendChild( fieldsContainer );
+         panelBody.appendChild( fieldsContainer );
 
          const graphContainer = document.createElement( "div" );
          graphContainer.className = CLASS_GRAPH_CONTAINER;
 
-         panel.appendChild( graphContainer );
+         panelBody.appendChild( graphContainer );
 
          for( let j = 0; j < graphs.length; j++ ) {
             graphContainer.appendChild( graphs[j] );
          }
 
          if( panelCfg.startMinimized ) {
-            panel.classList.add( CLASS_VISIBILITY_HIDDEN );
+            panelBody.classList.add( CLASS_VISIBILITY_HIDDEN );
          }
 
+         panel.appendChild( panelBody );
          document.body.appendChild( panel );
 
          if( panelCfg.startMinimized ) {
             minimizeMaximize( panel.id );
-            panel.classList.remove( CLASS_VISIBILITY_HIDDEN );
+            panelBody.classList.remove( CLASS_VISIBILITY_HIDDEN );
          }
       }
 
@@ -470,14 +477,14 @@ function RealtimeMonitor() {
    }
 
    function minimizeMaximize( panelId ) {
-      const panel = document.getElementById( panelId ),
+      const panelBody = document.getElementById( panelId + ID_STUB_PANEL_BODY ),
             menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MIN_MAX );
 
-      if( panel.classList.contains(CLASS_MINIMIZED) ) {  // we're maximizing
-         panel.classList.remove( CLASS_MINIMIZED );
+      if( panelBody.classList.contains(CLASS_MINIMIZED) ) {  // we're maximizing
+         panelBody.classList.remove( CLASS_MINIMIZED );
          menuItem.innerHTML = TEXT_MENUITEM_MINIMIZE;
       } else {  // we're minimizing
-         panel.classList.add( CLASS_MINIMIZED );
+         panelBody.classList.add( CLASS_MINIMIZED );
          menuItem.innerHTML = TEXT_MENUITEM_MAXIMIZE;
          closeApplicationMenu( panelId );
       }
