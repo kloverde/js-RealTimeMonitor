@@ -467,8 +467,10 @@ function RealtimeMonitor() {
       const titleBarControls = document.getElementById( panelId + ID_STUB_TITLEBAR_CONTROLS );
       const menu = document.getElementById( panelId + ID_STUB_APP_MENU );
 
-      menu.classList.add( CLASS_VISIBILITY_HIDDEN );
-      titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );      
+      if( menu ) {
+         menu.classList.add( CLASS_VISIBILITY_HIDDEN );
+         titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );
+      }
    }
 
    function minimizeMaximize( panelId ) {
@@ -546,6 +548,7 @@ function RealtimeMonitor() {
 
          if( notif ) {
             notif.close();
+            thresholdNotifications[panelId] = undefined;
          }
       }
    }
@@ -559,8 +562,8 @@ function RealtimeMonitor() {
          panel.parentNode.removeChild( panel );
       }
 
-      panelData[ panelId ] = undefined;
-      settings[ panelId ] = undefined;
+      panelData[panelId] = undefined;
+      settings[panelId] = undefined;
    }
 
    function updateStats( panelId, jsonResponse ) {
