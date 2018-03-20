@@ -104,6 +104,8 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
          THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
+   const URL_MENU_BUTTON_IMG = "img/menu-icon.png";
+
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
@@ -222,7 +224,7 @@ function RealtimeMonitor() {
 
          const menuBtn = document.createElement( "img" );
          menuBtn.id = panel.id + ID_STUB_APP_MENU_BUTTON;
-         menuBtn.src = "img/menu-icon.png";
+         menuBtn.src = URL_MENU_BUTTON_IMG;
 
          ( function(panelId) {
             menuBtn.addEventListener( "click", function(event) {
