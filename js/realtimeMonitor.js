@@ -232,18 +232,17 @@ function RealtimeMonitor() {
             } );
 
             // Register a double click event for the sole purpose of stopping event bubbling to the title bar (prevents minimizing when double clicking the menu button)
-            menuBtn.addEventListener( "dblclick", function(event) {
-               event.stopPropagation();
-            } );
+            menuBtn.addEventListener( "dblclick", function(event) { event.stopPropagation(); } );
 
             // Close the menu when clicking away
-            panel.addEventListener( "click", function(event) {
-               const source = event.originalTarget || event.srcElement;
+            panel.addEventListener( "click", function(event) { menuCloseClickEvent( event ); } );
+            document.addEventListener( "click", function(event) { menuCloseClickEvent( event ); } );
 
-               if( source !== menuBtn ) {
+            function menuCloseClickEvent( event ) {
+               if( event.originalTarget !== menuBtn && event.srcElement !== menuBtn ) {
                   closeApplicationMenu( panelId );
                }
-            } );
+            }
          } )( panel.id );
 
          const titleBarControls = document.createElement( "div" );
