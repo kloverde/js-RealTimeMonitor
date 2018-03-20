@@ -37,11 +37,13 @@
 
 function RealtimeMonitor() {
    const CLASS_MONITORING_PANEL      = "monitoringPanel",
+         CLASS_PANEL_BODY            = "panelBody",
          CLASS_TITLEBAR              = "titleBar",
          CLASS_TITLEBAR_TITLE        = "titleBarTitle",
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
-         CLASS_TITLEBAR_ONE_BUTTON   = "oneButton",
-         CLASS_TITLEBAR_TWO_BUTTONS  = "twoButtons",
+         CLASS_APP_MENU              = "applicationMenu",
+         CLASS_APP_MENU_ACTIVE       = "menuActive",
+         CLASS_APP_MENU_ITEM         = "applicationMenuItem",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -61,20 +63,27 @@ function RealtimeMonitor() {
          CLASS_HIGH_LOW_VALUE        = "highLowValue";
 
    const ID_STUB_PANEL               = "panel",
+         ID_STUB_PANEL_BODY          = "panelBody",
          ID_STUB_TITLE               = "title",
-         ID_STUB_MIN_MAX_BUTTON      = "btnMinMax",
-         ID_STUB_CLOSE_BUTTON        = "btnClose",
+         ID_STUB_TITLEBAR_CONTROLS   = "titleBarControls",
+         ID_STUB_APP_MENU            = "appMenu",
+         ID_STUB_APP_MENU_BUTTON     = "appMenuBtn",
+         ID_STUB_MENUITEM_MIN_MAX    = "menuItemMinMax",
+         ID_STUB_MENUITEM_MUTE       = "menuItemNotif",
+         ID_STUB_MENUITEM_CLOSE      = "menuItemClose",
          ID_STUB_LABEL               = "label",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_STATUS              = "status",
          ID_STUB_SUFFIX              = "suffix";
 
-   const TEXT_BUTTON_MINIMIZE        = "-",
-         TEXT_BUTTON_MAXIMIZE        = "+",
-         TEXT_BUTTON_CLOSE           = "x",
-         TEXT_BUTTON_CONNECT         = "Connect",
-         TEXT_BUTTON_DISCONNECT      = "Disconnect",
+   const TEXT_MENUITEM_MINIMIZE      = "Minimize",
+         TEXT_MENUITEM_MAXIMIZE      = "Maximize",
+         TEXT_MENUITEM_MUTE          = "Mute Notifications",
+         TEXT_MENUITEM_UNMUTE        = "Unmute Notifications",
+         TEXT_MENUITEM_CLOSE         = "Close Panel",
+         TEXT_MENUITEM_CONNECT       = "Connect",
+         TEXT_MENUITEM_DISCONNECT    = "Disconnect",
          TEXT_LABEL_LOWEST           = "Lowest",
          TEXT_LABEL_HIGHEST          = "Highest",
          TEXT_TOOLTIP_LOWEST         = "lowest: ",
@@ -166,9 +175,6 @@ function RealtimeMonitor() {
     * url : (string) The URL used to update the panel
     * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
     * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
-    * controls : (object array) Specifies which window controls to display in the title bar.  Possible values are:
-    *            "minimize" : Display a minimize/maximize button.  It would be a bad idea to start the panel minimized without also including this...
-    *            "close"    : Display a close button
     * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
     * fields : (object array) Specifies field configuration.  Each element of the array contains the configuration for a single field.  Object members are:
     *          prop   : (string) The property name present in the JSON response - also used in the HTML ID
@@ -185,15 +191,10 @@ function RealtimeMonitor() {
     */
    this.initialize = function( appCfg ) {
       for( let i = 0; i < appCfg.length; i++ ) {
-         const panelCfg = appCfg[i];
+         panelData[ID_STUB_PANEL + i] = panelData[ID_STUB_PANEL + i] || [];
 
+         const panelCfg = appCfg[i];
          const panel = document.createElement( "div" );
-         const titleBar = document.createElement( "div" );
-         const titleBarTitle = document.createElement( "div" );
-         const fieldsContainer = document.createElement( "div" );
-         const btnConnectContainer = document.createElement( "div" );
-         let   btnConnect;
-         const graphContainer = document.createElement( "div" );
          const graphs = [];
 
          panel.id = ID_STUB_PANEL + i;
@@ -209,64 +210,64 @@ function RealtimeMonitor() {
          settings[panel.id].notifications = panelCfg.notifications;
          settings[panel.id].fields = {};
 
+         const titleBar = document.createElement( "div" );
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
+         titleBar.addEventListener( "dblclick", function(event) {minimizeMaximize(panel.id);} );
+         const titleBarTitle = document.createElement( "div" );
          titleBarTitle.className = CLASS_TITLEBAR_TITLE;
          titleBarTitle.appendChild( document.createTextNode(panelCfg.title) );
+
          titleBar.appendChild( titleBarTitle );
 
-         if( panelCfg.controls ) {
-            const titleBarControls = document.createElement( "div" );
-            let numButtons = 0;
+         const menuBtn = document.createElement( "img" );
+         menuBtn.id = panel.id + ID_STUB_APP_MENU_BUTTON;
+         menuBtn.src = "img/menu-icon.png";
 
-            for( let i = 0; i < panelCfg.controls.length; i++ ) {
-               let c = panelCfg.controls[i];
+         ( function(panelId) {
+            menuBtn.addEventListener( "click", function(event) {
+               toggleApplicationMenu( panelId );
+            } );
 
-               if( c === "minimize" ) {
-                  const btnMinMax = newButton( panel.id + ID_STUB_MIN_MAX_BUTTON, TEXT_BUTTON_MINIMIZE );
+            // Register a double click event for the sole purpose of stopping event bubbling to the title bar (prevents minimizing when double clicking the menu button)
+            menuBtn.addEventListener( "dblclick", function(event) {
+               event.stopPropagation();
+            } );
 
-                  ( function(panelId) {
-                     btnMinMax.addEventListener( "click", function(event) {
-                        minimizeMaximize( panelId );
-                     } );
-                  } )( panel.id );
+            // Close the menu when clicking away
+            panel.addEventListener( "click", function(event) {
+               const source = event.originalTarget || event.srcElement;
 
-                  titleBarControls.appendChild( btnMinMax );
-                  numButtons++;
-               } else if( c === "close" ) {
-                  const btnClose = newButton( panel.id + ID_STUB_CLOSE_BUTTON, TEXT_BUTTON_CLOSE );
-
-                  ( function(panelId) {
-                     btnClose.addEventListener( "click", function(event) {
-                        close( panelId );
-                     } );
-                  } )( panel.id );
-
-                  titleBarControls.appendChild( btnClose );
-                  numButtons++;
+               if( source !== menuBtn ) {
+                  closeApplicationMenu( panelId );
                }
-            }
+            } );
+         } )( panel.id );
 
-            if( numButtons > 0 ) {
-               titleBarControls.className = CLASS_TITLEBAR_CONTROLS;
+         const titleBarControls = document.createElement( "div" );
+         titleBarControls.id = panel.id + ID_STUB_TITLEBAR_CONTROLS;
+         titleBarControls.appendChild( menuBtn );
+         titleBarControls.classList.add( CLASS_TITLEBAR_CONTROLS )
 
-               if( numButtons === 1 ) {
-                  titleBarTitle.classList.add( CLASS_TITLEBAR_ONE_BUTTON );
-               }
-
-               if( numButtons === 2 ) {
-                  titleBarTitle.classList.add( CLASS_TITLEBAR_TWO_BUTTONS );
-                  titleBarControls.classList.add( CLASS_TITLEBAR_TWO_BUTTONS );
-               }
-
-               titleBar.appendChild( titleBarControls );
-            }
-         }
-
+         titleBar.appendChild( titleBarControls );
          panel.appendChild( titleBar );
 
-         panelData[ID_STUB_PANEL + i] = panelData[ID_STUB_PANEL + i] || [];
+         const appMenu = document.createElement( "div" );
+         appMenu.id = panel.id + ID_STUB_APP_MENU;
+         appMenu.className = CLASS_APP_MENU;
+         appMenu.classList.add( CLASS_VISIBILITY_HIDDEN );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){ connectDisconnect(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){ toggleNotifications(panel.id); }) );
+         appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CLOSE,   TEXT_MENUITEM_CLOSE,    function(){ close(panel.id); }) );
 
+         titleBar.appendChild( appMenu );
+
+         const panelBody = document.createElement( "div" );
+         panelBody.id = panel.id + ID_STUB_PANEL_BODY;
+         panelBody.className = CLASS_PANEL_BODY;
+
+         const fieldsContainer = document.createElement( "div" );
          fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
          for( let j = 0; j < panelCfg.fields.length; j++ ) {
@@ -282,7 +283,7 @@ function RealtimeMonitor() {
 
             fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
 
-            settings[panel.id].fields[fieldCfg.prop] = {};
+            settings[panel.id].fields[fieldCfg.prop] = {};  // More opportunistic saving of settings
 
             if( fieldCfg.showLowest ) {
                fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
@@ -306,38 +307,37 @@ function RealtimeMonitor() {
             graphs.push( newGraph(panel.id, fieldCfg.prop) );
          }
 
+         panelBody.appendChild( fieldsContainer );
+
+         const graphContainer = document.createElement( "div" );
          graphContainer.className = CLASS_GRAPH_CONTAINER;
 
-         panel.appendChild( fieldsContainer );
-         panel.appendChild( graphContainer );
-
-         btnConnectContainer.className = CLASS_CONNECT_BTN_CONTAINER;
-         btnConnect = newButton( panel.id + ID_STUB_CONNECT_BUTTON, TEXT_BUTTON_CONNECT );
-
-         ( function(panelId) {
-            btnConnect.addEventListener( "click", function(event) {
-               connectDisconnect( panelId );
-            } );
-         } )( panel.id );
-
-         btnConnectContainer.appendChild( btnConnect );
-
-         panel.appendChild( btnConnectContainer );
+         panelBody.appendChild( graphContainer );
 
          for( let j = 0; j < graphs.length; j++ ) {
             graphContainer.appendChild( graphs[j] );
          }
 
-         if( panelCfg.startMinimized ) {
-            panel.classList.add( CLASS_VISIBILITY_HIDDEN );
-         }
-
+         panel.appendChild( panelBody );
          document.body.appendChild( panel );
 
          if( panelCfg.startMinimized ) {
             minimizeMaximize( panel.id );
-            panel.classList.remove( CLASS_VISIBILITY_HIDDEN );
          }
+      }
+
+      function newAppMenuItem( panelId, menuItemIdStub, text, clickCallback ) {
+         const item = document.createElement( "div" );
+
+         item.id = panelId + menuItemIdStub;
+         item.className = CLASS_APP_MENU_ITEM;
+         item.appendChild( document.createTextNode(text) );
+         item.addEventListener( "click", function() {
+            clickCallback();
+            closeApplicationMenu( panelId );
+         } );
+
+         return item;
       }
 
       function newField( fieldType, propName, panelId, labelText, suffix ) {
@@ -438,7 +438,9 @@ function RealtimeMonitor() {
       }
    };
 
-   this.toggleNotifications = function( panelId ) {
+   function toggleNotifications( panelId ) {
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE );
+      menuItem.innerText = settings[panelId].notifications ? TEXT_MENUITEM_UNMUTE : TEXT_MENUITEM_MUTE;
       settings[panelId].notifications = !settings[panelId].notifications;
    };
 
@@ -446,16 +448,42 @@ function RealtimeMonitor() {
       settings[panelId].notifications = enabled;
    }
 
-   function minimizeMaximize( panelId ) {
-      const panel = document.getElementById( panelId ),
-            btn   = document.getElementById( panelId + ID_STUB_MIN_MAX_BUTTON );
+   function toggleApplicationMenu( panelId ) {
+      const titleBarControls = document.getElementById( panelId + ID_STUB_TITLEBAR_CONTROLS );
+      const menu = document.getElementById( panelId + ID_STUB_APP_MENU );
 
-      if( panel.classList.contains(CLASS_MINIMIZED) ) {
-         panel.classList.remove( CLASS_MINIMIZED );
-         btn.innerHTML = TEXT_BUTTON_MINIMIZE;
-      } else {
-         panel.classList.add( CLASS_MINIMIZED );
-         btn.innerHTML = TEXT_BUTTON_MAXIMIZE;
+      if( menu && titleBarControls ) {
+         if( menu.classList.contains(CLASS_VISIBILITY_HIDDEN) ) {
+            menu.classList.remove( CLASS_VISIBILITY_HIDDEN );
+            titleBarControls.classList.add( CLASS_APP_MENU_ACTIVE );
+         } else {
+            menu.classList.add( CLASS_VISIBILITY_HIDDEN );
+            titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );
+         }
+      }
+   }
+
+   function closeApplicationMenu( panelId ) {
+      const titleBarControls = document.getElementById( panelId + ID_STUB_TITLEBAR_CONTROLS );
+      const menu = document.getElementById( panelId + ID_STUB_APP_MENU );
+
+      if( menu ) {
+         menu.classList.add( CLASS_VISIBILITY_HIDDEN );
+         titleBarControls.classList.remove( CLASS_APP_MENU_ACTIVE );
+      }
+   }
+
+   function minimizeMaximize( panelId ) {
+      const panelBody = document.getElementById( panelId + ID_STUB_PANEL_BODY ),
+            menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MIN_MAX );
+
+      if( panelBody.classList.contains(CLASS_MINIMIZED) ) {  // we're maximizing
+         panelBody.classList.remove( CLASS_MINIMIZED );
+         menuItem.innerHTML = TEXT_MENUITEM_MINIMIZE;
+      } else {  // we're minimizing
+         panelBody.classList.add( CLASS_MINIMIZED );
+         menuItem.innerHTML = TEXT_MENUITEM_MAXIMIZE;
+         closeApplicationMenu( panelId );
       }
    }
 
@@ -476,14 +504,14 @@ function RealtimeMonitor() {
 
    function connectDisconnect( panelId ) {
       const btn = document.getElementById( panelId + ID_STUB_CONNECT_BUTTON );
-      const connected = btn.innerHTML.indexOf( TEXT_BUTTON_DISCONNECT ) !== -1;
+      const connected = btn.innerHTML.indexOf( TEXT_MENUITEM_DISCONNECT ) !== -1;
 
       if( connected ) {
          disconnect( panelId );
-         btn.innerHTML = TEXT_BUTTON_CONNECT;
+         btn.innerHTML = TEXT_MENUITEM_CONNECT;
       } else {
          connect( panelId );
-         btn.innerHTML = TEXT_BUTTON_DISCONNECT;
+         btn.innerHTML = TEXT_MENUITEM_DISCONNECT;
       }
    }
 
@@ -520,6 +548,7 @@ function RealtimeMonitor() {
 
          if( notif ) {
             notif.close();
+            thresholdNotifications[panelId] = undefined;
          }
       }
    }
@@ -533,8 +562,8 @@ function RealtimeMonitor() {
          panel.parentNode.removeChild( panel );
       }
 
-      panelData[ panelId ] = undefined;
-      settings[ panelId ] = undefined;
+      panelData[panelId] = undefined;
+      settings[panelId] = undefined;
    }
 
    function updateStats( panelId, jsonResponse ) {
@@ -664,7 +693,7 @@ function RealtimeMonitor() {
             }
 
             function checkAgainstLow() {
-               var className = CLASS_STATUS_NORMAL;
+               let className = CLASS_STATUS_NORMAL;
 
                if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
                   className = CLASS_STATUS_DANGER;
@@ -676,7 +705,7 @@ function RealtimeMonitor() {
             }
 
             function checkAgainstHigh() {
-               var className = CLASS_STATUS_NORMAL;
+               let className = CLASS_STATUS_NORMAL;
 
                if( something(highThresholds.danger) && value >= highThresholds.danger ) {
                   className = CLASS_STATUS_DANGER;
@@ -766,7 +795,7 @@ function RealtimeMonitor() {
       areNotificationsOk();  // If notifications were disabled in the browser when the page loaded, then re-enabled later, we want to know
 
       if( notificationsOk ) {
-         var opts = {
+         const opts = {
             body : body,
             icon : icon,
             tag  : tag,

@@ -74,9 +74,8 @@
          var configuration = [ {
             title  : "Location 1",
             url    : "http://localhost/RealtimeMonitor/status/site1",
-            autoConnect : true,
+            autoConnect : false,
             startMinimized : false,
-            controls : [ "minimize", "close" ],
             notifications : true,
             // draggable : true/false (default false)  // TODO
             fields : [
@@ -120,8 +119,6 @@
 
             monitor.initialize( configuration );
             configuration = undefined;
-
-            //monitor.toggleNotifications( "panel0" );
          } );
       </script>
    </head>
