@@ -52,7 +52,7 @@ $ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out
 $ http-server --ssl
 ```
 
-Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  If the panel refreshes every few seconds, well, you get the picture.  There *is* a notification API that allows you to put buttons in notifications; I wanted to use it to add an "Ignore all future messages" option, but the API is far more complicated than the one used by RealtimeMonitor, and it's currently only supported by Chrome anyway, so it wasn't worth the effort to implement.  As a compromise, an update is planned to allow muting of notifications from within the panel itself.  Stay tuned for that.
+Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
 
 
 ## Third-party Attribution
