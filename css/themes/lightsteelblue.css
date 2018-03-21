@@ -11,7 +11,7 @@
  * modification, are permitted provided that the following conditions are met:
  *
  *     1. This software may not be used by any for-profit entity, whether a
- *        business, person or other, or for any for-profit purpose.
+ *        business, person, or other, or for any for-profit purpose.
  *     2. Redistributions of source code must retain the above copyright
  *        notice, this list of conditions and the following disclaimer.
  *     3. Redistributions in binary form must reproduce the above copyright
