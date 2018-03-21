@@ -54,14 +54,24 @@
 }
 
 .monitoringPanel .applicationMenu {
+   background-color: #000000;
+   color: #FFFFFF;
+   border-color: #696969;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem { 
+   border-color: #696969;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
    background-color: #696969;
    color: #FFFFFF;
 }
 
-.monitoringPanel .applicationMenu .applicationMenuItem:hover {
-   color: #000000;
+.monitoringPanel .titleBar .titleBarControls.menuActive {
+   background-color: #000000;
 }
 
-.monitoringPanel .titleBar .titleBarControls.menuActive {
-   background-color: #696969;
+.monitoringPanel .titleBar .titleBarControls.menuActive .appMenuButton {
+   background-image: url( "../../img/menu-icon-white.png" );
 }
