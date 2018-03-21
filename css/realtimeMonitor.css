@@ -83,7 +83,7 @@
 
 .monitoringPanel .applicationMenu .applicationMenuItem:hover {
    background-color: #F0F0F0;
-   color: #008000;
+   color: #0000FF;
 }
 
 .monitoringPanel button::-moz-focus-inner {
