@@ -43,6 +43,7 @@ function RealtimeMonitor() {
          CLASS_TITLEBAR_CONTROLS     = "titleBarControls",
          CLASS_APP_MENU              = "applicationMenu",
          CLASS_APP_MENU_ACTIVE       = "menuActive",
+         CLASS_APP_MENU_BUTTON       = "appMenuButton",
          CLASS_APP_MENU_ITEM         = "applicationMenuItem",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
@@ -222,9 +223,9 @@ function RealtimeMonitor() {
 
          titleBar.appendChild( titleBarTitle );
 
-         const menuBtn = document.createElement( "img" );
+         const menuBtn = document.createElement( "div" );
          menuBtn.id = panel.id + ID_STUB_APP_MENU_BUTTON;
-         menuBtn.src = URL_MENU_BUTTON_IMG;
+         menuBtn.className = CLASS_APP_MENU_BUTTON;
 
          ( function(panelId) {
             menuBtn.addEventListener( "click", function(event) {
