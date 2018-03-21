@@ -44,3 +44,17 @@
 .monitoringPanel .fieldContainer .highLowValue.normal {
    color: #00FF00;
 }
+
+.monitoringPanel .applicationMenu {
+   background-color: #F0F0F0;
+   color: #000000;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
+   background-color: #2F4F4F;
+   color: #FFFFFF;
+}
+
+.monitoringPanel .titleBar .titleBarControls.menuActive {
+   background-color: #F0F0F0;
+}

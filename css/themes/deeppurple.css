@@ -48,3 +48,28 @@
 .monitoringPanel .fieldContainer.hasGraph label:hover {
    color: #D39FED;
 }
+
+.monitoringPanel .applicationMenu {
+   background-color: #2D053B;
+   color: #FFFFFF;
+   border-color: #663399;
+   border-width: 2px;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem  {
+   border-color: #663399;
+   border-width: 2px;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
+   background-color: #663399;
+   color: #FFFFFF;
+}
+
+.monitoringPanel .titleBar .titleBarControls.menuActive {
+   background-color: #663399;
+}
+
+.monitoringPanel .titleBar .titleBarControls.menuActive .appMenuButton {
+   background-image: url( "../../img/menu-icon-white.png" );
+}

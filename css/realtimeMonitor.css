@@ -120,25 +120,32 @@
 }
 
 .monitoringPanel .titleBar .titleBarControls {
-   height: 100%;
+   display: flex;
+   width: 45px;
+   height: 29px;
    text-align: center;
-   flex-basis: 35px;
+   /*flex-basis: 35px;
    flex-grow: 0;
-   flex-shrink: 0;
+   flex-shrink: 0;*/
 }
 
 .monitoringPanel .titleBar .titleBarControls.menuActive {
    background-color: #FFFFFF;
 }
 
-.monitoringPanel .titleBar .titleBarControls img:hover, .monitoringPanel .titleBar .titleBarControls.menuActive img {
+.monitoringPanel .titleBar .titleBarControls .appMenuButton:hover, .monitoringPanel .titleBar .titleBarControls.menuActive .appMenuButton {
    box-shadow: 0px 0px 5px 0px rgba( 0, 0, 0, 0.67 );
 }
 
-.monitoringPanel .titleBar .titleBarControls img {
-   vertical-align: middle;
-   padding: 3px;
-   margin-bottom: 4px;
+.monitoringPanel .titleBar .titleBarControls .appMenuButton {
+   width: 21px;
+   height: 16px;
+   margin: auto;
+   padding-left: 15px;
+   padding-right: 12px;
+   padding-top: 11px;
+   padding-bottom: 11px;
+   background: url( "../img/menu-icon.png" ) no-repeat center;
 }
 
 .monitoringPanel .titleBar.normal {

@@ -1,4 +1,4 @@
-/*
+      /*
  * RealtimeMonitor
  * https://www.github.com/kloverde/js-RealtimeMonitor
  *
@@ -51,4 +51,17 @@
 
 .monitoringPanel .fieldContainer .highLowValue.warn {
    color: #FFFF00;
+}
+
+.monitoringPanel .applicationMenu {
+   background-color: #F0F0F0;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
+   background-color: #DEB887;
+   color: #000000;
+}
+
+.monitoringPanel .titleBar .titleBarControls.menuActive {
+   background-color: #F0F0F0;
 }

@@ -34,21 +34,34 @@
  */
 
 .monitoringPanel {
-   background-color: #C0C0C0;
+   background-color: #000000;
 }
 
-.monitoringPanel .titleBar.warn {
-   background: linear-gradient( to right, #FFFFFF, #FFFF00 );
+.monitoringPanel .fieldContainer.currentValue {
+   background-color: #696969;
 }
 
-.monitoringPanel .fieldContainer .status.warn {
-   background-color: #FFFF00;
+.monitoringPanel .fieldContainer {
+   color: #DCDCDC;
 }
 
-.monitoringPanel .fieldContainer .highLowValue.warn {
-   color: #FFFF00;
+.monitoringPanel .fieldContainer.hasGraph label:hover {
+   color: #FFFFFF;
 }
 
 .monitoringPanel .fieldContainer .highLowValue.normal {
    color: #00FF00;
+}
+
+.monitoringPanel .applicationMenu {
+   background-color: #696969;
+   color: #FFFFFF;
+}
+
+.monitoringPanel .applicationMenu .applicationMenuItem:hover {
+   color: #000000;
+}
+
+.monitoringPanel .titleBar .titleBarControls.menuActive {
+   background-color: #696969;
 }
