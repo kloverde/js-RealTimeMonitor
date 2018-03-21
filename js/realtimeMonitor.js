@@ -111,15 +111,17 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
-   let thresholdNotifications = [];
-   let notificationsOk = false;
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
 
+   let notificationsSupported = true,
+       notificationsOk        = false,
+       thresholdNotifications = [];
 
    cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
-   areNotificationsOk();
+ 
+  areNotificationsOk();
 
    function cacheImages( cache, images ) {
       for( let i = 0; i < images.length; i++ ) {
@@ -146,6 +148,7 @@ function RealtimeMonitor() {
    // Called repeatedly - not just at initialization - because the user can change their browser settings at any time.
    function areNotificationsOk() {
       if( !("Notification" in window)) {
+         notificationsSupported = false;
          notificationsOk = false;
          return;
       }
@@ -443,8 +446,12 @@ function RealtimeMonitor() {
    };
 
    function toggleNotifications( panelId ) {
-      var menuVal = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE ).innerText;
-      setNotificationsEnabled( panelId, !(menuVal === TEXT_MENUITEM_MUTE) );
+      if( notificationsSupported ) {
+         const menuVal = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE ).innerText;
+         setNotificationsEnabled( panelId, !(menuVal === TEXT_MENUITEM_MUTE) );
+      } else {
+         alert( "Notifications are not supported by your browser.  To make use of notification functionality, you'll need to install a supporting browser, such as a recent version of Firefox or Chrome." );
+      }
    };
 
    function setNotificationsEnabled( panelId, enabled ) {
