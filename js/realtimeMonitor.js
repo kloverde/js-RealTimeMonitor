@@ -105,8 +105,6 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
          THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
-   const URL_MENU_BUTTON_IMG = "img/menu-icon.png";
-
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
