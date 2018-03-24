@@ -32,7 +32,7 @@ RealtimeMonitor uses [http://chartjs.org](Chart.js) for graphing.  The graph con
 1.  Graphs display a maximum of 35 points at a time, after which data points get shifted off the left edge.
 2.  All Chart.js animations are disabled.  In Firefox on a Core i7 with one panel containing 4 fields, CPU use often reached 15% with animations enabled (!).  Granted, Firefox isn't the most performant browser out there, but this benchmark wasn't acceptable.  With animations disabled, as well as a few other tweaks, the same test scenario resulted in CPU use of 0-1%.
 
-I contemplated making the Chart.js settings configurable so that these choices are not forced on anyone, but ultimately decided against it.  I don't recommend changing these settings.
+I contemplated making the Chart.js settings configurable so that these choices are not forced on everyone, but ultimately I decided against it.  I don't recommend changing these settings.
 
 
 ## Notifications
