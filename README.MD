@@ -27,7 +27,7 @@ Assuming you've declared thresholds for a field, each status (normal, warning an
 
 At the bottom of each panel is an area that contains a line graph for the currently chosen field.  Cycle through the graphs by clicking a field label.
 
-RealtimeMonitor uses [http://chartjs.org](Chart.js) for graphing.  The graph configurations have been tuned for readability and performance:
+RealtimeMonitor uses [Chart.js](http://chartjs.org) for graphing.  The graph configurations have been tuned for readability and performance:
 
 1.  Graphs display a maximum of 35 points at a time, after which data points get shifted off the left edge.
 2.  All Chart.js animations are disabled.  In Firefox on a Core i7 with one panel containing 4 fields, CPU use often reached 15% with animations enabled (!).  Granted, Firefox isn't the most performant browser out there, but this benchmark wasn't acceptable.  With animations disabled, as well as a few other tweaks, the same test scenario resulted in CPU use of 0-1%.
