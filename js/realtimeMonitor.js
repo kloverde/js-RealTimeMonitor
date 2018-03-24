@@ -111,6 +111,8 @@ function RealtimeMonitor() {
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+   const graphs = [];
+
 
    let notificationsSupported = true,
        notificationsOk        = false,
@@ -119,7 +121,7 @@ function RealtimeMonitor() {
    cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
  
-  areNotificationsOk();
+   areNotificationsOk();
 
    function cacheImages( cache, images ) {
       for( let i = 0; i < images.length; i++ ) {
@@ -199,7 +201,6 @@ function RealtimeMonitor() {
 
          const panelCfg = appCfg[i];
          const panel = document.createElement( "div" );
-         const graphs = [];
 
          panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
@@ -307,7 +308,10 @@ function RealtimeMonitor() {
             panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
 
             fieldsContainer.appendChild( newFieldSeparator() );
-            graphs.push( newGraph(panel.id, fieldCfg.prop) );
+
+            const graph = newGraph( panel.id, fieldCfg.prop, fieldCfg.label + (something(fieldCfg.suffix) ? " (" + fieldCfg.suffix + ")" : "" ) );
+            graphs[panel.id] = graphs[panel.id] || [];
+            graphs[panel.id][fieldCfg.prop] = graph;
          }
 
          panelBody.appendChild( fieldsContainer );
@@ -317,8 +321,16 @@ function RealtimeMonitor() {
 
          panelBody.appendChild( graphContainer );
 
-         for( let j = 0; j < graphs.length; j++ ) {
-            graphContainer.appendChild( graphs[j] );
+         let firstGraph = true;
+         for( let prop in graphs[panel.id] ) {
+            const graph = graphs[panel.id][prop].canvas;
+
+            if( firstGraph ) {
+               graph.classList.remove( CLASS_VISIBILITY_GONE );
+            }
+
+            graphContainer.appendChild( graph );
+            firstGraph = false;
          }
 
          panel.appendChild( panelBody );
@@ -386,7 +398,7 @@ function RealtimeMonitor() {
 
          label.id = ID_STUB_LABEL + val.id;
          label.setAttribute( "for", val.id );
-         label.appendChild( document.createTextNode(labelText) );
+         label.appendChild( document.createTextNode(labelText + ":") );
          fieldContainer.appendChild( label );
 
          fieldContainer.appendChild( val );
@@ -425,14 +437,37 @@ function RealtimeMonitor() {
          return separator;
       }
 
-      function newGraph( panelId, propName ) {
-         const graph = document.createElement( "div" );
+      function newGraph( panelId, propName, title ) {
+         const canvas = document.createElement( "canvas" );
+         const ctx = canvas.getContext( "2d" );
 
-         graph.id = panelId + ID_STUB_GRAPH + propName;
-         graph.className = CLASS_VISIBILITY_GONE;
-         graph.appendChild( document.createTextNode(graph.id) );
+         canvas.id = panelId + ID_STUB_GRAPH + propName;
+         canvas.className = CLASS_VISIBILITY_GONE;
 
-         return graph;
+         const graph = new Chart( ctx, {
+            type : "line",
+            data : {
+               datasets: [ {
+                  label : "",
+                  data  : [],
+                  backgroundColor : [ "rgba( 144, 195, 212, 0.2 )" ],
+                  borderColor : [ "rgba( 35, 162, 204, 1 )" ],
+                  borderWidth : 1
+              } ]
+            },
+            options : {
+               legend   : { display : false },
+               title    : { display : true, text : title, position : "top" },
+               tooltips : { mode : 'point', displayColors : false },
+
+               // performance tuning
+               elements  : { line: {tension : 0} },   // disables bezier curves
+               animation : { duration : 0 },          // general animation time - EXTREME performance penalty, even on a Core i7
+               hover     : { animationDuration : 0 }  // duration of animations when hovering over an item
+            }
+         } );
+
+         return { canvas : canvas, graph : graph };
       }
 
       function newButton( id, text ) {
@@ -617,7 +652,8 @@ function RealtimeMonitor() {
             const label = document.getElementById( ID_STUB_LABEL + panelId + prop );
 
             const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
-                  isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
+                  isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0,
+                  isCurrentReadingField = !isHighField && !isLowField;
 
             const fieldStatus = document.getElementById( panelId + ID_STUB_STATUS + prop );
 
@@ -629,7 +665,7 @@ function RealtimeMonitor() {
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
 
-            if( !isHighField && !isLowField ) {
+            if( isCurrentReadingField ) {
                if( !settings[panelId].fields[prop].showLowest ) {
                   label.title += TEXT_TOOLTIP_LOWEST + panelData[panelId][PROP_STUB_LOWEST + prop];
                }
@@ -643,11 +679,11 @@ function RealtimeMonitor() {
                classNameFromLowThreshold = checkAgainstLow();
 
                if( classNameFromLowThreshold === CLASS_STATUS_WARN ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyWarn = true;
                   }
                } else if( classNameFromLowThreshold === CLASS_STATUS_DANGER ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyDanger = true;
                   }
                }
@@ -657,11 +693,11 @@ function RealtimeMonitor() {
                classNameFromHighThreshold = checkAgainstHigh();
 
                if( classNameFromHighThreshold === CLASS_STATUS_WARN ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyWarn = true;
                   }
                } else if( classNameFromHighThreshold === CLASS_STATUS_DANGER ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyDanger = true;
                   }
                }
@@ -693,6 +729,24 @@ function RealtimeMonitor() {
                if( suffix ) {
                   setStatusColor( suffix, winningClassName );
                }
+            } else {
+               updateGraph( graphs[panelId][prop].graph, value );
+            }
+
+            function updateGraph( graph, value ) {
+               const dataset = graph.data.datasets[0].data;
+               const labels = graph.data.labels;
+
+               //const label = dataset.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+
+               if( dataset.length === 35 ) {
+                  labels.shift();
+                  dataset.shift();
+               }
+
+               graph.data.labels.push( "" );
+               dataset.push( value );
+               graph.update();               
             }
 
             function setStatusColor( element, className ) {
