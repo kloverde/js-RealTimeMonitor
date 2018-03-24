@@ -48,6 +48,11 @@ function RealtimeMonitor() {
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
+         CLASS_GRAPH_COLOR           = "graphColor",
+         CLASS_GRAPH_FILL_COLOR      = "graphFillColor",
+         CLASS_GRAPH_EDGE_COLOR      = "graphEdgeColor",
+         CLASS_GRAPH_LABEL_COLOR     = "graphLabelColor",
+         CLASS_GRAPH_GRID_COLOR      = "graphGridColor",
          CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
          CLASS_CURRENT_VALUE         = "currentValue",
          CLASS_HAS_GRAPH             = "hasGraph",
@@ -75,6 +80,10 @@ function RealtimeMonitor() {
          ID_STUB_LABEL               = "label",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
+         ID_STUB_GRAPH_FILL_COLOR    = CLASS_GRAPH_FILL_COLOR,
+         ID_STUB_GRAPH_EDGE_COLOR    = CLASS_GRAPH_EDGE_COLOR,
+         ID_STUB_GRAPH_LABEL_COLOR   = CLASS_GRAPH_LABEL_COLOR,
+         ID_STUB_GRAPH_GRID_COLOR    = CLASS_GRAPH_GRID_COLOR,
          ID_STUB_STATUS              = "status",
          ID_STUB_SUFFIX              = "suffix";
 
@@ -333,6 +342,18 @@ function RealtimeMonitor() {
             firstGraph = false;
          }
 
+         // And now for an ugly hack.  There's no single color scheme for a graph that will work with every theme,
+         // and Chart.js doesn't support styling via CSS.  Create hidden elements with a background-color set in a
+         // stylesheet, then look up the value and apply it to Chart.js.  And, since the user can change the theme
+         // at any time, the lookup must be done every time the graph refreshes.
+
+         if( i === 0 ) {
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_FILL_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_EDGE_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_LABEL_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_GRID_COLOR) );
+         }
+
          panel.appendChild( panelBody );
          document.body.appendChild( panel );
 
@@ -341,6 +362,14 @@ function RealtimeMonitor() {
          }
 
          setNotificationsEnabled( panel.id, settings[panel.id].notifications );
+      }
+
+      function newGraphColor( panelId, id ) {
+         const graphColor = document.createElement( "span" );
+         graphColor.id = panelId + id;
+         graphColor.className = CLASS_GRAPH_COLOR;
+         graphColor.classList.add( id );
+         return graphColor;
       }
 
       function newAppMenuItem( panelId, menuItemIdStub, text, clickCallback ) {
@@ -450,19 +479,19 @@ function RealtimeMonitor() {
                datasets: [ {
                   label : "",
                   data  : [],
-                  backgroundColor : [ "rgba( 144, 195, 212, 0.2 )" ],
-                  borderColor : [ "rgba( 35, 162, 204, 1 )" ],
+                  backgroundColor : getGraphFillColor( panelId ),
+                  borderColor : getGraphEdgeColor( panelId ),
                   borderWidth : 1
               } ]
             },
             options : {
                legend   : { display : false },
-               title    : { display : true, text : title, position : "top" },
-               tooltips : { mode : "point", displayColors : false },
+               title    : { display : true, text : title, position : "top", fontColor : getGraphLabelColor(panelId) },
+               tooltips : { mode    : "point", displayColors : false },
 
                // performance tuning
                elements  : { line: {tension : 0} },   // disables bezier curves
-               animation : { duration : 0 },          // general animation time - EXTREME performance penalty, even on a Core i7
+               animation : { duration : 0 },          // general animation time - incurs a severe performance penalty, even on a Core i7
                hover     : { animationDuration : 0 }  // duration of animations when hovering over an item
             }
          } );
@@ -477,6 +506,26 @@ function RealtimeMonitor() {
          return btn;
       }
    };
+
+   function getGraphGridColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_GRID_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphLabelColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_LABEL_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphFillColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_FILL_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphEdgeColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_EDGE_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
 
    function toggleNotifications( panelId ) {
       if( notificationsSupported ) {
@@ -730,22 +779,38 @@ function RealtimeMonitor() {
                   setStatusColor( suffix, winningClassName );
                }
             } else {
-               updateGraph( graphs[panelId][prop].graph, value );
+               updateGraph( panelId, value );
             }
 
-            function updateGraph( graph, value ) {
-               const dataset = graph.data.datasets[0].data;
-               const labels = graph.data.labels;
+            function updateGraph( panelId, value ) {
+               const graph = graphs[panelId][prop].graph,
+                     dataset = graph.data.datasets[0],
+                     data = dataset.data,
+                     labels = graph.data.labels,
+                     labelColor = getGraphLabelColor( panelId ),
+                     gridColor = getGraphGridColor( panelId );
 
-               //const label = dataset.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+               // Change the color of the y-axis label.  Changing the color through the fine-grained
+               // setting works only once:  graph.options.scales.yAxes[0].ticks.fontColor = labelColor;
+               // However, Chart.js always checks the value of the GLOBAL font configuration.  Sounds
+               // like a bug.  [Chart.js v2.7.2]
+               Chart.defaults.global.defaultFontColor = labelColor;
 
-               if( dataset.length === 35 ) {
+               graph.options.title.fontColor = labelColor;
+               graph.options.scales.xAxes[0].gridLines.color = gridColor;
+               graph.options.scales.yAxes[0].gridLines.color = gridColor;
+               dataset.backgroundColor = getGraphFillColor( panelId );
+               dataset.borderColor = getGraphEdgeColor( panelId );
+
+               //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+
+               if( data.length === 35 ) {
                   labels.shift();
-                  dataset.shift();
+                  data.shift();
                }
 
                graph.data.labels.push( "" );
-               dataset.push( value );
+               data.push( value );
                graph.update();               
             }
 

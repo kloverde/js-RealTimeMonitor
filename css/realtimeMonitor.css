@@ -170,6 +170,32 @@
    height: 100%;
 }
 
+/*
+ * Call it clever or call it ugly - this is a hack to configure Chart.js
+ * colors through CSS instead of JavaScript (the only method it supports).
+ */
+.monitoringPanel .graphContainer .graphColor {
+   display: none !important;
+   width: 0px !important;
+   height: 0px !important;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphLabelColor {
+   background-color: #666666;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphFillColor {
+   background-color: rgba( 144, 195, 212, .2 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphEdgeColor {
+   background-color: rgba( 35, 162, 204, 1 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphGridColor {
+   background-color: rgba( 0, 0, 0, .1 );
+}
+
 .monitoringPanel .fieldsContainer {
    margin-top: 15px;
 }
