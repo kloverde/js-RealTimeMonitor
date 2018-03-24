@@ -1,7 +1,7 @@
 RealtimeMonitor
 ===============
 
-See LICENSE for this software's licensing terms.
+See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.
 
 This application is still being developed - it's not yet ready for use.
 
