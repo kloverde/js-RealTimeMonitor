@@ -48,6 +48,11 @@ function RealtimeMonitor() {
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
+         CLASS_GRAPH_COLOR           = "graphColor",
+         CLASS_GRAPH_FILL_COLOR      = "graphFillColor",
+         CLASS_GRAPH_EDGE_COLOR      = "graphEdgeColor",
+         CLASS_GRAPH_LABEL_COLOR     = "graphLabelColor",
+         CLASS_GRAPH_GRID_COLOR      = "graphGridColor",
          CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
          CLASS_CURRENT_VALUE         = "currentValue",
          CLASS_HAS_GRAPH             = "hasGraph",
@@ -75,6 +80,10 @@ function RealtimeMonitor() {
          ID_STUB_LABEL               = "label",
          ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
+         ID_STUB_GRAPH_FILL_COLOR    = CLASS_GRAPH_FILL_COLOR,
+         ID_STUB_GRAPH_EDGE_COLOR    = CLASS_GRAPH_EDGE_COLOR,
+         ID_STUB_GRAPH_LABEL_COLOR   = CLASS_GRAPH_LABEL_COLOR,
+         ID_STUB_GRAPH_GRID_COLOR    = CLASS_GRAPH_GRID_COLOR,
          ID_STUB_STATUS              = "status",
          ID_STUB_SUFFIX              = "suffix";
 
@@ -111,6 +120,8 @@ function RealtimeMonitor() {
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+   const graphs = [];
+
 
    let notificationsSupported = true,
        notificationsOk        = false,
@@ -119,7 +130,7 @@ function RealtimeMonitor() {
    cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
  
-  areNotificationsOk();
+   areNotificationsOk();
 
    function cacheImages( cache, images ) {
       for( let i = 0; i < images.length; i++ ) {
@@ -199,7 +210,6 @@ function RealtimeMonitor() {
 
          const panelCfg = appCfg[i];
          const panel = document.createElement( "div" );
-         const graphs = [];
 
          panel.id = ID_STUB_PANEL + i;
          panel.className = CLASS_MONITORING_PANEL;
@@ -307,7 +317,10 @@ function RealtimeMonitor() {
             panelData[ID_STUB_PANEL + i][PROP_STUB_HIGHEST + fieldCfg.prop] = null;
 
             fieldsContainer.appendChild( newFieldSeparator() );
-            graphs.push( newGraph(panel.id, fieldCfg.prop) );
+
+            const graph = newGraph( panel.id, fieldCfg.prop, fieldCfg.label + (something(fieldCfg.suffix) ? " (" + fieldCfg.suffix + ")" : "" ) );
+            graphs[panel.id] = graphs[panel.id] || [];
+            graphs[panel.id][fieldCfg.prop] = graph;
          }
 
          panelBody.appendChild( fieldsContainer );
@@ -317,8 +330,28 @@ function RealtimeMonitor() {
 
          panelBody.appendChild( graphContainer );
 
-         for( let j = 0; j < graphs.length; j++ ) {
-            graphContainer.appendChild( graphs[j] );
+         let firstGraph = true;
+         for( let prop in graphs[panel.id] ) {
+            const graph = graphs[panel.id][prop].canvas;
+
+            if( firstGraph ) {
+               graph.classList.remove( CLASS_VISIBILITY_GONE );
+            }
+
+            graphContainer.appendChild( graph );
+            firstGraph = false;
+         }
+
+         // And now for an ugly hack.  There's no single color scheme for a graph that will work with every theme,
+         // and Chart.js doesn't support styling via CSS.  Create hidden elements with a background-color set in a
+         // stylesheet, then look up the value and apply it to Chart.js.  And, since the user can change the theme
+         // at any time, the lookup must be done every time the graph refreshes.
+
+         if( i === 0 ) {
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_FILL_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_EDGE_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_LABEL_COLOR) );
+            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_GRID_COLOR) );
          }
 
          panel.appendChild( panelBody );
@@ -329,6 +362,14 @@ function RealtimeMonitor() {
          }
 
          setNotificationsEnabled( panel.id, settings[panel.id].notifications );
+      }
+
+      function newGraphColor( panelId, id ) {
+         const graphColor = document.createElement( "span" );
+         graphColor.id = panelId + id;
+         graphColor.className = CLASS_GRAPH_COLOR;
+         graphColor.classList.add( id );
+         return graphColor;
       }
 
       function newAppMenuItem( panelId, menuItemIdStub, text, clickCallback ) {
@@ -386,7 +427,7 @@ function RealtimeMonitor() {
 
          label.id = ID_STUB_LABEL + val.id;
          label.setAttribute( "for", val.id );
-         label.appendChild( document.createTextNode(labelText) );
+         label.appendChild( document.createTextNode(labelText + ":") );
          fieldContainer.appendChild( label );
 
          fieldContainer.appendChild( val );
@@ -425,14 +466,37 @@ function RealtimeMonitor() {
          return separator;
       }
 
-      function newGraph( panelId, propName ) {
-         const graph = document.createElement( "div" );
+      function newGraph( panelId, propName, title ) {
+         const canvas = document.createElement( "canvas" );
+         const ctx = canvas.getContext( "2d" );
 
-         graph.id = panelId + ID_STUB_GRAPH + propName;
-         graph.className = CLASS_VISIBILITY_GONE;
-         graph.appendChild( document.createTextNode(graph.id) );
+         canvas.id = panelId + ID_STUB_GRAPH + propName;
+         canvas.className = CLASS_VISIBILITY_GONE;
 
-         return graph;
+         const graph = new Chart( ctx, {
+            type : "line",
+            data : {
+               datasets: [ {
+                  label : "",
+                  data  : [],
+                  backgroundColor : getGraphFillColor( panelId ),
+                  borderColor : getGraphEdgeColor( panelId ),
+                  borderWidth : 1
+              } ]
+            },
+            options : {
+               legend   : { display : false },
+               title    : { display : true, text : title, position : "top", fontColor : getGraphLabelColor(panelId) },
+               tooltips : { mode    : "point", displayColors : false },
+
+               // performance tuning
+               elements  : { line: {tension : 0} },   // disables bezier curves
+               animation : { duration : 0 },          // general animation time - incurs a severe performance penalty, even on a Core i7
+               hover     : { animationDuration : 0 }  // duration of animations when hovering over an item
+            }
+         } );
+
+         return { canvas : canvas, graph : graph };
       }
 
       function newButton( id, text ) {
@@ -442,6 +506,26 @@ function RealtimeMonitor() {
          return btn;
       }
    };
+
+   function getGraphGridColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_GRID_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphLabelColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_LABEL_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphFillColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_FILL_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
+
+   function getGraphEdgeColor( panelId ) {
+      const span = document.getElementById( panelId + ID_STUB_GRAPH_EDGE_COLOR );
+      return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
+   }
 
    function toggleNotifications( panelId ) {
       if( notificationsSupported ) {
@@ -617,7 +701,8 @@ function RealtimeMonitor() {
             const label = document.getElementById( ID_STUB_LABEL + panelId + prop );
 
             const isLowField  = prop.indexOf( PROP_STUB_LOWEST ) === 0,
-                  isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0;
+                  isHighField = !isLowField && prop.indexOf( PROP_STUB_HIGHEST ) === 0,
+                  isCurrentReadingField = !isHighField && !isLowField;
 
             const fieldStatus = document.getElementById( panelId + ID_STUB_STATUS + prop );
 
@@ -629,7 +714,7 @@ function RealtimeMonitor() {
             field.innerHTML = "";
             field.appendChild( document.createTextNode(value) );
 
-            if( !isHighField && !isLowField ) {
+            if( isCurrentReadingField ) {
                if( !settings[panelId].fields[prop].showLowest ) {
                   label.title += TEXT_TOOLTIP_LOWEST + panelData[panelId][PROP_STUB_LOWEST + prop];
                }
@@ -643,11 +728,11 @@ function RealtimeMonitor() {
                classNameFromLowThreshold = checkAgainstLow();
 
                if( classNameFromLowThreshold === CLASS_STATUS_WARN ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyWarn = true;
                   }
                } else if( classNameFromLowThreshold === CLASS_STATUS_DANGER ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyDanger = true;
                   }
                }
@@ -657,11 +742,11 @@ function RealtimeMonitor() {
                classNameFromHighThreshold = checkAgainstHigh();
 
                if( classNameFromHighThreshold === CLASS_STATUS_WARN ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyWarn = true;
                   }
                } else if( classNameFromHighThreshold === CLASS_STATUS_DANGER ) {
-                  if( !isLowField && !isHighField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
+                  if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
                      anyDanger = true;
                   }
                }
@@ -693,6 +778,40 @@ function RealtimeMonitor() {
                if( suffix ) {
                   setStatusColor( suffix, winningClassName );
                }
+            } else {
+               updateGraph( panelId, value );
+            }
+
+            function updateGraph( panelId, value ) {
+               const graph = graphs[panelId][prop].graph,
+                     dataset = graph.data.datasets[0],
+                     data = dataset.data,
+                     labels = graph.data.labels,
+                     labelColor = getGraphLabelColor( panelId ),
+                     gridColor = getGraphGridColor( panelId );
+
+               // Change the color of the y-axis label.  Changing the color through the fine-grained
+               // setting works only once:  graph.options.scales.yAxes[0].ticks.fontColor = labelColor;
+               // However, Chart.js always checks the value of the GLOBAL font configuration.  Sounds
+               // like a bug.  [Chart.js v2.7.2]
+               Chart.defaults.global.defaultFontColor = labelColor;
+
+               graph.options.title.fontColor = labelColor;
+               graph.options.scales.xAxes[0].gridLines.color = gridColor;
+               graph.options.scales.yAxes[0].gridLines.color = gridColor;
+               dataset.backgroundColor = getGraphFillColor( panelId );
+               dataset.borderColor = getGraphEdgeColor( panelId );
+
+               //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+
+               if( data.length === 35 ) {
+                  labels.shift();
+                  data.shift();
+               }
+
+               graph.data.labels.push( "" );
+               data.push( value );
+               graph.update();               
             }
 
             function setStatusColor( element, className ) {

@@ -75,3 +75,11 @@
 .monitoringPanel .titleBar .titleBarControls.menuActive .appMenuButton {
    background-image: url( "../../img/menu-icon-white.png" );
 }
+
+.monitoringPanel .graphContainer .graphColor.graphLabelColor {
+   background-color: #DCDCDC;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphGridColor {
+   background-color: rgba( 255, 255, 255, .3 );
+}

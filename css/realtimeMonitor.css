@@ -46,11 +46,11 @@
 }
 
 .monitoringPanel .visibilityHidden {
-   visibility: hidden;
+   visibility: hidden !important;  /* !important required because chart.js tries to strong-arm display:block via the 'style' attribute */
 }
 
 .monitoringPanel .visibilityGone {
-   display: none;
+   display: none !important;       /* !important required because chart.js tries to strong-arm display:block via the 'style' attribute */
 }
 
 .monitoringPanel .applicationMenu {
@@ -159,15 +159,41 @@
 .monitoringPanel .graphContainer {
    position: relative;
    width: 100%;
-   height: 100px;
+   min-height: 100px;
    vertical-align: bottom;
 }
 
-.monitoringPanel .graphContainer.graph {
-   position: absolute;
-   bottom: px;
+.monitoringPanel .graphContainer canvas {
+   position: relative;
+   bottom: 0px;
    width: 100%;
    height: 100%;
+}
+
+/*
+ * Call it clever or call it ugly - this is a hack to configure Chart.js
+ * colors through CSS instead of JavaScript (the only method it supports).
+ */
+.monitoringPanel .graphContainer .graphColor {
+   display: none !important;
+   width: 0px !important;
+   height: 0px !important;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphLabelColor {
+   background-color: #666666;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphFillColor {
+   background-color: rgba( 144, 195, 212, .2 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphEdgeColor {
+   background-color: rgba( 35, 162, 204, 1 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphGridColor {
+   background-color: rgba( 0, 0, 0, .1 );
 }
 
 .monitoringPanel .fieldsContainer {

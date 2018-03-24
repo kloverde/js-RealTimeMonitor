@@ -66,3 +66,15 @@
 .monitoringPanel .titleBar .titleBarControls.menuActive {
    background-color: #F0F0F0;
 }
+
+.monitoringPanel .graphContainer .graphColor.graphLabelColor {
+   background-color: #000000;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphFillColor {
+   background-color: rgba( 144, 195, 212, .4 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphGridColor {
+   background-color: rgba( 0, 0, 0, .2 );
+}

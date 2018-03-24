@@ -41,12 +41,17 @@
    background: linear-gradient( to right, #FFFFFF, #FFFF00 );
 }
 
+.monitoringPanel .fieldContainer .highLowValue {
+   font-weight: bold;
+}
+
 .monitoringPanel .fieldContainer .highLowValue.normal {
-   color: #00FF00;
+   color: #008000;
 }
 
 .monitoringPanel .fieldContainer .status.warn {
    background-color: #FFFF00;
+   font-weight: bold;
 }
 
 .monitoringPanel .fieldContainer .highLowValue.warn {
@@ -64,4 +69,16 @@
 
 .monitoringPanel .titleBar .titleBarControls.menuActive {
    background-color: #F0F0F0;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphLabelColor {
+   background-color: #000000;
+}
+
+.monitoringPanel .graphContainer .graphColor.graphFillColor {
+   background-color: rgba( 85, 107, 47, .4 );
+}
+
+.monitoringPanel .graphContainer .graphColor.graphEdgeColor {
+   background-color: #364717;
 }
