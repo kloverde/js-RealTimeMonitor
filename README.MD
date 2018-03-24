@@ -5,7 +5,7 @@ See LICENSE for this software's licensing terms.  At first glance, it resembles 
 
 This application is still being developed - it's not yet ready for use.
 
-This is a pure JavaScript application (no jQuery, etc.) that displays numeric data from a server in real time.  The basic premise is you define the fields you're expecting to get back, and you get constant updates.  This could be useful for remotely monitoring various types of sensors, etc.  Configuration is provided by a JavaScript object.  The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, high and low settings are tracked, and realtime graphs display the last 35 data points for each field.
+This is a pure JavaScript application (no jQuery, etc.) that displays numeric data from a server in real time.  The basic premise is you define the fields you're expecting to get back, and you get constant updates.  This could be useful for remotely monitoring various types of sensors, etc.  Configuration is provided by a JavaScript object.  The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
 
 Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
