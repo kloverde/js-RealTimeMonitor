@@ -347,12 +347,10 @@ function RealtimeMonitor() {
          // stylesheet, then look up the value and apply it to Chart.js.  And, since the user can change the theme
          // at any time, the lookup must be done every time the graph refreshes.
 
-         if( i === 0 ) {
-            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_FILL_COLOR) );
-            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_EDGE_COLOR) );
-            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_LABEL_COLOR) );
-            graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_GRID_COLOR) );
-         }
+         graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_FILL_COLOR) );
+         graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_EDGE_COLOR) );
+         graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_LABEL_COLOR) );
+         graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_GRID_COLOR) );
 
          panel.appendChild( panelBody );
          document.body.appendChild( panel );
