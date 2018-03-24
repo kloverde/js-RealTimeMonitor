@@ -458,7 +458,7 @@ function RealtimeMonitor() {
             options : {
                legend   : { display : false },
                title    : { display : true, text : title, position : "top" },
-               tooltips : { mode : 'point', displayColors : false },
+               tooltips : { mode : "point", displayColors : false },
 
                // performance tuning
                elements  : { line: {tension : 0} },   // disables bezier curves
