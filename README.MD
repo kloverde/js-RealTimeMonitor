@@ -45,9 +45,9 @@ Notification technology is currently evolving.  It's somewhat of a mess right no
 
 Each panel displays a notification when one of its warning or danger thresholds is reached.  Because it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
 
-There's a possible annoyance factor here.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
+There *is* a possible annoyance factor, though.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
 
-Now, onto the browser caveats.
+Now, onto the browser-specific issues.
 
 ### Firefox
 By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to true in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
