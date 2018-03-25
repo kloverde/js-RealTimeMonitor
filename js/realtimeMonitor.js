@@ -230,6 +230,8 @@ function RealtimeMonitor() {
          settings[panel.id].notifications = panelCfg.notifications;
          settings[panel.id].fields = {};
 
+         validateSettings( panel.id );  // Currently don't care about validating the stuff that gets saved later
+
          const titleBar = document.createElement( "div" );
          titleBar.id = panel.id + ID_STUB_TITLE;
          titleBar.className = CLASS_TITLEBAR;
@@ -623,9 +625,9 @@ function RealtimeMonitor() {
             } else if( cfg.method === "POST" ) {
                ajaxPost( cfg.address, cfg.postData, onSuccess );
             } else {
-               throw "Invalid method: " + request.method;
+               throw new Error( "Invalid method: " + request.method );
             }
-         }, 2000 );
+         }, cfg.interval * 1000 );
       }
 
       function onSuccess( responseText ) {
@@ -944,7 +946,7 @@ function RealtimeMonitor() {
             title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
             body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER + dateTimeStr;
          } else {
-            throw "Invalid threshold notification type";
+            throw new Error( "Invalid threshold notification type" );
          }
 
          const newNotif = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, true );
@@ -971,6 +973,12 @@ function RealtimeMonitor() {
       }
 
       return notification;
+   }
+
+   function validateSettings( panelId ) {
+      if( settings[panelId].url.interval < 3 ) {
+         throw new Error( "Cannot specify a refresh interval of less than 3 seconds" );
+      }
    }
 
    function defined( obj ) {
