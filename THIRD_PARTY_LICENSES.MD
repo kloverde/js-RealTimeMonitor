@@ -1,4 +1,4 @@
-### Following are the licenses accompanying third-party works used by RealtimeMonitor.  These are not the license of RealtimeMonitor.  For RealtimeMonitor's license, see the file named LICENSE.
+### Following are the licenses accompanying third-party works used by RealtimeMonitor.  This file does not contain the RealtimeMonitor license.  For RealtimeMonitor's license, see the file named LICENSE.
 
 
 # CHART.JS LICENSE
