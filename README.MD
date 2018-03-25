@@ -43,23 +43,17 @@ The application can generate system notifications when a warning or danger thres
 
 Notification technology is currently evolving.  It's somewhat of a mess right now; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
 
-Each panel displays a notification when one of its warning or danger thresholds is reached.  Because (in my judgement) it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
+Each panel displays a notification when one of its warning or danger thresholds is reached.  Because it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
 
-Now, onto the caveats.
+There's a possible annoyance factor here.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
+
+Now, onto the browser caveats.
 
 ### Firefox
 By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to true in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
 
 ### Chrome
-Chrome only displays notifications if the page is loaded over HTTPS, so the included demo page won't work if opened straight from your filesystem.  What makes this even *more* fun is that when you open a page straight from your filesystem, Chrome will *ask* for permission to display notifications, but it doesn't actually honor the authorization.  So, if you open the included demo from your filesystem, you'll be endlessly prompted for permission to display notifications.  Thankfully, Node makes it effortless to set up a quick-and-dirty HTTPS server, so you can actually do development work in Chrome:
-```shell
-$ npm install http-server -g
-$ cd js-RealtimeMonitor
-$ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-$ http-server --ssl
-```
-
-Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
+Chrome only displays notifications if the page is loaded over HTTPS - or so I've read.  If that's true, there appears to be an exemption for servers running off of localhost, because I ran it on an insecure local server just fine.
 
 
 ## Themes
