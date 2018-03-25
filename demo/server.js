@@ -34,8 +34,8 @@
  */
 
 const http = require( "http" );
-const url = require( "url" );
-const fs = require( "fs" );
+const url  = require( "url" );
+const fs   = require( "fs" );
 const path = require( "path" );
 
 const HTTP_PORT  = 8080,
@@ -50,20 +50,30 @@ const MIME_MAP = {
    ".png"  : "image/png"
 };
 
-const HEADER_TEXT = {"Content-Type" : "text/plain"},
-      HEADER_JSON = {"Content-Type" : "application/json"};
+const HEADER_TEXT = { "Content-Type" : "text/plain" },
+      HEADER_JSON = { "Content-Type" : "application/json" };
 
 http.createServer( function(request, response) {
    if( !isLocalhost(request, response) ) {
+      log( `Denied outside request from ${request.connection.remoteAddress} - ${request.headers.host}` );
       return;
    }
 
    const parsedUrl = url.parse( request.url, true );
-   let pathName = parsedUrl.pathname;
+   const pathName = parsedUrl.pathname;
+
+   let postParams = "";
+
+   request.addListener( "data", function(data) {
+       postParams += data;
+   } );
+
+   request.addListener( "end", function() {
+      log( `${request.method}  ${pathName}  ${postParams}` );
+   } );
 
    if( request.method === "GET" ) {
       if( pathName === "/status/site1" ) {
-         console.log( pathName );
          response.writeHead( 200, HEADER_JSON );
          response.end( randomJson() );
       } else {
@@ -101,7 +111,7 @@ function randomJson() {
 function isLocalhost( request, response ) {
    const host = request.headers.host.replace( /:.*/, "" );
 
-   if( host !== "localhost" && host !== "127.0.0.1" ) {
+   if( host !== "localhost" ) {
       response.writeHead( 403, HEADER_TEXT );
       response.end( "Connection refused" );
       return false;
@@ -115,15 +125,13 @@ function fetchFile( reqPath, response ) {
 
    reqPath = reqPath.replace( /^\//, "" );
 
-   console.log( `${new Date()} ${reqPath}` );
-
    fs.readFile( reqPath, function(error, data) {
       if( error ) {
          if( error.code === "ENOENT" ) {
-            console.log( "File not found: " + reqPath );
+            log( `File not found: ${reqPath}` );
             response.writeHead( 404, HEADER_TEXT );
          } else {
-            console.log( error );
+            log( error );
             response.writeHead( 500, HEADER_TEXT );
          }
 
@@ -133,6 +141,18 @@ function fetchFile( reqPath, response ) {
          response.end( data );
       }
    } );
+}
+
+function log( msg ) {
+   const now = new Date(),
+         dateOpts = { year : "numeric", month : "long", day : "numeric" },
+         timeOpts = { hour12 : true };
+
+   const dateStr = now.toLocaleDateString( dateOpts ),
+         timeStr = now.toLocaleTimeString( timeOpts ),
+         dateTimeStr = dateStr + " " + timeStr;
+
+   console.log( dateTimeStr + "  " + msg );
 }
 
 console.log( "HTTP server running at http://localhost:" + HTTP_PORT );

@@ -50,12 +50,12 @@ let configuration = [ {
                { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
             ]
 },
-/*
+
 {
    title  : "POST Demo",
    url    : { address  : "http://localhost:8080/status",
               method   : "POST",
-              postData : { site : "site2" },
+              postData : { site : "site2", otherStuff : "more_stuff" },
               interval : 3 },
    autoConnect    : true,
    startMinimized : false,

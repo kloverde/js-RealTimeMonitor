@@ -223,6 +223,7 @@ function RealtimeMonitor() {
          settings[panel.id] = {};
          settings[panel.id].title = panelCfg.title;
          settings[panel.id].url = appCfg[i].url;
+         settings[panel.id].url.method = settings[panel.id].url.method.toUpperCase();
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
          settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
@@ -617,25 +618,55 @@ function RealtimeMonitor() {
 
       if( !intervals[panelId] ) {
          intervals[panelId] = window.setInterval( function() {
-            // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText to do manual JSON parsing.
-            var xhr = new XMLHttpRequest();
-            xhr.open( cfg.method, cfg.address );
-            xhr.onreadystatechange = function() {
-               if( xhr.readyState === 4 && xhr.status === 200 ) {
-                  const response = JSON.parse( xhr.responseText );
-                  updateStats( panelId, response );
-                  updateUI( panelId );
-               }
-            };
-
-            xhr.setRequestHeader( "X-Requested-With", "XMLHttpRequest" );
-            xhr.send();
+            if( cfg.method === "GET" ) {
+               ajaxGet( cfg.address, onSuccess );
+            } else if( cfg.method === "POST" ) {
+               ajaxPost( cfg.address, cfg.postData, onSuccess );
+            } else {
+               throw "Invalid method: " + request.method;
+            }
          }, 2000 );
       }
 
-      function random( from, to ) {
-         return Math.floor( Math.random() * (to - from + 1) ) + from;
+      function onSuccess( responseText ) {
+         // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText and doing manual JSON parsing.
+         const response = JSON.parse( responseText );
+         updateStats( panelId, response );
+         updateUI( panelId );
       }
+   }
+
+   function ajaxGet( url, onSuccessCallback ) {
+      const xhr = ajaxHelper( "GET", url, onSuccessCallback );
+      xhr.send();
+   }
+
+   function ajaxPost( url, data, onSuccessCallback ) {
+      const xhr = ajaxHelper( "POST", url, onSuccessCallback );
+      xhr.setRequestHeader( "Content-Type", "application/x-www-form-urlencoded" );
+
+      var params = Object.keys( data ).map( function(key) {
+         return encodeURIComponent( key ) + '=' + encodeURIComponent( data[key] )
+      } ).join( "&" );
+
+      xhr.send( params );
+   }
+
+   function ajaxHelper( method, url, onSuccessCallback ) {
+      const xhr = new XMLHttpRequest();
+
+      xhr.open( method, url );
+      xhr.setRequestHeader( "X-Requested-With", "XMLHttpRequest" );
+
+      xhr.onreadystatechange = function() {
+         if( xhr.readyState === 4 && xhr.status === 200 ) {
+            if( typeof onSuccessCallback === "function" ) {
+               onSuccessCallback( xhr.responseText );
+            }
+         }
+      };
+
+      return xhr;
    }
 
    function disconnect( panelId ) {
