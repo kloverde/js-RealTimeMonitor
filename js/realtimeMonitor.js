@@ -120,6 +120,7 @@ function RealtimeMonitor() {
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+   let intervals = [];
    const graphs = [];
 
 
@@ -187,7 +188,11 @@ function RealtimeMonitor() {
     * following members:
     *
     * title : (string) Text displayed at the top of the panel
-    * url : (string) The URL used to update the panel
+    * url : (object) Contains the following fields:
+    *       address  : (string) The URL used to update the panel.  Supported protocols are http and https.
+    *       method   : (string) GET/POST
+    *       data     : (object) Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST.
+    *       interval : (integer) The polling interval, in seconds
     * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
     * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
     * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
@@ -607,22 +612,24 @@ function RealtimeMonitor() {
       }
    }
 
-   let simulators = [];
-
    function connect( panelId ) {
-      if( !simulators[panelId] ) {
-         simulators[panelId] = window.setInterval( function() {
-            const jsonResponse = JSON.stringify( {
-               load         : random( 50, 100 ),
-               rpm          : random( 200, 2700 ),
-               ambientTemp  : random( 70, 75 ),
-               internalTemp : random( 175, 260 ),
-               rhinocerous  : 45,  // unrecognized properties do not cause errors
-               jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
-            } );
+      const cfg = settings[panelId].url;
 
-            updateStats( panelId, jsonResponse );
-            updateUI( panelId );
+      if( !intervals[panelId] ) {
+         intervals[panelId] = window.setInterval( function() {
+            // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText to do manual JSON parsing.
+            var xhr = new XMLHttpRequest();
+            xhr.open( cfg.method, cfg.address );
+            xhr.onreadystatechange = function() {
+               if( xhr.readyState === 4 && xhr.status === 200 ) {
+                  const response = JSON.parse( xhr.responseText );
+                  updateStats( panelId, response );
+                  updateUI( panelId );
+               }
+            };
+
+            xhr.setRequestHeader( "X-Requested-With", "XMLHttpRequest" );
+            xhr.send();
          }, 2000 );
       }
 
@@ -632,8 +639,8 @@ function RealtimeMonitor() {
    }
 
    function disconnect( panelId ) {
-      window.clearInterval( simulators[panelId] );
-      simulators[panelId] = null;
+      window.clearInterval( intervals[panelId] );
+      intervals[panelId] = null;
 
       if( thresholdNotifications ) {
          const notif = thresholdNotifications[panelId];
@@ -658,17 +665,16 @@ function RealtimeMonitor() {
       settings[panelId] = undefined;
    }
 
-   function updateStats( panelId, jsonResponse ) {
+   function updateStats( panelId, response ) {
       const panel = panelData[ panelId ];
-      const stats = JSON.parse( jsonResponse );
 
-      for( let prop in stats ) {
+      for( let prop in response ) {
          // Process recognized data; ignore unrecognized data
          if( defined(panel[prop])  ) {
             const lowestProp  = PROP_STUB_LOWEST + prop,
                   highestProp = PROP_STUB_HIGHEST + prop;
 
-            panel[prop] = stats[prop];
+            panel[prop] = response[prop];
             panel[lowestProp] = panel[lowestProp] == null || panel[lowestProp] > panel[prop] ? panel[prop] : panel[lowestProp];
             panel[highestProp] = panel[highestProp] == null || panel[highestProp] < panel[prop] ? panel[prop] : panel[highestProp];
          }

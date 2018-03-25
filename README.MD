@@ -69,6 +69,27 @@ The application includes several alternate color schemes, or themes.  Themes are
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
 
 
+## Running the Demo/Development Environment
+
+RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
+
+In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org), then start the server from the **base** directory:
+
+```shell
+$ cd js-RealtimeMonitor
+$ node demo/server.js
+```
+
+By design, the server only honors requests from localhost.
+
+Once the server is running, load *http://localhost:8080/demo/demo.html* in your browser.
+
+HTTP requests are handled by localhost:8080
+*TODO:  HTTPS requests are handled by localhost:8081*
+*TODO:  Web socket requests are handled by ws://localhost:8082*
+*TODO:  Secure Web socket requests are handled by wss://localhost:8083*
+
+
 ## Third-party Attribution
 
 The [warning](https://pixabay.com/en/sign-triangle-caution-yellow-36071) and [danger](https://pixabay.com/en/sign-triangle-attention-warning-36070) notification icons were provided by Pixabay user [Clker-Free-Vector-Images](https://pixabay.com/en/users/Clker-Free-Vector-Images-3736).
