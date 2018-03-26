@@ -193,8 +193,8 @@ function RealtimeMonitor() {
     * url : (object) Contains the following fields:
     *       address  : (string) The URL used to update the panel.  Supported protocols are http and https.
     *       method   : (string) GET/POST
-    *       data     : (object) Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST.
-    *       interval : (integer) The polling interval, in seconds
+    *       postData : (object) Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST.
+    *       interval : (integer) The polling interval, in seconds.  Lowest possible value is 3, otherwise an exception will be thrown.
     * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
     * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
     * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
