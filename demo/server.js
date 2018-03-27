@@ -33,15 +33,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const http = require( "http" );
-const url  = require( "url" );
-const fs   = require( "fs" );
-const path = require( "path" );
+const http  = require( "http" ),
+      https = require( "https" ),
+      url   = require( "url" );
+      fs    = require( "fs" );
+      path  = require( "path" );
 
 const HTTP_PORT  = 8080,
       HTTPS_PORT = 8081,
       WS_PORT    = 8082,
       WSS_PORT   = 8083;
+
+const httpsOpts = { key : fs.readFileSync( "demo/key.pem" ),
+                    cert : fs.readFileSync( "demo/cert.pem" ) };
 
 const MIME_MAP = {
    ".html" : "text/html",
@@ -54,6 +58,14 @@ const HEADER_TEXT = { "Content-Type" : "text/plain" },
       HEADER_JSON = { "Content-Type" : "application/json" };
 
 http.createServer( function(request, response) {
+   httpHandler( request, response );
+} ).listen( HTTP_PORT );
+
+https.createServer( httpsOpts, function(request, response) {
+   httpHandler( request, response );
+} ).listen( HTTPS_PORT );
+
+function httpHandler( request, response ) {
    if( !isLocalhost(request, response) ) {
       log( `Denied outside request from ${request.connection.remoteAddress} - ${request.headers.host}` );
       return;
@@ -90,7 +102,7 @@ http.createServer( function(request, response) {
       response.writeHead( 405, HEADER_TEXT );
       response.end( `Unsupported method:  ${request.method}` );
    }
-} ).listen( HTTP_PORT );
+}
 
 function randomJson() {
    const json = JSON.stringify( {
@@ -155,7 +167,7 @@ function log( msg ) {
    console.log( dateTimeStr + "  " + msg );
 }
 
-console.log( "HTTP server running at http://localhost:" + HTTP_PORT );
-//console.log( "HTTPS server running at http://localhost:" + HTTPS_PORT );
+console.log( "HTTP server running at  http://localhost:" + HTTP_PORT );
+console.log( "HTTPS server running at http://localhost:" + HTTPS_PORT );
 //console.log( "WS server running at http://localhost:" + WS_PORT );
 //console.log( "WSS server running at http://localhost:" + WSS_PORT );
