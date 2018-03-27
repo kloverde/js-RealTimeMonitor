@@ -80,10 +80,10 @@ $ node demo/server.js
 
 By design, the server only honors requests from localhost.
 
-Once the server is running, load *http://localhost:8080/demo/demo.html* in your browser.
+Once the server is running, load http://localhost:8080/demo/demo.html or https://localhost:8080/demo/demo.html in your browser.
 
 HTTP requests are handled by localhost:8080
-*TODO:  HTTPS requests are handled by localhost:8081*
+HTTPS requests are handled by localhost:8081*
 *TODO:  Web socket requests are handled by ws://localhost:8082*
 *TODO:  Secure Web socket requests are handled by wss://localhost:8083*
 
