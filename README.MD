@@ -1,15 +1,19 @@
 RealtimeMonitor
 ===============
 
-See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.
+See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
-This application is still being developed, but it's nearly complete.  The only thing remaining to be implemented the retrieval of data from a URL.  Currently it generates random data.
+This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
-This is a pure JavaScript application (no jQuery, etc.) that displays numeric data from a server in real time.  The basic premise is you define the fields you're expecting to get back, and you get constant updates.  This could be useful for remotely monitoring various types of sensors, etc.  Configuration is provided by a JavaScript object.  The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
+The basic premise is you define the fields you're expecting to get back, and you get constant updates.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
-Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
+
+Configuration is provided by a JavaScript object.  Responses must be formatted as basic JSON - just key/value pairings with no additional required structure.
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const) and [let](https://caniuse.com/#search=let), which means anything loosely modern, including the aging IE 11.
+
+This application is still being developed, but it's nearly complete.  POST & GET over HTTP/HTTPS is implemented.  I want to add support for Web sockets before considering it ready for release, but the truth is that if you don't need Web sockets, the software is basically feature-complete.
 
 
 ## Color Coding
