@@ -1,15 +1,19 @@
 RealtimeMonitor
 ===============
 
-See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.
+See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
-This application is still being developed, but it's nearly complete.  The only thing remaining to be implemented the retrieval of data from a URL.  Currently it generates random data.
+This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
-This is a pure JavaScript application (no jQuery, etc.) that displays numeric data from a server in real time.  The basic premise is you define the fields you're expecting to get back, and you get constant updates.  This could be useful for remotely monitoring various types of sensors, etc.  Configuration is provided by a JavaScript object.  The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
+The basic premise is you define the fields you're expecting to get back, and you get constant updates.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
-Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
+
+Configuration is provided by a JavaScript object.  Responses must be formatted as basic JSON - just key/value pairings with no additional required structure.
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const) and [let](https://caniuse.com/#search=let), which means anything loosely modern, including the aging IE 11.
+
+This application is still being developed, but it's nearly complete.  POST & GET over HTTP/HTTPS is implemented.  I want to add support for Web sockets before considering it ready for release, but the truth is that if you don't need Web sockets, the software is basically feature-complete.
 
 
 ## Color Coding
@@ -43,23 +47,17 @@ The application can generate system notifications when a warning or danger thres
 
 Notification technology is currently evolving.  It's somewhat of a mess right now; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
 
-Each panel displays a notification when one of its warning or danger thresholds is reached.  Because (in my judgement) it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
+Each panel displays a notification when one of its warning or danger thresholds is reached.  Because it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
 
-Now, onto the caveats.
+There *is* a possible annoyance factor, though.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
+
+Now, onto the browser-specific issues.
 
 ### Firefox
 By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to true in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
 
 ### Chrome
-Chrome only displays notifications if the page is loaded over HTTPS, so the included demo page won't work if opened straight from your filesystem.  What makes this even *more* fun is that when you open a page straight from your filesystem, Chrome will *ask* for permission to display notifications, but it doesn't actually honor the authorization.  So, if you open the included demo from your filesystem, you'll be endlessly prompted for permission to display notifications.  Thankfully, Node makes it effortless to set up a quick-and-dirty HTTPS server, so you can actually do development work in Chrome:
-```shell
-$ npm install http-server -g
-$ cd js-RealtimeMonitor
-$ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-$ http-server --ssl
-```
-
-Finally, there's the possible annoyance factor.  Every time a panel refreshes, it evaluates whether any of its readings crosses into the warning/danger zone, and if so, it displays a notification.  That means that if the user closes a notification, it can pop right back up the next time the panel refreshes.  Since this could be rather infuriating, the application provides a menu option within each panel to mute/unmute notifications from that panel.  As was mentioned at the beginning of this section, notifications can also be defaulted to off via configuration.
+Chrome only displays notifications if the page is loaded over HTTPS - or so I've read.  If that's true, there appears to be an exemption for servers running off of localhost, because I ran it on an insecure local server just fine.
 
 
 ## Themes
@@ -69,6 +67,29 @@ The application includes several alternate color schemes, or themes.  Themes are
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
 
 
+## Running the Demo/Development Environment
+
+RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
+
+In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org), then start the server from the **base** directory:
+
+```shell
+$ cd js-RealtimeMonitor
+$ node demo/server.js
+```
+
+By design, the server only honors requests from localhost.
+
+Once the server is running, load *http://localhost:8080/demo/demo.html* in your browser.
+
+HTTP requests are handled by localhost:8080
+*TODO:  HTTPS requests are handled by localhost:8081*
+*TODO:  Web socket requests are handled by ws://localhost:8082*
+*TODO:  Secure Web socket requests are handled by wss://localhost:8083*
+
+
 ## Third-party Attribution
 
-The [warning](https://pixabay.com/en/sign-triangle-caution-yellow-36071) and [danger](https://pixabay.com/en/sign-triangle-attention-warning-36070) notification icons were provided by Pixabay user [Clker-Free-Vector-Images](https://pixabay.com/en/users/Clker-Free-Vector-Images-3736).
+1. Graphs are implemented with [Chart.js](http://www.chartjs.org)
+
+2. The [warning](https://pixabay.com/en/sign-triangle-caution-yellow-36071) and [danger](https://pixabay.com/en/sign-triangle-attention-warning-36070) notification icons were provided by Pixabay user [Clker-Free-Vector-Images](https://pixabay.com/en/users/Clker-Free-Vector-Images-3736).

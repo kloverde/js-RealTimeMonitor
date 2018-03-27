@@ -11,7 +11,7 @@
          Copyright (c) 2018, Kurtis LoVerde
          All rights reserved.
 
-         Donations:  https://paypal.me/KurtisLoVerde/5
+         Donations:  https://paypal.me/KurtisLoVerde/10
 
          Redistribution and use in source and binary forms, with or without
          modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,10 @@
 
       <title>RealtimeMonitor Demo</title>
 
+      <script src="demo.js"></script>
+
+      <base href=".."/>
+
       <!-- The base stylesheet must always be imported -->
       <link rel="stylesheet" href="css/realtimeMonitor.css"/>
 
@@ -57,6 +61,7 @@
          stylesheet, remove "alternate " from the rel attribute and remove the title
          attribute.
       -->
+
       <link rel="alternate stylesheet" href="css/themes/burlywood.css" title="Burly Wood"/>
       <link rel="alternate stylesheet" href="css/themes/dark.css" title="Dark"/>
       <link rel="alternate stylesheet" href="css/themes/deeppurple.css" title="Deep Purple"/>
@@ -65,64 +70,11 @@
       <link rel="alternate stylesheet" href="css/themes/lightslategray.css" title="Light Slate Gray"/>
       <link rel="alternate stylesheet" href="css/themes/lightsteelblue.css" title="Light Steel Blue"/>
 
+      <!-- The RealtimeMonitor application -->
       <script src="js/realtimeMonitor.js"></script>
 
       <!-- Third-party dependency:  graphing provided by Chart.js (chartjs.org) -->
       <script src="js/chart.js"></script>
-
-      <script>
-         "use strict";
-
-         var configuration = [ {
-            title  : "Location 1",
-            url    : "http://localhost/RealtimeMonitor/status/site1",
-            autoConnect : true,
-            startMinimized : false,
-            notifications : false,
-            // draggable : true/false (default false)  // TODO
-            fields : [
-                        { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
-                        { prop : "rpm", label : "RPM",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showLowest : true, showHighest : true },
-                        { prop : "ambientTemp", label : "Ambient Temp", suffix : "°F", showLowest : false, showHighest : false },
-                        { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
-                     ]
-         },
-
-         {
-            title  : "Location 2",
-            url    : "http://localhost/RealtimeMonitor/status/site1",
-            autoConnect : true,
-            startMinimized : false,
-            controls : [ "minimize", "close" ],
-            notifications : true,
-            // draggable : true/false (default false)  // TODO
-            fields : [
-                        { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
-                        { prop : "rpm", label : "RPM",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showLowest : true, showHighest : true },
-                        { prop : "ambientTemp", label : "Ambient Temp", suffix : "°F", showLowest : false, showHighest : false },
-                        { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
-                     ]
-         }
-
-         /* You'll have to deactivate the visibilityHidden class to observe the XSS3 test, as suffixes are hidden until the 'Connect' button is clicked */
-         /*
-         ,{
-            title  : "Test XSS Attacks <img src=\"asdf\" onerror=\"alert('xss1')\" />",
-            url    : "http://localhost/RealtimeMonitor/status/site1",
-            fields : [
-                        { prop : "xss2", label : "XSS 2: <img src=\"asdf\" onerror=\"alert('xss2')\" />", suffix : "suffix", showHighest : false },
-                        { prop : "xss3", label : "XSS 3: ", suffix : "suffix <img src=\"asdf\" onerror=\"alert('xss3')\" />", showHighest : false },
-                        { prop : "jsonXss", label : "JSON XSS Test (click 'Connect'): ", showHighest : false }
-                     ]
-         }*/ ];
-
-         document.addEventListener( "DOMContentLoaded", function() {
-            var monitor = new RealtimeMonitor();
-
-            monitor.initialize( configuration );
-            configuration = undefined;
-         } );
-      </script>
    </head>
 
    <body>

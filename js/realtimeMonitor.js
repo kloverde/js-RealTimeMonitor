@@ -5,7 +5,7 @@
  * Copyright (c) 2018, Kurtis LoVerde
  * All rights reserved.
  *
- * Donations:  https://paypal.me/KurtisLoVerde/5
+ * Donations:  https://paypal.me/KurtisLoVerde/10
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -114,12 +114,15 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
          THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
+   const INTERVAL_GRAPH_THEME_REFRESH = "graphThemeRefresh";
+
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
    let settings = {};  // This is a subset of the configuration passed into initialize().  Most of the configuration is single-use, so we don't hold onto it.
    let panelData = {};
+   let intervals = [];
    const graphs = [];
 
 
@@ -187,7 +190,11 @@ function RealtimeMonitor() {
     * following members:
     *
     * title : (string) Text displayed at the top of the panel
-    * url : (string) The URL used to update the panel
+    * url : (object) Contains the following fields:
+    *       address  : (string) The URL used to update the panel.  Supported protocols are http and https.
+    *       method   : (string) GET/POST
+    *       postData : (object) Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST.
+    *       interval : (integer) The polling interval, in seconds.  Lowest possible value is 3, otherwise an exception will be thrown.
     * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
     * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
     * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
@@ -218,11 +225,14 @@ function RealtimeMonitor() {
          settings[panel.id] = {};
          settings[panel.id].title = panelCfg.title;
          settings[panel.id].url = appCfg[i].url;
+         settings[panel.id].url.method = settings[panel.id].url.method.toUpperCase();
          settings[panel.id].lowThresholds = {};
          settings[panel.id].highThresholds = {};
          settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
          settings[panel.id].notifications = panelCfg.notifications;
          settings[panel.id].fields = {};
+
+         validateSettings( panel.id );  // Currently don't care about validating the stuff that gets saved later
 
          const titleBar = document.createElement( "div" );
          titleBar.id = panel.id + ID_STUB_TITLE;
@@ -320,7 +330,7 @@ function RealtimeMonitor() {
 
             const graph = newGraph( panel.id, fieldCfg.prop, fieldCfg.label + (something(fieldCfg.suffix) ? " (" + fieldCfg.suffix + ")" : "" ) );
             graphs[panel.id] = graphs[panel.id] || [];
-            graphs[panel.id][fieldCfg.prop] = graph;
+            graphs[panel.id][graph.canvas.id] = graph;
          }
 
          panelBody.appendChild( fieldsContainer );
@@ -331,8 +341,8 @@ function RealtimeMonitor() {
          panelBody.appendChild( graphContainer );
 
          let firstGraph = true;
-         for( let prop in graphs[panel.id] ) {
-            const graph = graphs[panel.id][prop].canvas;
+         for( let graphId in graphs[panel.id] ) {
+            const graph = graphs[panel.id][graphId].canvas;
 
             if( firstGraph ) {
                graph.classList.remove( CLASS_VISIBILITY_GONE );
@@ -342,11 +352,7 @@ function RealtimeMonitor() {
             firstGraph = false;
          }
 
-         // And now for an ugly hack.  There's no single color scheme for a graph that will work with every theme,
-         // and Chart.js doesn't support styling via CSS.  Create hidden elements with a background-color set in a
-         // stylesheet, then look up the value and apply it to Chart.js.  And, since the user can change the theme
-         // at any time, the lookup must be done every time the graph refreshes.
-
+         // See refreshGraphTheme() for an explanation of what this is setting up
          graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_FILL_COLOR) );
          graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_EDGE_COLOR) );
          graphContainer.appendChild( newGraphColor(panel.id, CLASS_GRAPH_LABEL_COLOR) );
@@ -607,33 +613,82 @@ function RealtimeMonitor() {
       }
    }
 
-   let simulators = [];
-
    function connect( panelId ) {
-      if( !simulators[panelId] ) {
-         simulators[panelId] = window.setInterval( function() {
-            const jsonResponse = JSON.stringify( {
-               load         : random( 50, 100 ),
-               rpm          : random( 200, 2700 ),
-               ambientTemp  : random( 70, 75 ),
-               internalTemp : random( 175, 260 ),
-               rhinocerous  : 45,  // unrecognized properties do not cause errors
-               jsonXss      : "<img src=\"asdf\" onerror=\"alert('json xss')\" />", // see the XSS test in demo.html (second panel)
-            } );
+      const cfg = settings[panelId].url;
 
-            updateStats( panelId, jsonResponse );
-            updateUI( panelId );
-         }, 2000 );
+      if( !intervals[panelId] ) {
+         if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
+            intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
+               for( let panId in graphs ) {
+                  const panelsGraphs = graphs[panId];
+
+                  for( let graphId in panelsGraphs ) {
+                     const canvas = panelsGraphs[graphId].canvas;
+
+                     if( isVisible(canvas) ) {
+                        refreshGraphTheme( panId, graphId );
+                        break;
+                     }
+                  }
+               }
+            }, 1000 );
+         }
+
+         intervals[panelId] = window.setInterval( function() {
+            if( cfg.method === "GET" ) {
+               ajaxGet( cfg.address, onSuccess );
+            } else if( cfg.method === "POST" ) {
+               ajaxPost( cfg.address, cfg.postData, onSuccess );
+            } else {
+               throw new Error( "Invalid method: " + request.method );
+            }
+         }, cfg.interval * 1000 );
       }
 
-      function random( from, to ) {
-         return Math.floor( Math.random() * (to - from + 1) ) + from;
+      function onSuccess( responseText ) {
+         // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText and doing manual JSON parsing.
+         const response = JSON.parse( responseText );
+         updateStats( panelId, response );
+         updateUI( panelId );
       }
    }
 
+   function ajaxGet( url, onSuccessCallback ) {
+      const xhr = ajaxHelper( "GET", url, onSuccessCallback );
+      xhr.send();
+   }
+
+   function ajaxPost( url, data, onSuccessCallback ) {
+      const xhr = ajaxHelper( "POST", url, onSuccessCallback );
+      xhr.setRequestHeader( "Content-Type", "application/x-www-form-urlencoded" );
+
+      var params = Object.keys( data ).map( function(key) {
+         return encodeURIComponent( key ) + '=' + encodeURIComponent( data[key] )
+      } ).join( "&" );
+
+      xhr.send( params );
+   }
+
+   function ajaxHelper( method, url, onSuccessCallback ) {
+      const xhr = new XMLHttpRequest();
+
+      xhr.open( method, url );
+      xhr.setRequestHeader( "X-Requested-With", "XMLHttpRequest" );
+
+      xhr.onreadystatechange = function() {
+         if( xhr.readyState === 4 && xhr.status === 200 ) {
+            if( typeof onSuccessCallback === "function" ) {
+               onSuccessCallback( xhr.responseText );
+            }
+         }
+      };
+
+      return xhr;
+   }
+
    function disconnect( panelId ) {
-      window.clearInterval( simulators[panelId] );
-      simulators[panelId] = null;
+      window.clearInterval( intervals[panelId] );
+      intervals[panelId] = null;
 
       if( thresholdNotifications ) {
          const notif = thresholdNotifications[panelId];
@@ -658,21 +713,64 @@ function RealtimeMonitor() {
       settings[panelId] = undefined;
    }
 
-   function updateStats( panelId, jsonResponse ) {
+   function updateStats( panelId, response ) {
       const panel = panelData[ panelId ];
-      const stats = JSON.parse( jsonResponse );
 
-      for( let prop in stats ) {
+      for( let prop in response ) {
          // Process recognized data; ignore unrecognized data
          if( defined(panel[prop])  ) {
             const lowestProp  = PROP_STUB_LOWEST + prop,
                   highestProp = PROP_STUB_HIGHEST + prop;
 
-            panel[prop] = stats[prop];
+            panel[prop] = response[prop];
             panel[lowestProp] = panel[lowestProp] == null || panel[lowestProp] > panel[prop] ? panel[prop] : panel[lowestProp];
             panel[highestProp] = panel[highestProp] == null || panel[highestProp] < panel[prop] ? panel[prop] : panel[highestProp];
          }
       }
+   }
+
+   /**
+    * So here's an unfortunate situation.
+    *
+    * 1.  There's no single color combination for a graph that works with every theme.
+    * 2.  Chart.js doesn't support styling via CSS - it applies styling properties directly via JavaScript.
+    * 3.  The user can change the theme at any time, and no event is fired by the browser when it happens.
+    * 
+    * This means that when the theme is changed to one that doesn't work with the graph's current colors, there's no way to tell Chart.js to apply the new
+    * colors because we aren't informed that the user did anything.
+    *
+    * A kludge is used to address this as best as possible.  The theme stylesheets contain styles for hidden <span>s - one <span> per component of the graph
+    * which needs to have configurable color.  The stylesheet sets the background-color on these hidden <span>s, and then they're extracted and applied to
+    * the graphs via JavaScript.  That's where we encounter a second problem, requiring a second kludge:
+    *
+    * The graph needs to redraw to be displayed in the new colors.  Waiting for the next URL polling isn't an option because the interval is *at least* 3 seconds
+    * (the shortest allowed polling interval).  There needs to be the appearance of responsiveness to the user changing the theme.  Therefore, the reapplication
+    * of color and redrawing needs to happen independently, on its own schedule; this is done once per second.  For the sake of efficiency, only the currently-
+    * displayed graph of each panel is accessed.  The hidden ones get updated soon enough, during the regular URL polling, and so aren't a concern.
+    *
+    * As icky as all this sounds (and is), there's no noticeable performance impact - neither in user perception nor observed CPU use.
+    */
+   function refreshGraphTheme( panelId, graphId ) {
+      const graph = graphs[panelId][graphId].graph,
+      dataset = graph.data.datasets[0],
+      data = dataset.data,
+      labels = graph.data.labels,
+      labelColor = getGraphLabelColor( panelId ),
+      gridColor = getGraphGridColor( panelId );
+
+      // Change the color of the y-axis label.  Changing the color through the fine-grained
+      // setting works only once:  graph.options.scales.yAxes[0].ticks.fontColor = labelColor;
+      // However, Chart.js always checks the value of the GLOBAL font configuration.  Sounds
+      // like a bug.  [Chart.js v2.7.2]
+      Chart.defaults.global.defaultFontColor = labelColor;
+
+      graph.options.title.fontColor = labelColor;
+      graph.options.scales.xAxes[0].gridLines.color = gridColor;
+      graph.options.scales.yAxes[0].gridLines.color = gridColor;
+      dataset.backgroundColor = getGraphFillColor( panelId );
+      dataset.borderColor = getGraphEdgeColor( panelId );
+
+      graph.update();
    }
 
    function updateUI( panelId ) {
@@ -781,24 +879,13 @@ function RealtimeMonitor() {
             }
 
             function updateGraph( panelId, value ) {
-               const graph = graphs[panelId][prop].graph,
+               const graphId = panelId + ID_STUB_GRAPH + prop,
+                     graph = graphs[panelId][graphId].graph,
                      dataset = graph.data.datasets[0],
                      data = dataset.data,
-                     labels = graph.data.labels,
-                     labelColor = getGraphLabelColor( panelId ),
-                     gridColor = getGraphGridColor( panelId );
+                     labels = graph.data.labels;
 
-               // Change the color of the y-axis label.  Changing the color through the fine-grained
-               // setting works only once:  graph.options.scales.yAxes[0].ticks.fontColor = labelColor;
-               // However, Chart.js always checks the value of the GLOBAL font configuration.  Sounds
-               // like a bug.  [Chart.js v2.7.2]
-               Chart.defaults.global.defaultFontColor = labelColor;
-
-               graph.options.title.fontColor = labelColor;
-               graph.options.scales.xAxes[0].gridLines.color = gridColor;
-               graph.options.scales.yAxes[0].gridLines.color = gridColor;
-               dataset.backgroundColor = getGraphFillColor( panelId );
-               dataset.borderColor = getGraphEdgeColor( panelId );
+               refreshGraphTheme( panelId, graphId );
 
                //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
 
@@ -907,7 +994,7 @@ function RealtimeMonitor() {
             title = THRESHOLD_NOTIFICATION_TITLE_DANGER + settings[panelId].title;
             body  = settings[panelId].title + THRESHOLD_NOTIFICATION_BODY_DANGER + dateTimeStr;
          } else {
-            throw "Invalid threshold notification type";
+            throw new Error( "Invalid threshold notification type" );
          }
 
          const newNotif = createNotification( type, panelId, icon, title, body, THRESHOLD_NOTIFICATION_TAG + panelId, true );
@@ -934,6 +1021,16 @@ function RealtimeMonitor() {
       }
 
       return notification;
+   }
+
+   function isVisible( element ) {
+      return !element.classList.contains( CLASS_VISIBILITY_GONE ) && !element.classList.contains( CLASS_VISIBILITY_HIDDEN );
+   }
+
+   function validateSettings( panelId ) {
+      if( settings[panelId].url.interval < 3 ) {
+         throw new Error( "Cannot use a refresh interval of less than 3 seconds" );
+      }
    }
 
    function defined( obj ) {
