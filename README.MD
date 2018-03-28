@@ -13,7 +13,7 @@ Configuration is provided by a JavaScript object.  Responses must be formatted a
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const) and [let](https://caniuse.com/#search=let), which means anything loosely modern, including the aging IE 11.
 
-This application is still being developed, but it's nearly complete.  POST & GET over HTTP/HTTPS is implemented.  I want to add support for Web sockets before considering it ready for release, but the truth is that if you don't need Web sockets, the software is basically feature-complete.
+This application is nearing completion, but the API should not be considered stable until an actual release is posted.
 
 
 ## Color Coding
