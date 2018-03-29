@@ -1,7 +1,7 @@
 RealtimeMonitor
 ===============
 
-See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
+See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference which prohibits certain use.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
 This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
@@ -11,7 +11,7 @@ The fields are laid out vertically in a panel, and you can create as many panels
 
 Configuration is provided by a JavaScript object.  Responses must be formatted as basic JSON - just key/value pairings with no additional required structure.
 
-Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const) and [let](https://caniuse.com/#search=let), which means anything loosely modern, including the aging IE 11.
+Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const), [let](https://caniuse.com/#search=let) and [mutation observers](https://caniuse.com/#search=mutationobserver), which means anything loosely modern, including the aging IE 11.
 
 This application is nearing completion, but the API should not be considered stable until an actual release is posted.
 
@@ -65,6 +65,13 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Use of themes requires a supporting browser such as Firefox or IE.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
+
+
+## Using
+
+For maximum flexibility in panel placement, panels are generated one at a time by a function which returns a DOM object to you.  Insertion into the page is left to you.
+
+See the `demo` directory for in-depth code examples which includes various panel configurations.
 
 
 ## Running the Demo/Development Environment
