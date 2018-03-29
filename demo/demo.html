@@ -41,6 +41,15 @@
 
       <title>RealtimeMonitor Demo</title>
 
+      <script>
+         // I keep opening demo.html from my filesystem and wondering why it's not working, so redirect.  This
+         // forced redirect assumes you're using the included Node.js server, otherwise you will most likely
+         // be quite annoyed by this.  If that's what brought you here... please forgive me!  :'(
+         if( window.location.href !== "https://localhost:8081/demo/demo.html" ) {
+            window.location.href = "https://localhost:8081/demo/demo.html";
+         }
+      </script>
+
       <script src="demo.js"></script>
 
       <base href=".."/>
