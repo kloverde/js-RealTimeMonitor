@@ -120,6 +120,8 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
          THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
+   const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
+
    const settings = {};  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
    const panelData = {};
    const intervals = [];
@@ -1041,8 +1043,8 @@ function RealtimeMonitor() {
    }
 
    function validateSettings( panelId ) {
-      if( settings[panelId].url.interval < 3 ) {
-         throw new Error( "Cannot use a refresh interval of less than 3 seconds" );
+      if( settings[panelId].url.interval < SETTING_MINIMUM_INTERVAL_SECONDS ) {
+         settings[panelId].url.interval = SETTING_MINIMUM_INTERVAL_SECONDS;
       }
    }
 

@@ -89,9 +89,9 @@ The `options` parameter passed into `newPanel` is an object with the following p
 |-----------|-----------|---------------|---------------|
 | `title`   | string    | Text displayed at the top of the panel | none
 |[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object.| none
-|`autoConnect`| boolean   | If true, the panel will connect as soon as it completes initialization | ?
-|`startMinimized`|boolean | If true, the panel initializes collapsed down to its title bar | ?
-|`notifications`| boolean | When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level| ?
+|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | ?
+|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | ?
+|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | ?
 |[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| none
 
 
@@ -99,21 +99,21 @@ The `options` parameter passed into `newPanel` is an object with the following p
 | Property  | Data Type | Description   | Default Value |
 |-----------|-----------|---------------|---------------|
 | `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | none
-| `method`  | string    | GET/POST      | none
-| `postData`| object    | Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST. | none
-| `interval`| integer   | The polling interval, in seconds.  Lowest possible value is 3, otherwise an exception will be thrown.| none
+| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | none
+| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | none
+| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  Values lower than 3 are overwritten with 3. | none
 
 
 #### `fields` property
 | Property  | Data Type | Description   | Default Value |
 |-----------|-----------|---------------|---------------|
-| `prop`    | string    | The property name present in the JSON response - also used in the HTML ID
-| `label`   | string    | Text displayed in front of the value
-| `suffix`  | string    | Text displayed after the value.  Optional.
+| `prop`    | string    | The property name in the JSON response - also used in the HTML ID | none
+| `label`   | string    | Text displayed in front of the value | none
+| `suffix`  | string    | Text displayed after the value.  Optional. | none
 | [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | none
 | [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | none
 | `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name.| ?
-| `showHighest`| boolean  | Same idea as showLowest | ?
+|`showHighest`| boolean  | Same idea as showLowest | ?
 
 #### `thresholds` property
 | Property  | Data Type | Description   | Default Value |
