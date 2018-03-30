@@ -94,7 +94,6 @@ The `options` parameter passed into `newPanel` is an object with the following p
 |`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | ?
 |[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
 
-
 #### `url` property
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|---------------|
@@ -103,6 +102,7 @@ The `options` parameter passed into `newPanel` is an object with the following p
 | `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | varies | none
 | `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  Values lower than 3 are overwritten with 3. | no | 3
 
+[Back to Options](#options)
 
 #### `fields` property
 | Property  | Data Type | Description   | Required ? | Default Value |
@@ -110,17 +110,21 @@ The `options` parameter passed into `newPanel` is an object with the following p
 | `prop`    | string    | The property name in the JSON response - also used in the HTML ID | yes | none
 | `label`   | string    | Text displayed in front of the value | yes | none
 | `suffix`  | string    | Text displayed after the value.  Optional. | no | none
-| [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
-| [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | no | none
-| `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name. | no | true
-|`showHighest`| boolean  | Same idea as showLowest | no | true
+| [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
+| [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
+| `showLowest`| boolean | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name. | no | true
+|`showHighest`| boolean | Same idea as showLowest | no | true
 
-#### `thresholds` property
+[Back to Options](#options)
+
+#### `thresholds` properties
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|--------------|
 | `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
 | `danger`  | number    | The danger threshold  | Only if `warn` is not defined | none
 
+[Back to Fields](#fields-property)
+[Back to Options](#options)
 
 See the `demo` directory for in-depth code examples which includes various panel configurations.
 
