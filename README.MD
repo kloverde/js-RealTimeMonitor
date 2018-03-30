@@ -77,7 +77,7 @@ Using RealtimeMonitor is pretty simple - there are three steps:
 
 ```javascript
 var rtm = new RealtimeMonitor();
-var panel = rtm.newPanel( [options](#options) );
+var panel = rtm.newPanel( options );
 element.appendChild( panel );
 ```
 
@@ -85,41 +85,41 @@ element.appendChild( panel );
 
 The `options` parameter passed into `newPanel` is an object with the following properties:
 
-| Property  | Data Type | Description   | Default Value |
-|-----------|-----------|---------------|---------------|
-| `title`   | string    | Text displayed at the top of the panel | none
-|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object.| none
-|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | ?
-|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | ?
-|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | ?
-|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| none
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `title`   | string    | Text displayed at the top of the panel | yes | none
+|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object.| yes | none
+|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | ?
+|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
+|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | ?
+|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
 
 
 #### `url` property
-| Property  | Data Type | Description   | Default Value |
-|-----------|-----------|---------------|---------------|
-| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | none
-| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | none
-| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | none
-| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  Values lower than 3 are overwritten with 3. | none
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | yes | none
+| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | yes | none
+| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | varies | none
+| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  Values lower than 3 are overwritten with 3. | no | 3
 
 
 #### `fields` property
-| Property  | Data Type | Description   | Default Value |
-|-----------|-----------|---------------|---------------|
-| `prop`    | string    | The property name in the JSON response - also used in the HTML ID | none
-| `label`   | string    | Text displayed in front of the value | none
-| `suffix`  | string    | Text displayed after the value.  Optional. | none
-| [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | none
-| [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | none
-| `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name.| ?
-|`showHighest`| boolean  | Same idea as showLowest | ?
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `prop`    | string    | The property name in the JSON response - also used in the HTML ID | yes | none
+| `label`   | string    | Text displayed in front of the value | yes | none
+| `suffix`  | string    | Text displayed after the value.  Optional. | no | none
+| [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
+| [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | no | none
+| `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name. | no | true
+|`showHighest`| boolean  | Same idea as showLowest | no | true
 
 #### `thresholds` property
-| Property  | Data Type | Description   | Default Value |
-|-----------|-----------|---------------|---------------|
-| `warn`    | number    | The warning threshold | none
-| `danger`  | number    | The danger threshold  | none
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|--------------|
+| `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
+| `danger`  | number    | The danger threshold  | Only if `warn` is not defined | none
 
 
 See the `demo` directory for in-depth code examples which includes various panel configurations.
