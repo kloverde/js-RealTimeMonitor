@@ -69,7 +69,58 @@ Several different aspects of the panels are changed by theming, but of particula
 
 ## Using
 
-For maximum flexibility in panel placement, panels are generated one at a time by a function which returns a DOM object to you.  Insertion into the page is left to you.
+Using RealtimeMonitor is pretty simple - there are three steps:
+
+1.  Instantiate RealtimeMonitor
+2.  Create a panel via the `newPanel` function
+3.  Append it to a container
+
+```javascipt
+var rtm = new RealtimeMonitor();
+var panel = rtm.newPanel( options );
+element.appendChild( panel );
+```
+
+### Options
+
+The `options` parameter passed into `newPanel` is an object with the following properties:
+
+| Property  | Data Type | Description   | Default Value |
+|-----------|-----------|---------------|---------------|
+| `title`   | string    | Text displayed at the top of the panel | none
+|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object.| none
+|`autoConnect`| boolean   | If true, the panel will connect as soon as it completes initialization | ?
+|`startMinimized`|boolean | If true, the panel initializes collapsed down to its title bar | ?
+|`notifications`| boolean | When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level| ?
+|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| none
+
+
+#### `url` property
+| Property  | Data Type | Description   | Default Value |
+|-----------|-----------|---------------|---------------|
+| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | none
+| `method`  | string    | GET/POST      | none
+| `postData`| object    | Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST. | none
+| `interval`| integer   | The polling interval, in seconds.  Lowest possible value is 3, otherwise an exception will be thrown.| none
+
+
+#### `fields` property
+| Property  | Data Type | Description   | Default Value |
+|-----------|-----------|---------------|---------------|
+| `prop`      | string    | The property name present in the JSON response - also used in the HTML ID
+| `label`     | string    | Text displayed in front of the value
+| `suffix`    | string    | Text displayed after the value.  Optional.
+| [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | none
+| [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | none
+| `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name.| ?
+| `showHighest`| boolean  | Same idea as showLowest | ?
+
+#### `thresholds` property
+| Property  | Data Type | Description   | Default Value |
+|-----------|-----------|---------------|---------------|
+| `warn`    | number    | The warning threshold | none
+| `danger`  | number    | The danger threshold  | none
+
 
 See the `demo` directory for in-depth code examples which includes various panel configurations.
 
