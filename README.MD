@@ -73,11 +73,11 @@ Using RealtimeMonitor is pretty simple - there are three steps:
 
 1.  Instantiate RealtimeMonitor
 2.  Create a panel via the `newPanel` function
-3.  Append it to a container
+3.  Append the returned DOM object to a container
 
-```javascipt
+```javascript
 var rtm = new RealtimeMonitor();
-var panel = rtm.newPanel( options );
+var panel = rtm.newPanel( [options](#options) );
 element.appendChild( panel );
 ```
 
@@ -107,9 +107,9 @@ The `options` parameter passed into `newPanel` is an object with the following p
 #### `fields` property
 | Property  | Data Type | Description   | Default Value |
 |-----------|-----------|---------------|---------------|
-| `prop`      | string    | The property name present in the JSON response - also used in the HTML ID
-| `label`     | string    | Text displayed in front of the value
-| `suffix`    | string    | Text displayed after the value.  Optional.
+| `prop`    | string    | The property name present in the JSON response - also used in the HTML ID
+| `label`   | string    | Text displayed in front of the value
+| `suffix`  | string    | Text displayed after the value.  Optional.
 | [`lowThresholds`](#thresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | none
 | [`highThresholds`](#thresholds-property)|object | Same idea as `lowThresholds` | none
 | `showLowest`| boolean   | Specifies whether to display the lowest recorded value for 'prop'.  When set to true, the value will appear as a separate field immediately beneath the field being tracked.  When set to false, the value will still be viewable as a tooltip on the field name.| ?
