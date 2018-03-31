@@ -187,33 +187,7 @@ function RealtimeMonitor() {
       }
    }
 
-   /*
-    * The UI is created dynamically from a supplied array of objects.  Each array element specifies the configuration
-    * of an individual panel; you need to define at least one, and there is no upper limit.  The object has the
-    * following members:
-    *
-    * title : (string) Text displayed at the top of the panel
-    * url : (object) Contains the following fields:
-    *       address  : (string) The URL used to update the panel.  Supported protocols are http and https.
-    *       method   : (string) GET/POST
-    *       postData : (object) Only used when method is POST.  Key/value pairs defining whatever fields you need to send in the POST.
-    *       interval : (integer) The polling interval, in seconds.  Lowest possible value is 3, otherwise an exception will be thrown.
-    * autoConnect : (boolean) If true, the panel will connect as soon as it completes initialization
-    * startMinimized : (boolean) If true, the panel initializes collapsed down to its title bar
-    * notifications : (boolean) When set to true, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level
-    * fields : (object array) Specifies field configuration.  Each element of the array contains the configuration for a single field.  Object members are:
-    *          prop   : (string) The property name present in the JSON response - also used in the HTML ID
-    *          label  : (string) Text displayed in front of the value
-    *          suffix : (string) Text displayed after the value.  Optional.
-    *          lowThresholds : (object) An optional object specifying numeric warning and danger levels - used to drive visual feedback.
-    *                          warn   : (number) The warning threshold
-    *                          danger : (number) The danger threshold
-    *          highThresholds : Same idea as lowThresholds
-    *          showLowest : (boolean) Specifies whether to display the lowest recorded value for 'prop'.  When set to true,
-    *                       the value will appear as a separate field immediately beneath the field being tracked.
-    *                       When set to false, the value will still be viewable as a tooltip on the field name.
-    *          showHighest : Same idea as showLowest
-    */
+    // Based on a supplied configuration object, creates a panel and returns it as a DOM object.  See README.MD and the included demo for the object definition.
    this.newPanel = function( panelCfg ) {
       const panel = document.createElement( "div" );
       panel.id = ID_STUB_PANEL + panelCnt;
