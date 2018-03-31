@@ -113,7 +113,7 @@
    white-space: nowrap;
    overflow-x: hidden;
    text-overflow: ellipsis;
-   margin-left: 35px;  /* Match the width of .titleBarControls.twoButtons so that text centering will be based on panel width, not the width of the text container */
+   margin-left: 35px;  /* Match the width of .titleBarControls so that text centering will be based on panel width, not the width of the text container */
    -webkit-user-select: none;
    -moz-user-select: none;
    -ms-user-select: none;
@@ -138,7 +138,7 @@
    height: 16px;
    margin: auto;
    padding: 11px 13px 11px 14px;
-   background: url( "../img/menu-icon.png" ) no-repeat center;
+   background: url( "../img/menu-icon-black.png" ) no-repeat center;
 }
 
 .monitoringPanel .titleBar .titleBarControls .appMenuButton:hover, .monitoringPanel .titleBar .titleBarControls.menuActive .appMenuButton {
@@ -172,7 +172,7 @@
 }
 
 /*
- * Call it clever or call it ugly - this is a hack to configure Chart.js
+ * Call it clever or call it ugly - .graphColor is a hack to configure Chart.js
  * colors through CSS instead of JavaScript (the only method it supports).
  */
 .monitoringPanel .graphContainer .graphColor {
