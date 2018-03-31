@@ -54,7 +54,7 @@ There *is* a possible annoyance factor, though.  Every time a panel refreshes, i
 Now, onto the browser-specific issues.
 
 ### Firefox
-By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to true in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
+By default, Firefox ignores the configuration option that makes notifications persistent.  See [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1346375).  To enable persistent notifications, *dom.webnotifications.requireinteraction.enabled* must be set to `true` in about:config.  So, unless you/your users are going to be staring at panels continuously, or unless you can get them to fiddle with browser configuration, Firefox is probably a poor choice.
 
 ### Chrome
 Chrome only displays notifications if the page is loaded over HTTPS - or so I've read.  If that's true, there appears to be an exemption for servers running off of localhost, because I ran it on an insecure local server just fine.
@@ -62,16 +62,75 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 
 ## Themes
 
-The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Use of themes requires a supporting browser such as Firefox or IE.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
+The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Some browsers, such as Firefox and IE, place alternate stylesheets in a menu that the user can then select from to switch to a different theme.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
 
 
 ## Using
 
-For maximum flexibility in panel placement, panels are generated one at a time by a function which returns a DOM object to you.  Insertion into the page is left to you.
+Using RealtimeMonitor is pretty simple - there are three steps:
 
-See the `demo` directory for in-depth code examples which includes various panel configurations.
+1.  Instantiate RealtimeMonitor
+2.  Create a panel via the `newPanel` function
+3.  Append the returned DOM object to a container
+
+```javascript
+var rtm = new RealtimeMonitor();
+var panel = rtm.newPanel( options );
+element.appendChild( panel );
+```
+
+See the `demo` directory for in-depth code examples of various panel configurations.
+
+### Options
+
+The `options` parameter passed into `newPanel` is an object with the following properties:
+
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `title`   | string    | Text displayed at the top of the panel | yes | none
+|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object. | yes | none
+|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
+|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
+|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | true
+|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
+
+
+#### `url` property
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | yes | none
+| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | yes | none
+| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
+| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  If the value is less than 3, it is ignored and 3 is used instead. | no | 3
+
+[Back to Options](#options)
+
+
+#### `fields` property
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `prop`    | string    | The property name in the JSON response | yes | none
+| `label`   | string    | Text displayed in front of the value | yes | none
+| `suffix`  | string    | Text displayed after the value.  Optional. | no | none
+| [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
+| [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
+| `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
+|`showHighest`| boolean | Same idea as `showLowest` | no | true
+
+[Back to Options](#options)
+
+
+#### `thresholds` properties
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|--------------|
+| `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
+| `danger`  | number    | The danger threshold  | Only if `warn` is not defined | none
+
+[Back to Fields](#fields-property)
+
+[Back to Options](#options)
 
 
 ## Running the Demo/Development Environment
@@ -89,10 +148,9 @@ By design, the server only honors requests from localhost.
 
 Once the server is running, load http://localhost:8080/demo/demo.html or https://localhost:8080/demo/demo.html in your browser.
 
-HTTP requests are handled by localhost:8080
-HTTPS requests are handled by localhost:8081*
-*TODO:  Web socket requests are handled by ws://localhost:8082*
-*TODO:  Secure Web socket requests are handled by wss://localhost:8083*
+HTTP requests are handled by localhost:8080.
+
+HTTPS requests are handled by localhost:8081.
 
 
 ## Third-party Attribution
