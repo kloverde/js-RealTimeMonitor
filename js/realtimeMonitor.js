@@ -215,25 +215,13 @@ function RealtimeMonitor() {
     *          showHighest : Same idea as showLowest
     */
    this.newPanel = function( panelCfg ) {
-      panelData[ID_STUB_PANEL + panelCnt] = panelData[ID_STUB_PANEL + panelCnt] || [];
-
       const panel = document.createElement( "div" );
-
       panel.id = ID_STUB_PANEL + panelCnt;
       panel.className = CLASS_MONITORING_PANEL;
 
-      // The settings object gets built piecemeal - as the opportunity arises.
-      settings[panel.id] = {};
-      settings[panel.id].title = panelCfg.title;
-      settings[panel.id].url = panelCfg.url;
-      settings[panel.id].url.method = settings[panel.id].url.method.toUpperCase();
-      settings[panel.id].lowThresholds = {};
-      settings[panel.id].highThresholds = {};
-      settings[panel.id].autoConnect = something( panelCfg.autoConnect ) && panelCfg.autoConnect === true ? true : false;
-      settings[panel.id].notifications = panelCfg.notifications;
-      settings[panel.id].fields = {};
+      panelData[ID_STUB_PANEL + panelCnt] = panelData[ID_STUB_PANEL + panelCnt] || [];
 
-      validateSettings( panel.id );  // Currently don't care about validating the stuff that gets saved later
+      settings[panel.id] = validateSettings( panel.id, panelCfg );
 
       const titleBar = document.createElement( "div" );
       titleBar.id = panel.id + ID_STUB_TITLE;
@@ -295,30 +283,14 @@ function RealtimeMonitor() {
       for( let j = 0; j < panelCfg.fields.length; j++ ) {
          const fieldCfg = panelCfg.fields[j];
 
-         if( fieldCfg.lowThresholds ) {
-            settings[panel.id].lowThresholds[fieldCfg.prop] = fieldCfg.lowThresholds;  // More opportunistic saving of settings
-         }
-
-         if( fieldCfg.highThresholds ) {
-            settings[panel.id].highThresholds[fieldCfg.prop] = fieldCfg.highThresholds;  // More opportunistic saving of settings
-         }
-
          fieldsContainer.appendChild( newField(FIELD_TYPE_FIELD, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
 
-         settings[panel.id].fields[fieldCfg.prop] = {};  // More opportunistic saving of settings
-
-         if( fieldCfg.showLowest ) {
+         if( settings[panel.id].fields[fieldCfg.prop].showLowest ) {
             fieldsContainer.appendChild( newField(FIELD_TYPE_LOWEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
-            settings[panel.id].fields[fieldCfg.prop].showLowest = true;
-         } else {
-            settings[panel.id].fields[fieldCfg.prop].showLowest = false;
          }
 
-         if( fieldCfg.showHighest ) {
+         if( settings[panel.id].fields[fieldCfg.prop].showHighest ) {
             fieldsContainer.appendChild( newField(FIELD_TYPE_HIGHEST, fieldCfg.prop, panel.id, fieldCfg.label, fieldCfg.suffix) );
-            settings[panel.id].fields[fieldCfg.prop].showHighest = true;
-         } else {
-            settings[panel.id].fields[fieldCfg.prop].showHighest = false;
          }
 
          panelData[ID_STUB_PANEL + panelCnt][fieldCfg.prop] = null;
@@ -1042,9 +1014,135 @@ function RealtimeMonitor() {
       return !element.classList.contains( CLASS_VISIBILITY_GONE ) && !element.classList.contains( CLASS_VISIBILITY_HIDDEN );
    }
 
-   function validateSettings( panelId ) {
-      if( settings[panelId].url.interval < SETTING_MINIMUM_INTERVAL_SECONDS ) {
-         settings[panelId].url.interval = SETTING_MINIMUM_INTERVAL_SECONDS;
+   function validateSettings( panelId, panelCfg ) {
+      const ERR_PREFIX = "Invalid configuration:  ";
+
+      if( !panelId ) {
+         throw new Error( "panelId has no value" );
+      }
+
+      if( !panelCfg ) {
+         throw new Error( ERR_PREFIX + "no configuration was provided" );
+      }
+
+      // Initialize a settings object with defaults
+
+      const saved = {};
+      saved.url = {};
+      saved.url.interval = SETTING_MINIMUM_INTERVAL_SECONDS;
+      saved.lowThresholds = {};
+      saved.highThresholds = {};
+      saved.autoConnect = true;
+      saved.startMinimized = false;
+      saved.notifications = true;
+      saved.fields = {};
+      saved.lowThresholds = {};
+      saved.highThresholds = {};
+
+      // Validate configuration.  If the property is one that needs to be held onto, save it upon successful validation.
+
+      v( panelCfg.title, "title", "string", true );
+      saved.title = panelCfg.title;
+
+      v( panelCfg.url, "url", "object", true );
+
+      v( panelCfg.url.address, "url.address", "string", true );
+      saved.url.address = panelCfg.url.address;
+
+      v( panelCfg.url.method,  "url.method",  "string", true  );
+      const method = panelCfg.url.method.toUpperCase();
+      if( method !== "GET" && method !== "POST" ) { throw new Error(ERR_PREFIX + "url.method must be GET or POST"); }
+      saved.url.method = panelCfg.url.method;
+
+      if( method === "POST" ) {
+         v( panelCfg.url.postData, "url.postData", "object", true );
+
+         if( !panelCfg.url.postData || Object.keys(panelCfg.url.postData).length < 1 ) {
+            throw new Error(ERR_PREFIX + "url.method is POST but url.postData is undefined or has no length");
+         }
+
+         saved.url.postData = panelCfg.url.postData;
+      }
+
+      v( panelCfg.url.interval, "url.interval", "number", false );
+      if( something(panelCfg.url.interval) && panelCfg.url.interval > SETTING_MINIMUM_INTERVAL_SECONDS ) {
+         saved.url.interval = panelCfg.url.interval;
+      }
+
+      v( panelCfg.autoConnect, "autoConnect", "boolean", false );
+      if( something(panelCfg.autoConnect) ) { saved.autoConnect = panelCfg.autoConnect; }
+
+      v( panelCfg.startMinimized, "startMinimized", "boolean", false );
+      if( something(panelCfg.startMinimized) ) { saved.startMinimized = panelCfg.startMinimized; }
+
+      v( panelCfg.notifications, "notifications", "boolean", false );
+      if( something(panelCfg.notifications) ) { saved.notifications = panelCfg.notifications; }
+
+      v( panelCfg.fields, "fields", "object", true );
+
+      for( let i = 0; i < panelCfg.fields.length; i++ ) {
+         const f = panelCfg.fields[i];
+         const s = "fields[" + i + "]";
+
+         v( f.prop,   s + ".prop",   "string", true );
+         saved.fields[f.prop] = {};
+
+         v( f.label,  s + ".label",  "string", true );
+         saved.fields[f.prop].label = f.label;
+
+         v( f.suffix, s + ".suffix", "string", false );
+         if( f.suffix ) { saved.fields[f.prop].suffix = f.suffix; }
+
+         const lThresh = f.lowThresholds,
+               hThresh = f.highThresholds;
+
+         v( lThresh, s + ".highThresholds", "object", false );
+
+         if( lThresh ) {
+            v( lThresh.warn,   s + ".lowThresholds.warn",   "number", false );
+            v( lThresh.danger, s + ".lowThresholds.danger", "number", false );
+
+            if( !lThresh.warn && !lThresh.danger ) {
+               throw new Error( ERR_PREFIX + s + ".lowThresholds must define .warn, .danger or both" );
+            }
+
+            saved.lowThresholds[f.prop] = lThresh;
+         }
+
+         v( hThresh, s + ".highThresholds", "object", false );
+
+         if( hThresh ) {
+            v( hThresh.warn,   s + ".highThresholds.warn",   "number", false );
+            v( hThresh.danger, s + ".highThresholds.danger", "number", false );
+
+            if( !hThresh.warn && !hThresh.danger ) {
+               throw new Error( ERR_PREFIX + s + ".highThresholds must define .warn, .danger or both" );
+            }
+
+            saved.highThresholds[f.prop] = hThresh;
+         }
+
+         v( f.showLowest, s + ".showLowest", "boolean", false );
+         saved.fields[f.prop].showLowest = something( f.showLowest ) ? f.showLowest : true;
+
+         v( f.showHighest, s + ".showHighest", "boolean", false );
+         saved.fields[f.prop].showHighest = something( f.showHighest ) ? f.showHighest : true;
+      }
+
+      return saved;
+
+      function v( field, fieldName, requiredType, isRequired ) {
+         if( isRequired ) {
+            if( !something(field) ) {
+               throw new Error( "Invalid configuration:  property '" + fieldName + "' is required" );
+            }
+         }
+
+         if( something(field) ) {
+            if( typeof field !== requiredType ) {
+               throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type " + requiredType );
+            }
+         }
       }
    }
 

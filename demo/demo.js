@@ -42,15 +42,15 @@ document.addEventListener( "DOMContentLoaded", function() {
       title  : "GET Demo",
       url    : { address  : "https://localhost:8081/status/site1",
                  method   : "GET",
-                 interval : 3 },
-      autoConnect    : true,
-      startMinimized : false,
-      notifications  : false,
+                 /*interval : 10*/ },
+      //autoConnect    : false,
+      //startMinimized : true,
+      //notifications  : false,
       fields : [
-                  { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 }, showLowest : true, showHighest : true },
-                  { prop : "rpm", label : "RPM",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 }, showLowest : true, showHighest : true },
+                  { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 } },
+                  { prop : "rpm", label : "RPM",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 } },
                   { prop : "ambientTemp", label : "Ambient Temp", suffix : "°F", showLowest : false, showHighest : false },
-                  { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
+                  { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 } }
                ]
    } );
 
