@@ -5,15 +5,81 @@ See LICENSE for this software's licensing terms.  At first glance, it resembles 
 
 This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
-The basic premise is you define the fields you're expecting to get back, and you get constant updates.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+The basic premise is you define the fields you're expecting to get back, and the application polls for realtime updates.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
 The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
 
-Configuration is provided by a JavaScript object.  Responses must be formatted as basic JSON - just key/value pairings with no additional required structure.
+Configuration is provided by a JavaScript object.  Responses must be in JSON.
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const), [let](https://caniuse.com/#search=let) and [mutation observers](https://caniuse.com/#search=mutationobserver), which means anything loosely modern, including the aging IE 11.
 
 This application is nearing completion, but the API should not be considered stable until an actual release is posted.
+
+
+## Using
+
+Using RealtimeMonitor is pretty simple - there are three steps:
+
+1.  Instantiate RealtimeMonitor
+2.  Create a panel via the `newPanel` function
+3.  Append the returned DOM object to a container
+
+```javascript
+var rtm = new RealtimeMonitor();
+var panel = rtm.newPanel( options );
+element.appendChild( panel );
+```
+
+See the `demo` directory for in-depth code examples of various panel configurations.
+
+### Options
+
+The configuration object passed into `newPanel` has the following properties:
+
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `title`   | string    | Text displayed at the top of the panel | yes | none
+|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object. | yes | none
+|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
+|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
+|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | true
+|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
+
+
+#### `url` property
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | yes | none
+| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | yes | none
+| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
+| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  If the value is less than 3, it is ignored and 3 is used instead. | no | 3
+
+[Back to Options](#options)
+
+
+#### `fields` property
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|---------------|
+| `prop`    | string    | The property name in the JSON response | yes | none
+| `label`   | string    | Text displayed in front of the value | yes | none
+| `suffix`  | string    | Text displayed after the value.  Optional. | no | none
+| [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
+| [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
+| `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
+|`showHighest`| boolean | Same idea as `showLowest` | no | true
+
+[Back to Options](#options)
+
+
+#### `thresholds` properties
+| Property  | Data Type | Description   | Required ? | Default Value |
+|-----------|-----------|---------------|------------|--------------|
+| `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
+| `danger`  | number    | The danger threshold  | Only if `warn` is not defined | none
+
+[Back to Fields](#fields-property)
+
+[Back to Options](#options)
 
 
 ## Color Coding
@@ -65,72 +131,6 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Some browsers, such as Firefox and IE, place alternate stylesheets in a menu that the user can then select from to switch to a different theme.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
-
-
-## Using
-
-Using RealtimeMonitor is pretty simple - there are three steps:
-
-1.  Instantiate RealtimeMonitor
-2.  Create a panel via the `newPanel` function
-3.  Append the returned DOM object to a container
-
-```javascript
-var rtm = new RealtimeMonitor();
-var panel = rtm.newPanel( options );
-element.appendChild( panel );
-```
-
-See the `demo` directory for in-depth code examples of various panel configurations.
-
-### Options
-
-The `options` parameter passed into `newPanel` is an object with the following properties:
-
-| Property  | Data Type | Description   | Required ? | Default Value |
-|-----------|-----------|---------------|------------|---------------|
-| `title`   | string    | Text displayed at the top of the panel | yes | none
-|[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object. | yes | none
-|`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
-|`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
-|`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | true
-|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
-
-
-#### `url` property
-| Property  | Data Type | Description   | Required ? | Default Value |
-|-----------|-----------|---------------|------------|---------------|
-| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | yes | none
-| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | yes | none
-| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
-| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  If the value is less than 3, it is ignored and 3 is used instead. | no | 3
-
-[Back to Options](#options)
-
-
-#### `fields` property
-| Property  | Data Type | Description   | Required ? | Default Value |
-|-----------|-----------|---------------|------------|---------------|
-| `prop`    | string    | The property name in the JSON response | yes | none
-| `label`   | string    | Text displayed in front of the value | yes | none
-| `suffix`  | string    | Text displayed after the value.  Optional. | no | none
-| [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
-| [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
-| `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
-|`showHighest`| boolean | Same idea as `showLowest` | no | true
-
-[Back to Options](#options)
-
-
-#### `thresholds` properties
-| Property  | Data Type | Description   | Required ? | Default Value |
-|-----------|-----------|---------------|------------|--------------|
-| `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
-| `danger`  | number    | The danger threshold  | Only if `warn` is not defined | none
-
-[Back to Fields](#fields-property)
-
-[Back to Options](#options)
 
 
 ## Running the Demo/Development Environment
