@@ -146,11 +146,7 @@ $ node demo/server.js
 
 By design, the server only honors requests from localhost.
 
-Once the server is running, load http://localhost:8080/demo/demo.html or https://localhost:8080/demo/demo.html in your browser.
-
-HTTP requests are handled by localhost:8080.
-
-HTTPS requests are handled by localhost:8081.
+Once the server is running, open `demo/demo.html` straight from your filesystem, and it will automatically redirect to the secure localhost URL.
 
 
 ## Third-party Attribution
