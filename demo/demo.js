@@ -36,6 +36,8 @@
 "use strict";
 
 document.addEventListener( "DOMContentLoaded", function() {
+   loadThemeCookie();  // not important, but kinda fun
+
    const rtm = new RealtimeMonitor();
 
    const panel1 = rtm.newPanel( {
@@ -45,7 +47,7 @@ document.addEventListener( "DOMContentLoaded", function() {
                  /*interval : 10*/ },
       //autoConnect    : false,
       //startMinimized : true,
-      //notifications  : false,
+      notifications  : false,
       fields : [
                   { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 } },
                   { prop : "rpm", label : "RPM",  lowThresholds : { warn : 500, danger : 300 }, highThresholds : { warn : 2000, danger : 2500 } },
@@ -104,7 +106,56 @@ document.addEventListener( "DOMContentLoaded", function() {
    } );
 
    document.body.appendChild( panel1 );
-   document.body.appendChild( panel2 );
+//   document.body.appendChild( panel2 );
 //   document.body.appendChild( panel3 );
-   document.body.appendChild( panel4 );
+//   document.body.appendChild( panel4 );
+} );
+
+// This is kinda fun.  Let's save the active theme to a cookie when the page is unloaded.
+// This isn't in the RealtimeMonitor code because an actual Web site might employ alternate
+// stylesheets for the whole site, into which the RealtimeMonitor CSS would be merged.  And
+// if that's the case, we don't want RealtimeMonitor taking over the Web site by changing
+// stylesheets.
+
+function writeThemeCookie() {
+   const sheets = getThemes();
+   let sheet = null;
+
+   if( sheets ) {
+      for( let i = 0; i < sheets.length; i++ ) {
+         if( sheets[i].disabled === false ) {
+            sheet = sheets[i];
+            break;
+         }
+      }
+   }
+
+   if( sheet ) {
+      document.cookie = "rtm-theme=" + sheet.title + ";expires=Thu, 01 Jan 2099 00:00:01 GMT;";
+   } else {
+      document.cookie = "rtm-theme=;expires=Thu, 01 Jan 1970 00:00:01 GMT;";  // delete
+   }
+}
+
+function loadThemeCookie() {
+   const themeName = document.cookie.replace( "rtm-theme=", "" );
+   const sheets = getThemes();
+   let sheet = null;
+
+   if( sheets ) {
+      for( let i = 0; i < sheets.length; i++ ) {
+         if( sheets[i].title === themeName ) {
+            sheets[i].disabled = false;
+            break;
+         }
+      }
+   }
+}
+
+function getThemes() {
+   return document.querySelectorAll( "link[rel='alternate stylesheet']" );
+}
+
+window.addEventListener( "beforeunload", function() {
+   writeThemeCookie();
 } );
