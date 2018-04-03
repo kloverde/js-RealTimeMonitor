@@ -134,7 +134,7 @@ function RealtimeMonitor() {
 
    cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
- 
+
    areNotificationsOk();
 
    function cacheImages( cache, images ) {
@@ -230,7 +230,7 @@ function RealtimeMonitor() {
       const titleBarControls = document.createElement( "div" );
       titleBarControls.id = panel.id + ID_STUB_TITLEBAR_CONTROLS;
       titleBarControls.appendChild( menuBtn );
-      titleBarControls.classList.add( CLASS_TITLEBAR_CONTROLS )
+      titleBarControls.classList.add( CLASS_TITLEBAR_CONTROLS );
 
       titleBar.appendChild( titleBarControls );
       panel.appendChild( titleBar );
@@ -320,11 +320,11 @@ function RealtimeMonitor() {
                   if( settings[panel.id].autoConnect ) {
                      connectDisconnect( panel.id );
                   }
-               
+
                   observer.disconnect();
                   observer = undefined;
                }
-            }            
+            }
          } );
       } );
 
@@ -491,7 +491,7 @@ function RealtimeMonitor() {
       } else {
          alert( "Notifications are not supported by your browser.  To make use of notification functionality, you'll need to install a supporting browser, such as a recent version of Firefox or Chrome." );
       }
-   };
+   }
 
    function setNotificationsEnabled( panelId, enabled ) {
       const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE );
@@ -615,8 +615,8 @@ function RealtimeMonitor() {
       const xhr = ajaxHelper( "POST", url, onSuccessCallback );
       xhr.setRequestHeader( "Content-Type", "application/x-www-form-urlencoded" );
 
-      var params = Object.keys( data ).map( function(key) {
-         return encodeURIComponent( key ) + '=' + encodeURIComponent( data[key] )
+      const params = Object.keys( data ).map( function(key) {
+         return encodeURIComponent( key ) + "=" + encodeURIComponent( data[key] );
       } ).join( "&" );
 
       xhr.send( params );
@@ -688,7 +688,7 @@ function RealtimeMonitor() {
     * 1.  There's no single color combination for a graph that works with every theme.
     * 2.  Chart.js doesn't support styling via CSS - it applies styling properties directly via JavaScript.
     * 3.  The user can change the theme at any time, and no event is fired by the browser when it happens.
-    * 
+    *
     * This means that when the theme is changed to one that doesn't work with the graph's current colors, there's no way to tell Chart.js to apply the new
     * colors because we aren't informed that the user did anything.
     *
@@ -774,7 +774,7 @@ function RealtimeMonitor() {
             }
 
             if( lowThresholds ) {
-               classNameFromLowThreshold = checkAgainstLow();
+               classNameFromLowThreshold = checkAgainstLow( lowThresholds, value );
 
                if( classNameFromLowThreshold === CLASS_STATUS_WARN ) {
                   if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
@@ -788,7 +788,7 @@ function RealtimeMonitor() {
             }
 
             if( highThresholds ) {
-               classNameFromHighThreshold = checkAgainstHigh();
+               classNameFromHighThreshold = checkAgainstHigh( highThresholds, value );
 
                if( classNameFromHighThreshold === CLASS_STATUS_WARN ) {
                   if( isCurrentReadingField ) {  // The title bar reflects the *current* status, not whether something bad happened in the past
@@ -828,59 +828,7 @@ function RealtimeMonitor() {
                   setStatusColor( suffix, winningClassName );
                }
             } else {
-               updateGraph( panelId, value );
-            }
-
-            function updateGraph( panelId, value ) {
-               const graphId = panelId + ID_STUB_GRAPH + prop,
-                     graph = graphs[panelId][graphId].graph,
-                     dataset = graph.data.datasets[0],
-                     data = dataset.data,
-                     labels = graph.data.labels;
-
-               refreshGraphTheme( panelId, graphId );
-
-               //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
-
-               if( data.length === 35 ) {
-                  labels.shift();
-                  data.shift();
-               }
-
-               graph.data.labels.push( "" );
-               data.push( value );
-               graph.update();               
-            }
-
-            function setStatusColor( element, className ) {
-               element.classList.remove( CLASS_STATUS_NORMAL );
-               element.classList.remove( CLASS_STATUS_WARN );
-               element.classList.remove( CLASS_STATUS_DANGER );
-               element.classList.add( className );
-            }
-
-            function checkAgainstLow() {
-               let className = CLASS_STATUS_NORMAL;
-
-               if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
-                  className = CLASS_STATUS_DANGER;
-               } else if( something(lowThresholds) && something(lowThresholds.warn) && value <= lowThresholds.warn ) {
-                  className = CLASS_STATUS_WARN;
-               }
-
-               return className;
-            }
-
-            function checkAgainstHigh() {
-               let className = CLASS_STATUS_NORMAL;
-
-               if( something(highThresholds.danger) && value >= highThresholds.danger ) {
-                  className = CLASS_STATUS_DANGER;
-               } else if( something(highThresholds.warn) && value >= highThresholds.warn ) {
-                  className = CLASS_STATUS_WARN;
-               }
-
-               return className;
+               updateGraph( panelId, prop, value );
             }
          }
       }
@@ -910,6 +858,58 @@ function RealtimeMonitor() {
       } else {
          titleBar.classList.add( CLASS_STATUS_NONE );
       }
+   }
+
+   function updateGraph( panelId, prop, value ) {
+      const graphId = panelId + ID_STUB_GRAPH + prop,
+            graph = graphs[panelId][graphId].graph,
+            dataset = graph.data.datasets[0],
+            data = dataset.data,
+            labels = graph.data.labels;
+
+      refreshGraphTheme( panelId, graphId );
+
+      //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+
+      if( data.length === 35 ) {
+         labels.shift();
+         data.shift();
+      }
+
+      graph.data.labels.push( "" );
+      data.push( value );
+      graph.update();
+   }
+
+   function setStatusColor( element, className ) {
+      element.classList.remove( CLASS_STATUS_NORMAL );
+      element.classList.remove( CLASS_STATUS_WARN );
+      element.classList.remove( CLASS_STATUS_DANGER );
+      element.classList.add( className );
+   }
+
+   function checkAgainstLow( lowThresholds, value ) {
+      let className = CLASS_STATUS_NORMAL;
+
+      if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
+         className = CLASS_STATUS_DANGER;
+      } else if( something(lowThresholds) && something(lowThresholds.warn) && value <= lowThresholds.warn ) {
+         className = CLASS_STATUS_WARN;
+      }
+
+      return className;
+   }
+
+   function checkAgainstHigh( highThresholds, value ) {
+      let className = CLASS_STATUS_NORMAL;
+
+      if( something(highThresholds.danger) && value >= highThresholds.danger ) {
+         className = CLASS_STATUS_DANGER;
+      } else if( something(highThresholds.warn) && value >= highThresholds.warn ) {
+         className = CLASS_STATUS_WARN;
+      }
+
+      return className;
    }
 
    function thresholdNotificationCloseCallback( event ) {
