@@ -53,7 +53,6 @@ function RealtimeMonitor() {
          CLASS_GRAPH_EDGE_COLOR      = "graphEdgeColor",
          CLASS_GRAPH_LABEL_COLOR     = "graphLabelColor",
          CLASS_GRAPH_GRID_COLOR      = "graphGridColor",
-         CLASS_CONNECT_BTN_CONTAINER = "btnConnectContainer",
          CLASS_CURRENT_VALUE         = "currentValue",
          CLASS_HAS_GRAPH             = "hasGraph",
          CLASS_VISIBILITY_HIDDEN     = "visibilityHidden",
@@ -74,11 +73,11 @@ function RealtimeMonitor() {
          ID_STUB_TITLEBAR_CONTROLS   = "titleBarControls",
          ID_STUB_APP_MENU            = "appMenu",
          ID_STUB_APP_MENU_BUTTON     = "appMenuBtn",
+         ID_STUB_MENUITEM_CONNECT    = "menuItemConnect",
          ID_STUB_MENUITEM_MIN_MAX    = "menuItemMinMax",
          ID_STUB_MENUITEM_MUTE       = "menuItemNotif",
          ID_STUB_MENUITEM_CLOSE      = "menuItemClose",
          ID_STUB_LABEL               = "label",
-         ID_STUB_CONNECT_BUTTON      = "btnConnect",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_GRAPH_FILL_COLOR    = CLASS_GRAPH_FILL_COLOR,
          ID_STUB_GRAPH_EDGE_COLOR    = CLASS_GRAPH_EDGE_COLOR,
@@ -240,7 +239,7 @@ function RealtimeMonitor() {
       appMenu.id = panel.id + ID_STUB_APP_MENU;
       appMenu.className = CLASS_APP_MENU;
       appMenu.classList.add( CLASS_VISIBILITY_HIDDEN );
-      appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_CONNECT_BUTTON,   TEXT_MENUITEM_CONNECT,  function(){ connectDisconnect(panel.id); }) );
+      appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CONNECT, TEXT_MENUITEM_CONNECT,  function(){ connectDisconnect(panel.id); }) );
       appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MIN_MAX, TEXT_MENUITEM_MINIMIZE, function(){ minimizeMaximize(panel.id); }) );
       appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_MUTE,    TEXT_MENUITEM_MUTE,     function(){ toggleNotifications(panel.id); }) );
       appMenu.appendChild( newAppMenuItem(panel.id, ID_STUB_MENUITEM_CLOSE,   TEXT_MENUITEM_CLOSE,    function(){ close(panel.id); }) );
@@ -465,13 +464,6 @@ function RealtimeMonitor() {
       return { canvas : canvas, graph : graph };
    }
 
-   function newButton( id, text ) {
-      const btn = document.createElement( "button" );
-      btn.id = id;
-      btn.appendChild( document.createTextNode(text) );
-      return btn;
-   }
-
    function getGraphGridColor( panelId ) {
       const span = document.getElementById( panelId + ID_STUB_GRAPH_GRID_COLOR );
       return span ? window.getComputedStyle( span ).getPropertyValue( "background-color" ) : [];
@@ -562,15 +554,15 @@ function RealtimeMonitor() {
    }
 
    function connectDisconnect( panelId ) {
-      const btn = document.getElementById( panelId + ID_STUB_CONNECT_BUTTON );
-      const connected = btn.innerHTML.indexOf( TEXT_MENUITEM_DISCONNECT ) !== -1;
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT );
+      const connected = menuItem.innerHTML.indexOf( TEXT_MENUITEM_DISCONNECT ) !== -1;
 
       if( connected ) {
          disconnect( panelId );
-         btn.innerHTML = TEXT_MENUITEM_CONNECT;
+         menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
       } else {
          connect( panelId );
-         btn.innerHTML = TEXT_MENUITEM_DISCONNECT;
+         menuItem.innerHTML = TEXT_MENUITEM_DISCONNECT;
       }
    }
 

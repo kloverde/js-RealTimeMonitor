@@ -269,16 +269,3 @@
 .monitoringPanel .fieldSeparator {
    height: 11px;
 }
-
-.monitoringPanel .btnConnectContainer {
-   display: inline-block;
-   line-height: 50px;
-   width: 100%;
-   vertical-align: bottom;
-   text-align: center;
-   padding-bottom: 5px;
-}
-
-.monitoringPanel .btnConnectContainer button {
-   line-height: normal;
-}
