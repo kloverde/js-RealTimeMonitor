@@ -286,13 +286,13 @@ function RealtimeMonitor() {
 
       let firstGraph = true;
       for( let graphId in graphs[panel.id] ) {
-         const graph = graphs[panel.id][graphId].canvas;
+         const g = graphs[panel.id][graphId].canvas;
 
          if( firstGraph ) {
-            graph.classList.remove( CLASS_VISIBILITY_GONE );
+            g.classList.remove( CLASS_VISIBILITY_GONE );
          }
 
-         graphContainer.appendChild( graph );
+         graphContainer.appendChild( g );
          firstGraph = false;
       }
 
@@ -487,7 +487,7 @@ function RealtimeMonitor() {
    function toggleNotifications( panelId ) {
       if( notificationsSupported ) {
          const menuVal = document.getElementById( panelId + ID_STUB_MENUITEM_MUTE ).innerText;
-         setNotificationsEnabled( panelId, !(menuVal === TEXT_MENUITEM_MUTE) );
+         setNotificationsEnabled( panelId, menuVal !== TEXT_MENUITEM_MUTE );
       } else {
          alert( "Notifications are not supported by your browser.  To make use of notification functionality, you'll need to install a supporting browser, such as a recent version of Firefox or Chrome." );
       }
@@ -593,7 +593,7 @@ function RealtimeMonitor() {
             } else if( cfg.method === "POST" ) {
                ajaxPost( cfg.address, cfg.postData, onSuccess );
             } else {
-               throw new Error( "Invalid method: " + request.method );
+               throw new Error( "Invalid method: " + cfg.method );
             }
          }, cfg.interval * 1000 );
       }
@@ -676,8 +676,8 @@ function RealtimeMonitor() {
                   highestProp = PROP_STUB_HIGHEST + prop;
 
             panel[prop] = response[prop];
-            panel[lowestProp] = panel[lowestProp] == null || panel[lowestProp] > panel[prop] ? panel[prop] : panel[lowestProp];
-            panel[highestProp] = panel[highestProp] == null || panel[highestProp] < panel[prop] ? panel[prop] : panel[highestProp];
+            panel[lowestProp] = panel[lowestProp] === null || panel[lowestProp] > panel[prop] ? panel[prop] : panel[lowestProp];
+            panel[highestProp] = panel[highestProp] === null || panel[highestProp] < panel[prop] ? panel[prop] : panel[highestProp];
          }
       }
    }
@@ -706,8 +706,6 @@ function RealtimeMonitor() {
    function refreshGraphTheme( panelId, graphId ) {
       const graph = graphs[panelId][graphId].graph,
       dataset = graph.data.datasets[0],
-      data = dataset.data,
-      labels = graph.data.labels,
       labelColor = getGraphLabelColor( panelId ),
       gridColor = getGraphGridColor( panelId );
 
@@ -1121,7 +1119,7 @@ function RealtimeMonitor() {
       let isNull = false;
 
       if( !isUndef ) {
-         isNull = obj == null;
+         isNull = obj === null;
       }
 
       return !isUndef && !isNull;
