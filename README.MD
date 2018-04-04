@@ -5,11 +5,9 @@ See LICENSE for this software's licensing terms.  At first glance, it resembles 
 
 This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
-The basic premise is you define the fields you're expecting to get back, and the application polls for realtime updates.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+The basic premise is you provide a configuration object which lists the fields you're expecting to get back, and the application polls for updates.  The server response must be JSON.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
 The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
-
-Configuration is provided by a JavaScript object.  Responses must be in JSON.
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const), [let](https://caniuse.com/#search=let) and [mutation observers](https://caniuse.com/#search=mutationobserver), which means anything loosely modern, including the aging IE 11.
 
@@ -22,7 +20,7 @@ Using RealtimeMonitor is pretty simple - there are three steps:
 
 1.  Instantiate RealtimeMonitor
 2.  Create a panel via the `newPanel` function
-3.  Append the returned DOM object to a container
+3.  Append the returned DOM object to something
 
 ```javascript
 var rtm = new RealtimeMonitor();
@@ -62,7 +60,7 @@ The configuration object passed into `newPanel` has the following properties:
 |-----------|-----------|---------------|------------|---------------|
 | `prop`    | string    | The property name in the JSON response | yes | none
 | `label`   | string    | Text displayed in front of the value | yes | none
-| `suffix`  | string    | Text displayed after the value.  Optional. | no | none
+| `suffix`  | string    | Text displayed after the value to indicate units of measurement, etc. | no | none
 | [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
 | [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
 | `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
