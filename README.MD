@@ -137,7 +137,9 @@ Several different aspects of the panels are changed by theming, but of particula
 
 RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
 
-In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org), then start the server from the **base** directory:
+In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then run `startserver.bat`.  If a certificate is not found in the `demo` directory, one will automatically be created.
+
+If not using `startserver.bat`, start the server from the **base** directory, like so:
 
 ```shell
 $ cd js-RealtimeMonitor
