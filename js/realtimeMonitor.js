@@ -856,27 +856,51 @@ function RealtimeMonitor() {
       } else {
          titleBar.classList.add( CLASS_STATUS_NONE );
       }
-   }
 
-   function updateGraph( panelId, prop, value ) {
-      const graphId = panelId + ID_STUB_GRAPH + prop,
-            graph = graphs[panelId][graphId].graph,
-            dataset = graph.data.datasets[0],
-            data = dataset.data,
-            labels = graph.data.labels;
+      function updateGraph( panelId, prop, value ) {
+         const graphId = panelId + ID_STUB_GRAPH + prop,
+               graph = graphs[panelId][graphId].graph,
+               dataset = graph.data.datasets[0],
+               data = dataset.data,
+               labels = graph.data.labels;
 
-      refreshGraphTheme( panelId, graphId );
+         refreshGraphTheme( panelId, graphId );
 
-      //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
+         //const labelText = data.length % 10 === 0 ? new Date().toLocaleTimeString( {hour12:true} ) : "";
 
-      if( data.length === 35 ) {
-         labels.shift();
-         data.shift();
+         if( data.length === 35 ) {
+            labels.shift();
+            data.shift();
+         }
+
+         graph.data.labels.push( "" );
+         data.push( value );
+         graph.update();
       }
 
-      graph.data.labels.push( "" );
-      data.push( value );
-      graph.update();
+      function checkAgainstLow( lowThresholds, value ) {
+         let className = CLASS_STATUS_NORMAL;
+
+         if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
+            className = CLASS_STATUS_DANGER;
+         } else if( something(lowThresholds) && something(lowThresholds.warn) && value <= lowThresholds.warn ) {
+            className = CLASS_STATUS_WARN;
+         }
+
+         return className;
+      }
+
+      function checkAgainstHigh( highThresholds, value ) {
+         let className = CLASS_STATUS_NORMAL;
+
+         if( something(highThresholds.danger) && value >= highThresholds.danger ) {
+            className = CLASS_STATUS_DANGER;
+         } else if( something(highThresholds.warn) && value >= highThresholds.warn ) {
+            className = CLASS_STATUS_WARN;
+         }
+
+         return className;
+      }
    }
 
    function setStatusColor( element, className ) {
@@ -884,30 +908,6 @@ function RealtimeMonitor() {
       element.classList.remove( CLASS_STATUS_WARN );
       element.classList.remove( CLASS_STATUS_DANGER );
       element.classList.add( className );
-   }
-
-   function checkAgainstLow( lowThresholds, value ) {
-      let className = CLASS_STATUS_NORMAL;
-
-      if( something(lowThresholds) && something(lowThresholds.danger) && value <= lowThresholds.danger ) {
-         className = CLASS_STATUS_DANGER;
-      } else if( something(lowThresholds) && something(lowThresholds.warn) && value <= lowThresholds.warn ) {
-         className = CLASS_STATUS_WARN;
-      }
-
-      return className;
-   }
-
-   function checkAgainstHigh( highThresholds, value ) {
-      let className = CLASS_STATUS_NORMAL;
-
-      if( something(highThresholds.danger) && value >= highThresholds.danger ) {
-         className = CLASS_STATUS_DANGER;
-      } else if( something(highThresholds.warn) && value >= highThresholds.warn ) {
-         className = CLASS_STATUS_WARN;
-      }
-
-      return className;
    }
 
    function thresholdNotificationCloseCallback( event ) {
