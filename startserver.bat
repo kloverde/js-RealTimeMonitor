@@ -47,7 +47,7 @@ goto end
 :generate
 echo No certificate found.  Generating now...
 echo.
-openssl req -x509 -newkey rsa:4096 -nodes -keyout demo\key.pem -out demo\cert.pem -days 3650
+openssl req -sha256 -x509 -newkey rsa:4096 -nodes -keyout demo\key.pem -out demo\cert.pem -days 3650
 
 if exist .rnd (
    del /f /q .rnd
@@ -55,8 +55,11 @@ if exist .rnd (
 
 echo.
 echo Generation complete.  Don't use the certificate
-echo for anything other than testing - it wasn't
-echo protected with a password.
+echo for anything other than testing.  It was set to
+echo expire in 10 years (!) and wasn't secured with
+echo a password (!).
+echo.
+echo Starting server...
 echo.
 
 
