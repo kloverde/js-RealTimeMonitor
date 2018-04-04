@@ -43,7 +43,7 @@ The configuration object passed into `newPanel` has the following properties:
 |`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
 |`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
 |`notifications`| boolean | If `true`, and if the browser supports it, native system notifications will display when low or high thresholds reach the warning or danger level | no | true
-|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the defnition of this nested object.| yes | none
+|[`fields`](#fields-property)|object array| Specifies field configuration.  Each element of the array contains the configuration for a single field.  Click the property name to be taken to the definition of this nested object.| yes | none
 
 
 #### `url` property
