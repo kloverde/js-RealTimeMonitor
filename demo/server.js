@@ -131,8 +131,11 @@ function wsHandler( socket, request ) {
    } );
 
    socket.on( "close", function(closeEvent) {
-      log( "Socket:  closed: " + closeEvent );
-      //delete sockets[channel][?]
+      const idx = sockets[channel].indexOf( socket );
+
+      if( idx !== -1 ) {
+         sockets[channel].splice( idx, 1 );
+      }
    } );
 }
 
