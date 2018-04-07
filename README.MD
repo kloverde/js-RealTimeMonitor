@@ -87,7 +87,9 @@ The configuration object passed into `newPanel` has the following properties:
 
 RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
 
-In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then run `startserver.bat`.  The batch script takes care of dependencies, such installing required NPM modules and creating a certificate.
+In the `demo` directory you'll find a barebones Node.js server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then:
+
+For Windows users, run `startserver.bat`.  The batch script takes care of dependencies, such installing required NPM modules and creating a certificate.
 
 If not using `startserver.bat`, change into the **base** directory, then install the server dependencies:
 
