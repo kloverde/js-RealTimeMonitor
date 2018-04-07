@@ -39,7 +39,7 @@ document.addEventListener( "DOMContentLoaded", function() {
    const rtm = new RealtimeMonitor();
 
    const panel1 = rtm.newPanel( {
-      title  : "GET Demo",
+      title  : "GET Polling",
       url    : { address  : "https://localhost:8081/status/site1",
                  method   : "GET",
                  /*interval : 10*/ },
@@ -55,7 +55,7 @@ document.addEventListener( "DOMContentLoaded", function() {
    } );
 
    const panel2 = rtm.newPanel( {
-      title  : "POST Demo",
+      title  : "POST Polling",
       url    : { address  : "https://localhost:8081/status",
                  method   : "POST",
                  postData : { site : "site2", otherStuff : "more_stuff" },
@@ -72,8 +72,8 @@ document.addEventListener( "DOMContentLoaded", function() {
    } );
 
    const panel3 = rtm.newPanel( {
-      title  : "Web Socket Demo",
-      url    : { address  : "ws://localhost:8082/status/site1",
+      title  : "Web Socket",
+      url    : { address  : "wss://localhost:8081/status/site1",
                  wsGreeting : { stuff : "hey_stuff" } },
       autoConnect    : true,
       startMinimized : false,
@@ -103,8 +103,8 @@ document.addEventListener( "DOMContentLoaded", function() {
                ]
    } );
 
-//   document.body.appendChild( panel1 );
-//   document.body.appendChild( panel2 );
+   document.body.appendChild( panel1 );
+   document.body.appendChild( panel2 );
    document.body.appendChild( panel3 );
-//   document.body.appendChild( panel4 );
+   document.body.appendChild( panel4 );
 } );
