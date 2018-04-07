@@ -603,7 +603,7 @@ function RealtimeMonitor() {
                } else if( cfg.method === "POST" ) {
                   ajaxPost( cfg.address, cfg.postData, onSuccess );
                }
-            }, cfg.interval * 1000 );
+            }, cfg.pollInterval * 1000 );
          } else if( cfg.method === "websocket" ) {
             const socket = new WebSocket( cfg.address );
             sockets[panelId] = socket;
@@ -1027,7 +1027,7 @@ function RealtimeMonitor() {
 
       const saved = {};
       saved.url = {};
-      saved.url.interval = SETTING_MINIMUM_INTERVAL_SECONDS;
+      saved.url.pollInterval = SETTING_MINIMUM_INTERVAL_SECONDS;
       saved.lowThresholds = {};
       saved.highThresholds = {};
       saved.autoConnect = true;
@@ -1093,9 +1093,9 @@ function RealtimeMonitor() {
          saved.url.postData = panelCfg.url.postData;
       }
 
-      v( panelCfg.url.interval, "url.interval", "number", false );
-      if( something(panelCfg.url.interval) && panelCfg.url.interval > SETTING_MINIMUM_INTERVAL_SECONDS ) {
-         saved.url.interval = panelCfg.url.interval;
+      v( panelCfg.url.pollInterval, "url.pollInterval", "number", false );
+      if( something(panelCfg.url.pollInterval) && panelCfg.url.pollInterval > SETTING_MINIMUM_INTERVAL_SECONDS ) {
+         saved.url.pollInterval = panelCfg.url.pollInterval;
       }
 
       v( panelCfg.autoConnect, "autoConnect", "boolean", false );
