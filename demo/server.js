@@ -73,7 +73,7 @@ const wsServer = new ws.Server( {server : httpServer} );
 const wssServer = new ws.Server( {server : httpsServer} );
 
 wsServer.on( "connection", function(socket, request) {
-   wsOnConnectionHandler( socket, request );
+   wsHandler( socket, request );
 } );
 
 wssServer.on( "connection", function(socket, request) {
