@@ -614,6 +614,14 @@ function RealtimeMonitor() {
                };
             };
 
+            socket.onclose = function( closeEvent ) {
+               console.log( closeEvent );
+
+               if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
+                  console.log( "reconnecting..." );
+               }
+            };
+
             socket.onmessage = function( message ) {
                onSuccess( message.data );
             };
@@ -667,7 +675,7 @@ function RealtimeMonitor() {
       }
 
       if( something(sockets[panelId]) ) {
-         sockets[panelId].close();
+         sockets[panelId].close( 1000 );  // 1000 = normal closure
          sockets[panelId] = undefined;
       }
 
@@ -1056,9 +1064,21 @@ function RealtimeMonitor() {
             throw new Error( ERR_PREFIX + "url.method is not used with websocket URLs" );
          }
 
+         saved.url.method = "websocket";
+
          v( panelCfg.url.wsGreeting, "url.wsGreeting", "object", false );
          saved.url.wsGreeting = panelCfg.url.wsGreeting;
-         saved.url.method = "websocket";
+
+         v( panelCfg.url.wsCloseCodes, "url.wsCloseCodes", "array", false );
+         if( panelCfg.url.wsCloseCodes ) {
+            for( let i = 0; i < panelCfg.url.wsCloseCodes.length; i++ ) {
+               v( panelCfg.url.wsCloseCodes[i], "url.wsCloseCodes[" + i + "]", "number", true );
+            }
+
+            saved.url.wsCloseCodes = panelCfg.url.wsCloseCodes;
+         } else {
+            saved.url.wsCloseCodes = [];
+         }
       } else {
          throw new Error( ERR_PREFIX + "unknown protocol in URL " + panelCfg.url.address );
       }
@@ -1148,8 +1168,12 @@ function RealtimeMonitor() {
          }
 
          if( something(field) ) {
-            if( typeof field !== requiredType ) {
-               throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type " + requiredType );
+            if( requiredType === "array" ) {
+               if( !Array.isArray(field) ) {
+                  throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type '" + requiredType + "' but is '" + (typeof field) + "'" );
+               }
+            } else if( typeof field !== requiredType ) {
+               throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type '" + requiredType + "' but is '" + (typeof field) + "'" );
             }
          }
       }

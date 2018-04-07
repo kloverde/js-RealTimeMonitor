@@ -73,8 +73,9 @@ document.addEventListener( "DOMContentLoaded", function() {
 
    const panel3 = rtm.newPanel( {
       title  : "Web Socket",
-      url    : { address  : "wss://localhost:8081/status/site1",
-                 wsGreeting : { stuff : "hey_stuff" } },
+      url    : { address      : "wss://localhost:8081/status/site1",
+                 wsGreeting   : { stuff : "hey_stuff" },
+                 wsCloseCodes : [ 1006, 1013 ] },
       autoConnect    : true,
       startMinimized : false,
       notifications  : false,

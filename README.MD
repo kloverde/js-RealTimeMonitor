@@ -52,8 +52,9 @@ The configuration object passed into `newPanel` has the following properties:
 | `address`  | string    | The URL used to update the panel.  Supported protocols are http, https, ws and wss. | yes | none
 | `method`   | string    | The HTTP method.  Valid values are **GET** and **POST**.  This property is not used with Web sockets. | yes, if using HTTP(S) | none
 | `postData` | object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
-| `interval` | integer   | The GET/POST polling interval, in seconds.  The lowest possible value is 3; if the value is less than 3, it is ignored and 3 is used instead.  (Not used with Web sockets - Web sockets have updates pushed to them whenever the server decides to).  | no | 3
+| `interval` | int       | The GET/POST polling interval, in seconds.  The lowest possible value is 3; if the value is less than 3, it is ignored and 3 is used instead.  (Not used with Web sockets - Web sockets have updates pushed to them whenever the server decides to).  | no | 3
 |`wsGreeting`| object    | For use with Web sockets only.  If for whatever reason you need to send data as soon as the connection is established, provide it here.  The object will be transmitted as JSON, and will be transmitted only once. | no | none
+|`wsCloseCodes`| int[]   | For use with Web sockets only.  Specifies [CloseEvent codes](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties) that, if encountered, will result in the panel attempting to automatically reconnect.  Requires a carefully coded back end that sends *accurate, highly specific* error codes, not just catch-alls. | no | none
 
 [Back to Options](#options)
 
