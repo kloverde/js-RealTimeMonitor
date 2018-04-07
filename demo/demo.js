@@ -70,11 +70,11 @@ document.addEventListener( "DOMContentLoaded", function() {
                   { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
                ]
    } );
-/*
-   // TODO:  Web sockets
+
    const panel3 = rtm.newPanel( {
       title  : "Web Socket Demo",
-      url    : { address : "wss://whatever" },
+      url    : { address  : "ws://localhost:8082/status/site1",
+                 wsGreeting : { stuff : "hey_stuff" } },
       autoConnect    : true,
       startMinimized : false,
       notifications  : false,
@@ -85,7 +85,7 @@ document.addEventListener( "DOMContentLoaded", function() {
                   { prop : "internalTemp", label : "Internal Temp", suffix : "°F", highThresholds : { warn : 200, danger : 250 }, showHighest : true }
                ]
    } );
-*/
+
    // You'll have to deactivate the visibilityHidden class to observe the XSS3 test, as suffixes are hidden until the 'Connect' menu option is clicked
 
    const panel4 = rtm.newPanel( {
@@ -103,8 +103,8 @@ document.addEventListener( "DOMContentLoaded", function() {
                ]
    } );
 
-   document.body.appendChild( panel1 );
+//   document.body.appendChild( panel1 );
 //   document.body.appendChild( panel2 );
-//   document.body.appendChild( panel3 );
+   document.body.appendChild( panel3 );
 //   document.body.appendChild( panel4 );
 } );

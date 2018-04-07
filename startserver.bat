@@ -34,6 +34,8 @@ REM OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE US
 REM OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+pushd "%~dp0"
+
 if not exist demo\cert.pem (
    goto generate
 )
@@ -43,6 +45,7 @@ if not exist demo\key.pem (
 )
 
 goto end
+
 
 :generate
 echo No certificate found.  Generating now...
@@ -64,4 +67,7 @@ echo.
 
 
 :end
+call npm install ws
+echo.
 node demo\server.js
+popd

@@ -121,10 +121,11 @@ function RealtimeMonitor() {
 
    const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
 
-   const settings = {};  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
-   const panelData = {};
-   const intervals = [];
-   const graphs = [];
+   const settings  = {},  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
+         panelData = {},
+         intervals = [],  // GET/POST per panelId; theme watcher
+         sockets   = [],
+         graphs    = [];
 
    let panelCnt = 0;
 
@@ -136,6 +137,12 @@ function RealtimeMonitor() {
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
 
    areNotificationsOk();
+
+   window.addEventListener( "beforeunload", function() {
+      for( let panelId in settings ) {
+         disconnect( panelId );  // Could be more discerning and limit this only to Web socket panels, but... nah
+      }
+   } );
 
    function cacheImages( cache, images ) {
       for( let i = 0; i < images.length; i++ ) {
@@ -569,37 +576,51 @@ function RealtimeMonitor() {
    function connect( panelId ) {
       const cfg = settings[panelId].url;
 
-      if( !intervals[panelId] ) {
-         if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
-            intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
-               for( let panId in graphs ) {
-                  const panelsGraphs = graphs[panId];
+      // Step 1:  Start watching for theme changes to keep the grap LNF in sync
+      if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
+         intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
+            for( let panId in graphs ) {
+               const panelsGraphs = graphs[panId];
 
-                  for( let graphId in panelsGraphs ) {
-                     const canvas = panelsGraphs[graphId].canvas;
+               for( let graphId in panelsGraphs ) {
+                  const canvas = panelsGraphs[graphId].canvas;
 
-                     if( isVisible(canvas) ) {
-                        refreshGraphTheme( panId, graphId );
-                        break;
-                     }
+                  if( isVisible(canvas) ) {
+                     refreshGraphTheme( panId, graphId );
+                     break;
                   }
                }
-            }, 1000 );
-         }
-
-         intervals[panelId] = window.setInterval( function() {
-            if( cfg.method === "GET" ) {
-               ajaxGet( cfg.address, onSuccess );
-            } else if( cfg.method === "POST" ) {
-               ajaxPost( cfg.address, cfg.postData, onSuccess );
-            } else {
-               throw new Error( "Invalid method: " + cfg.method );
             }
-         }, cfg.interval * 1000 );
+         }, 3000 );
+      }
+
+      // Step 2:  Get data
+      if( !intervals[panelId] ) {
+         if( cfg.method === "GET" || cfg.method === "POST" ) {
+            intervals[panelId] = window.setInterval( function() {
+               if( cfg.method === "GET" ) {
+                  ajaxGet( cfg.address, onSuccess );
+               } else if( cfg.method === "POST" ) {
+                  ajaxPost( cfg.address, cfg.postData, onSuccess );
+               }
+            }, cfg.interval * 1000 );
+         } else if( cfg.method === "websocket" ) {
+            const socket = new WebSocket( cfg.address );
+            sockets[panelId] = socket;
+
+            socket.onopen = function() {
+               if( something(cfg.wsGreeting) ) {
+                  socket.send( JSON.stringify(cfg.wsGreeting) );
+               };
+            };
+
+            socket.onmessage = function( message ) {
+               onSuccess( message.data );
+            };
+         }
       }
 
       function onSuccess( responseText ) {
-         // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText and doing manual JSON parsing.
          const response = JSON.parse( responseText );
          updateStats( panelId, response );
          updateUI( panelId );
@@ -640,14 +661,19 @@ function RealtimeMonitor() {
    }
 
    function disconnect( panelId ) {
-      window.clearInterval( intervals[panelId] );
-      intervals[panelId] = null;
+      if( something(intervals[panelId]) ) {
+         window.clearInterval( intervals[panelId] );
+         intervals[panelId] = undefined;
+      }
+
+      if( something(sockets[panelId]) ) {
+         sockets[panelId].close();
+         sockets[panelId] = undefined;
+      }
 
       if( thresholdNotifications ) {
-         const notif = thresholdNotifications[panelId];
-
-         if( notif ) {
-            notif.close();
+         if( thresholdNotifications[panelId] ) {
+            thresholdNotifications[panelId].close();
             thresholdNotifications[panelId] = undefined;
          }
       }
@@ -1013,10 +1039,29 @@ function RealtimeMonitor() {
       v( panelCfg.url.address, "url.address", "string", true );
       saved.url.address = panelCfg.url.address;
 
-      v( panelCfg.url.method,  "url.method",  "string", true  );
-      const method = panelCfg.url.method.toUpperCase();
-      if( method !== "GET" && method !== "POST" ) { throw new Error(ERR_PREFIX + "url.method must be GET or POST"); }
-      saved.url.method = panelCfg.url.method;
+      let method = null;
+
+      if( panelCfg.url.address.startsWith("http://") || panelCfg.url.address.startsWith("https://") ) {
+         v( panelCfg.url.method, "url.method", "string", true );
+
+         method = panelCfg.url.method.toUpperCase();
+
+         if( method !== "GET" && method !== "POST" ) { 
+            throw new Error( ERR_PREFIX + "url.method must be GET or POST" );
+         }
+
+         saved.url.method = method;
+      } else if( panelCfg.url.address.startsWith( "ws://") || panelCfg.url.address.startsWith("wss://") ) {
+         if( something(panelCfg.url.method) ) {
+            throw new Error( ERR_PREFIX + "url.method is not used with websocket URLs" );
+         }
+
+         v( panelCfg.url.wsGreeting, "url.wsGreeting", "object", false );
+         saved.url.wsGreeting = panelCfg.url.wsGreeting;
+         saved.url.method = "websocket";
+      } else {
+         throw new Error( ERR_PREFIX + "unknown protocol in URL " + panelCfg.url.address );
+      }
 
       if( method === "POST" ) {
          v( panelCfg.url.postData, "url.postData", "object", true );
