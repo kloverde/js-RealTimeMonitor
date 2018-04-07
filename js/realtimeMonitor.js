@@ -1041,7 +1041,7 @@ function RealtimeMonitor() {
 
       let method = null;
 
-      if( panelCfg.url.address.startsWith("http://") || panelCfg.url.address.startsWith("https://") ) {
+      if( panelCfg.url.address.indexOf("http://") === 0 || panelCfg.url.address.indexOf("https://") === 0 ) {
          v( panelCfg.url.method, "url.method", "string", true );
 
          method = panelCfg.url.method.toUpperCase();
@@ -1051,7 +1051,7 @@ function RealtimeMonitor() {
          }
 
          saved.url.method = method;
-      } else if( panelCfg.url.address.startsWith( "ws://") || panelCfg.url.address.startsWith("wss://") ) {
+      } else if( panelCfg.url.address.indexOf( "ws://") === 0 || panelCfg.url.address.indexOf("wss://") === 0 ) {
          if( something(panelCfg.url.method) ) {
             throw new Error( ERR_PREFIX + "url.method is not used with websocket URLs" );
          }
