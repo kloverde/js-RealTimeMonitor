@@ -83,6 +83,30 @@ The configuration object passed into `newPanel` has the following properties:
 [Back to Options](#options)
 
 
+## Running the Demo/Development Environment
+
+RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
+
+In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then run `startserver.bat`.  The batch script takes care of dependencies, such installing required NPM modules and creating a certificate.
+
+If not using `startserver.bat`, change into the **base** directory, then install the server dependencies:
+
+```shell
+$ cd js-RealtimeMonitor
+$ npm install ws
+```
+
+Then, without changing the working directory:
+
+```shell
+$ node demo/server.js
+```
+
+By design, the server only honors requests from localhost.
+
+Once the server is running, open `demo/demo.html` straight from your filesystem, and it will automatically redirect to the secure localhost URL.
+
+
 ## Color Coding
 
 Assuming you've declared thresholds for a field, each status (normal, warning and danger) has a different color associated with it.  Color coding is used in three ways:
@@ -132,30 +156,6 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Some browsers, such as Firefox and IE, place alternate stylesheets in a menu that the user can then select from to switch to a different theme.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
-
-
-## Running the Demo/Development Environment
-
-RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
-
-In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then run `startserver.bat`.  The batch script takes care of dependencies, such installing required NPM modules and creating a certificate.
-
-If not using `startserver.bat`, change into the **base** directory, then install the server dependencies:
-
-```shell
-$ cd js-RealtimeMonitor
-$ npm install ws
-```
-
-Then, without changing the working directory:
-
-```shell
-$ node demo/server.js
-```
-
-By design, the server only honors requests from localhost.
-
-Once the server is running, open `demo/demo.html` straight from your filesystem, and it will automatically redirect to the secure localhost URL.
 
 
 ## Third-party Attribution
