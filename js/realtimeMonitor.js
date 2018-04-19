@@ -618,7 +618,6 @@ function RealtimeMonitor() {
             sockets[panelId] = socket;
 
             socket.onopen = function() {
-console.log( "status is CONNECTED" );
                status[panelId] = STATUS_CONNECTED;
 
                if( something(cfg.wsGreeting) ) {
@@ -627,10 +626,9 @@ console.log( "status is CONNECTED" );
             };
 
             socket.onclose = function( closeEvent ) {
-console.log( "socket is closing with status " + getStatus(panelId) );
                if( status[panelId] !== STATUS_RECONNECTING )  {
                   if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
-console.log( "Connection lost.  Attempting to reconnect..." );
+                     console.log( "Connection lost.  Attempting to reconnect..." );
                      reconnect( panelId, RECONNECT_RETRIES );
                   } else {
                      status[panelId] = STATUS_DISCONNECTED;
@@ -660,7 +658,6 @@ console.log( "Connection lost.  Attempting to reconnect..." );
 
          if( something(intervals[reconIntervalId]) ) {
             window.clearInterval( intervals[reconIntervalId] );
-console.log("interval cleared");
             intervals[reconIntervalId] = undefined;
             sockets[panelId].onclose = undefined;  // avoid triggering the reconnect logic
          }
@@ -693,15 +690,12 @@ console.log("interval cleared");
       if( menuItem ) {
          menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
       }
-
-console.log( "disconnect() - status upon exit = " + getStatus(panelId) );
    }
 
    function reconnect( panelId, retries ) {
       const intervalId = INTERVAL_RECONNECT + panelId;
 
       if( something(intervals[intervalId]) ) {
-console.log( "reconnect already in progress - returning without doing anything" );
          return;
       }
 
@@ -712,7 +706,7 @@ console.log( "reconnect already in progress - returning without doing anything" 
          // Check whether we've exhausted the retry attempts.  Also check whether the user
          // has cancelled the reconnect attempt by selecting Disconnect from the menu.
          if( retries > 0 && status[panelId] !== STATUS_DISCONNECTED ) {
-            console.log( "reconnecting... attempts remaining " + retries + ", status = " + getStatus(panelId) );
+            console.log( "Reconnecting... attempts remaining: " + retries );
             disconnect( panelId, true );  // true to keep the notifications and to ensure that the status remains STATUS_RECONNECTING
             connect( panelId );
             retries = status[panelId] === STATUS_CONNECTED ? 0 : retries - 1;
@@ -720,27 +714,13 @@ console.log( "reconnect already in progress - returning without doing anything" 
             clearInterval( intervals[intervalId] );
 
             if( status[panelId] !== STATUS_CONNECTED ) {
-console.log( "Unable to reconnect.  Giving up." );
+               console.log( "Unable to reconnect.  Giving up." );
                disconnect( panelId, false );
             }
          }
       }
    }
-function getStatus( panelId ) {
-   if( status[panelId] === 1 ) {
-      return "CONNECTED";
-   }
 
-   if( status[panelId] === 2) {
-      return "DISCONNECTED";
-   }
-
-   if( status[panelId] === 3) {
-      return "RECONNECTING";
-   }
-
-   return "UNKNOWN";
-}
    function isConnected( panelId ) {
       return status[panelId] === STATUS_CONNECTED;
    }
