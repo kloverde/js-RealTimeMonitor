@@ -113,7 +113,12 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
          THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
-   const INTERVAL_GRAPH_THEME_REFRESH = "graphThemeRefresh";
+   const STATUS_CONNECTED    = 1,
+         STATUS_DISCONNECTED = 2,
+         STATUS_RECONNECTING = 3;
+
+   const INTERVAL_GRAPH_THEME_REFRESH = "graphThemeRefresh",
+         INTERVAL_RECONNECT           = "reconnect";
 
    const CACHE = [],
          THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
@@ -121,11 +126,15 @@ function RealtimeMonitor() {
 
    const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
 
+   const RECONNECT_WAIT_MILLIS = 2000,
+         RECONNECT_RETRIES     = 10;
+
    const settings  = {},  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
          panelData = {},
-         intervals = [],  // GET/POST per panelId; theme watcher
+         intervals = [],  // 1 GET/POST per panelId; 1 reconnect per web socket panelId; 1 theme watcher
          sockets   = [],
-         graphs    = [];
+         graphs    = [],
+         status    = [];
 
    let panelCnt = 0;
 
@@ -140,7 +149,7 @@ function RealtimeMonitor() {
 
    window.addEventListener( "beforeunload", function() {
       for( let panelId in settings ) {
-         disconnect( panelId );  // Could be more discerning and limit this only to Web socket panels, but... nah
+         disconnect( panelId, false );  // Could be more discerning and limit this only to Web socket panels, but... nah
       }
    } );
 
@@ -336,6 +345,8 @@ function RealtimeMonitor() {
       } );
 
       observer.observe( document.body, { childList : true } );
+
+      status[panel.id] = STATUS_DISCONNECTED;
 
       panelCnt++;
 
@@ -565,18 +576,16 @@ function RealtimeMonitor() {
       const connected = menuItem.innerHTML.indexOf( TEXT_MENUITEM_DISCONNECT ) !== -1;
 
       if( connected ) {
-         disconnect( panelId );
-         menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
+         disconnect( panelId, false );
       } else {
          connect( panelId );
-         menuItem.innerHTML = TEXT_MENUITEM_DISCONNECT;
       }
    }
 
    function connect( panelId ) {
       const cfg = settings[panelId].url;
 
-      // Step 1:  Start watching for theme changes to keep the grap LNF in sync
+      // Step 1:  Start watching for theme changes to keep the graph LNF in sync
       if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
          intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
             for( let panId in graphs ) {
@@ -609,16 +618,23 @@ function RealtimeMonitor() {
             sockets[panelId] = socket;
 
             socket.onopen = function() {
+console.log( "status is CONNECTED" );
+               status[panelId] = STATUS_CONNECTED;
+
                if( something(cfg.wsGreeting) ) {
                   socket.send( JSON.stringify(cfg.wsGreeting) );
                };
             };
 
             socket.onclose = function( closeEvent ) {
-               console.log( closeEvent );
-
-               if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
-                  console.log( "reconnecting..." );
+console.log( "socket is closing with status " + getStatus(panelId) );
+               if( status[panelId] !== STATUS_RECONNECTING )  {
+                  if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
+console.log( "Connection lost.  Attempting to reconnect..." );
+                     reconnect( panelId, RECONNECT_RETRIES );
+                  } else {
+                     status[panelId] = STATUS_DISCONNECTED;
+                  }
                }
             };
 
@@ -628,11 +644,105 @@ function RealtimeMonitor() {
          }
       }
 
+      document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT ).innerHTML = TEXT_MENUITEM_DISCONNECT;
+
       function onSuccess( responseText ) {
          const response = JSON.parse( responseText );
          updateStats( panelId, response );
          updateUI( panelId );
       }
+   }
+
+   function disconnect( panelId, isReconnectAttempt ) {
+      // If the disconnection was initiated by the user, cancel any reconnect attempt that might be occurring, and close the notification, if any
+      if( !isReconnectAttempt ) {
+         const reconIntervalId = INTERVAL_RECONNECT + panelId;
+
+         if( something(intervals[reconIntervalId]) ) {
+            window.clearInterval( intervals[reconIntervalId] );
+console.log("interval cleared");
+            intervals[reconIntervalId] = undefined;
+            sockets[panelId].onclose = undefined;  // avoid triggering the reconnect logic
+         }
+
+         status[panelId] = STATUS_DISCONNECTED;
+
+         if( thresholdNotifications && thresholdNotifications[panelId] ) {
+            thresholdNotifications[panelId].close();
+            thresholdNotifications[panelId] = undefined;
+         }
+      }
+
+      // Stop GET/POST polling if in use
+      if( something(intervals[panelId]) ) {
+         window.clearInterval( intervals[panelId] );
+         intervals[panelId] = undefined;
+      }
+
+      // Close Web socket if in use
+      if( something(sockets[panelId]) ) {
+         if( sockets[panelId].readyState === 0 || sockets[panelId].readyState === 1 ) {
+            sockets[panelId].close( 1000 );  // 1000 = normal closure
+         }
+
+         sockets[panelId] = undefined;
+      }
+
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT );
+
+      if( menuItem ) {
+         menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
+      }
+
+console.log( "disconnect() - status upon exit = " + getStatus(panelId) );
+   }
+
+   function reconnect( panelId, retries ) {
+      const intervalId = INTERVAL_RECONNECT + panelId;
+
+      if( something(intervals[intervalId]) ) {
+console.log( "reconnect already in progress - returning without doing anything" );
+         return;
+      }
+
+      status[panelId] = STATUS_RECONNECTING;
+      intervals[intervalId] = setInterval( recon, RECONNECT_WAIT_MILLIS );
+
+      function recon() {
+         // Check whether we've exhausted the retry attempts.  Also check whether the user
+         // has cancelled the reconnect attempt by selecting Disconnect from the menu.
+         if( retries > 0 && status[panelId] !== STATUS_DISCONNECTED ) {
+            console.log( "reconnecting... attempts remaining " + retries + ", status = " + getStatus(panelId) );
+            disconnect( panelId, true );  // true to keep the notifications and to ensure that the status remains STATUS_RECONNECTING
+            connect( panelId );
+            retries = status[panelId] === STATUS_CONNECTED ? 0 : retries - 1;
+         } else if( retries === 0 ) {
+            clearInterval( intervals[intervalId] );
+
+            if( status[panelId] !== STATUS_CONNECTED ) {
+console.log( "Unable to reconnect.  Giving up." );
+               disconnect( panelId, false );
+            }
+         }
+      }
+   }
+function getStatus( panelId ) {
+   if( status[panelId] === 1 ) {
+      return "CONNECTED";
+   }
+
+   if( status[panelId] === 2) {
+      return "DISCONNECTED";
+   }
+
+   if( status[panelId] === 3) {
+      return "RECONNECTING";
+   }
+
+   return "UNKNOWN";
+}
+   function isConnected( panelId ) {
+      return status[panelId] === STATUS_CONNECTED;
    }
 
    function ajaxGet( url, onSuccessCallback ) {
@@ -668,27 +778,8 @@ function RealtimeMonitor() {
       return xhr;
    }
 
-   function disconnect( panelId ) {
-      if( something(intervals[panelId]) ) {
-         window.clearInterval( intervals[panelId] );
-         intervals[panelId] = undefined;
-      }
-
-      if( something(sockets[panelId]) ) {
-         sockets[panelId].close( 1000 );  // 1000 = normal closure
-         sockets[panelId] = undefined;
-      }
-
-      if( thresholdNotifications ) {
-         if( thresholdNotifications[panelId] ) {
-            thresholdNotifications[panelId].close();
-            thresholdNotifications[panelId] = undefined;
-         }
-      }
-   }
-
    function close( panelId ) {
-      disconnect( panelId );
+      disconnect( panelId, false );
 
       const panel = document.getElementById( panelId );
 

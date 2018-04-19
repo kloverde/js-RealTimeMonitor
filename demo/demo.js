@@ -102,8 +102,8 @@ document.addEventListener( "DOMContentLoaded", function() {
                ]
    } );
 
-   document.body.appendChild( panel1 );
-   document.body.appendChild( panel2 );
+//   document.body.appendChild( panel1 );
+//   document.body.appendChild( panel2 );
    document.body.appendChild( panel3 );
-   document.body.appendChild( panel4 );
+//   document.body.appendChild( panel4 );
 } );
