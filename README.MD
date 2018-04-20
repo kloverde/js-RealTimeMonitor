@@ -38,7 +38,7 @@ The configuration object passed into `newPanel` has the following properties:
 
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|---------------|
-| `title`   | string    | Text displayed at the top of the panel | yes | none
+| `title`   | string    | Text displayed in the panel's title bar | yes | none
 |[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object. | yes | none
 |`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
 |`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
@@ -54,7 +54,7 @@ The configuration object passed into `newPanel` has the following properties:
 | `postData` | object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
 |`pollInterval`| int     | The GET/POST polling interval, in seconds.  The lowest possible value is 3; if the value is less than 3, it is ignored and 3 is used instead.  (Not used with Web sockets - Web sockets have updates pushed to them whenever the server decides to).  | no | 3
 |`wsGreeting`| object    | For use with Web sockets only.  If for whatever reason you need to send data as soon as the connection is established, provide it here.  The object will be transmitted as JSON, and will be transmitted only once. | no | none
-|`wsCloseCodes`| int[ ]  | For use with Web sockets only.  Specifies [CloseEvent.code values](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties) that, if encountered, will result in the panel attempting to automatically reconnect.  Requires a carefully coded back end that sends *accurate, highly specific* error codes, not just catch-alls. | no | none
+|`wsCloseCodes`| int[ ]  | For use with Web sockets only.  Specifies [CloseEvent.code values](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties) that, if encountered, will result in the panel attempting to automatically reconnect.  1000 (normal closure) is not allowed; using it will cause initialization to abort.  You'll need a carefully-coded back end to be sure of the reason you're reconnecting. | no | none
 
 [Back to Options](#options)
 
@@ -73,7 +73,7 @@ The configuration object passed into `newPanel` has the following properties:
 [Back to Options](#options)
 
 
-#### `thresholds` properties
+#### `lowThresholds/highThresholds` property
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|--------------|
 | `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
@@ -139,7 +139,7 @@ I contemplated making the Chart.js settings configurable so that these choices a
 
 The application can generate system notifications when a warning or danger threshold is reached.  This feature is enabled/disabled through configuration.  The goal behind adding notification support is that you can keep your browser out of view and still know when something requires your attention.
 
-Notification technology is currently evolving.  It's somewhat of a mess right now; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
+Notification technology is currently evolving.  As of early 2018, it's still somewhat of a mess; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
 
 Each panel displays a notification when one of its warning or danger thresholds is reached.  Because it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
 

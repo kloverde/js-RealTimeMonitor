@@ -121,13 +121,14 @@ function RealtimeMonitor() {
          INTERVAL_RECONNECT           = "reconnect";
 
    const CACHE = [],
-         THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
-         THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
+         THRESHOLD_NOTIFICATION_ICON_WARN   = "THRESHOLD_NOTIFICATION_ICON_WARN",
+         THRESHOLD_NOTIFICATION_ICON_DANGER = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
    const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
 
-   const RECONNECT_WAIT_MILLIS = 2000,
-         RECONNECT_RETRIES     = 10;
+   const CLOSE_EVENT_NORMAL_CLOSURE = 1000,  // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties
+         RECONNECT_WAIT_MILLIS      = 2000,
+         RECONNECT_RETRIES          = 10;
 
    const settings  = {},  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
          panelData = {},
@@ -679,7 +680,7 @@ function RealtimeMonitor() {
       // Close Web socket if in use
       if( something(sockets[panelId]) ) {
          if( sockets[panelId].readyState === 0 || sockets[panelId].readyState === 1 ) {
-            sockets[panelId].close( 1000 );  // 1000 = normal closure
+            sockets[panelId].close( CLOSE_EVENT_NORMAL_CLOSURE );
          }
 
          sockets[panelId] = undefined;
@@ -1143,7 +1144,12 @@ function RealtimeMonitor() {
          v( panelCfg.url.wsCloseCodes, "url.wsCloseCodes", "array", false );
          if( panelCfg.url.wsCloseCodes ) {
             for( let i = 0; i < panelCfg.url.wsCloseCodes.length; i++ ) {
-               v( panelCfg.url.wsCloseCodes[i], "url.wsCloseCodes[" + i + "]", "number", true );
+               const name = "url.wsCloseCodes[" + i + "]";
+               v( panelCfg.url.wsCloseCodes[i], name, "number", true );
+
+               if( panelCfg.url.wsCloseCodes[i] === CLOSE_EVENT_NORMAL_CLOSURE ) {
+                  throw new Error( ERR_PREFIX + name + " cannot be " + CLOSE_EVENT_NORMAL_CLOSURE + " (normal closure)" );
+               }
             }
 
             saved.url.wsCloseCodes = panelCfg.url.wsCloseCodes;
@@ -1158,7 +1164,7 @@ function RealtimeMonitor() {
          v( panelCfg.url.postData, "url.postData", "object", true );
 
          if( !panelCfg.url.postData || Object.keys(panelCfg.url.postData).length < 1 ) {
-            throw new Error(ERR_PREFIX + "url.method is POST but url.postData is undefined or has no length");
+            throw new Error( ERR_PREFIX + "url.method is POST but url.postData is undefined or has no length" );
          }
 
          saved.url.postData = panelCfg.url.postData;

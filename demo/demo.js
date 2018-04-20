@@ -43,8 +43,6 @@ document.addEventListener( "DOMContentLoaded", function() {
       url    : { address  : "https://localhost:8081/status/site1",
                  method   : "GET",
                  pollInterval : 4 },
-      //autoConnect    : false,
-      //startMinimized : true,
       notifications  : false,
       fields : [
                   { prop : "load", label : "Load", suffix : "%", highThresholds : { warn : 70, danger : 90 } },
@@ -92,7 +90,7 @@ document.addEventListener( "DOMContentLoaded", function() {
       title  : "Test XSS Attacks <img src=\"asdf\" onerror=\"alert('xss1')\" />",
       url    : { address  : "https://localhost:8081/status/site1",
                  method   : "GET" },
-      autoConnect : false,
+      autoConnect    : false,
       startMinimized : false,
       notifications  : false,
       fields : [
