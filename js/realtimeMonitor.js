@@ -45,6 +45,7 @@ function RealtimeMonitor() {
          CLASS_APP_MENU_ACTIVE       = "menuActive",
          CLASS_APP_MENU_BUTTON       = "appMenuButton",
          CLASS_APP_MENU_ITEM         = "applicationMenuItem",
+         CLASS_STATUS_BAR            = "statusBar",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -77,6 +78,7 @@ function RealtimeMonitor() {
          ID_STUB_MENUITEM_MIN_MAX    = "menuItemMinMax",
          ID_STUB_MENUITEM_MUTE       = "menuItemNotif",
          ID_STUB_MENUITEM_CLOSE      = "menuItemClose",
+         ID_STUB_STATUS_BAR          = "statusBar",
          ID_STUB_LABEL               = "label",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_GRAPH_FILL_COLOR    = CLASS_GRAPH_FILL_COLOR,
@@ -113,18 +115,29 @@ function RealtimeMonitor() {
          THRESHOLD_NOTIFICATION_BODY_WARN    = " reached a warning threshold on ",
          THRESHOLD_NOTIFICATION_BODY_DANGER  = " reached a danger threshold on ";
 
-   const INTERVAL_GRAPH_THEME_REFRESH = "graphThemeRefresh";
+   const STATUS_CONNECTED    = 1,
+         STATUS_DISCONNECTED = 2,
+         STATUS_RECONNECTING = 3;
+
+   const INTERVAL_GRAPH_THEME_REFRESH = "graphThemeRefresh",
+         INTERVAL_RECONNECT           = "reconnect";
 
    const CACHE = [],
-         THRESHOLD_NOTIFICATION_ICON_WARN    = "THRESHOLD_NOTIFICATION_ICON_WARN",
-         THRESHOLD_NOTIFICATION_ICON_DANGER  = "THRESHOLD_NOTIFICATION_ICON_DANGER";
+         THRESHOLD_NOTIFICATION_ICON_WARN   = "THRESHOLD_NOTIFICATION_ICON_WARN",
+         THRESHOLD_NOTIFICATION_ICON_DANGER = "THRESHOLD_NOTIFICATION_ICON_DANGER";
 
    const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
 
-   const settings = {};  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
-   const panelData = {};
-   const intervals = [];
-   const graphs = [];
+   const CLOSE_EVENT_NORMAL_CLOSURE = 1000,  // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties
+         RECONNECT_WAIT_MILLIS      = 2000,
+         RECONNECT_RETRIES          = 10;
+
+   const settings  = {},  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
+         panelData = {},
+         intervals = [],  // 1 GET/POST per panelId; 1 reconnect per web socket panelId; 1 theme watcher
+         sockets   = [],
+         graphs    = [],
+         status    = [];
 
    let panelCnt = 0;
 
@@ -136,6 +149,12 @@ function RealtimeMonitor() {
                          [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
 
    areNotificationsOk();
+
+   window.addEventListener( "beforeunload", function() {
+      for( let panelId in settings ) {
+         disconnect( panelId, false );  // Could be more discerning and limit this only to Web socket panels, but... nah
+      }
+   } );
 
    function cacheImages( cache, images ) {
       for( let i = 0; i < images.length; i++ ) {
@@ -250,6 +269,13 @@ function RealtimeMonitor() {
       panelBody.id = panel.id + ID_STUB_PANEL_BODY;
       panelBody.className = CLASS_PANEL_BODY;
 
+      const statusBar = document.createElement( "div" );
+      statusBar.id = panel.id + ID_STUB_STATUS_BAR;
+      statusBar.classList.add( CLASS_STATUS_BAR );
+      statusBar.classList.add( CLASS_VISIBILITY_GONE );
+
+      panelBody.appendChild( statusBar );
+
       const fieldsContainer = document.createElement( "div" );
       fieldsContainer.className = CLASS_FIELDS_CONTAINER;
 
@@ -329,6 +355,8 @@ function RealtimeMonitor() {
       } );
 
       observer.observe( document.body, { childList : true } );
+
+      status[panel.id] = STATUS_DISCONNECTED;
 
       panelCnt++;
 
@@ -558,52 +586,156 @@ function RealtimeMonitor() {
       const connected = menuItem.innerHTML.indexOf( TEXT_MENUITEM_DISCONNECT ) !== -1;
 
       if( connected ) {
-         disconnect( panelId );
-         menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
+         disconnect( panelId, false );
       } else {
          connect( panelId );
-         menuItem.innerHTML = TEXT_MENUITEM_DISCONNECT;
       }
    }
 
    function connect( panelId ) {
       const cfg = settings[panelId].url;
 
-      if( !intervals[panelId] ) {
-         if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
-            intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
-               for( let panId in graphs ) {
-                  const panelsGraphs = graphs[panId];
+      // Step 1:  Start watching for theme changes to keep the graph LNF in sync
+      if( !intervals[INTERVAL_GRAPH_THEME_REFRESH] ) {
+         intervals[INTERVAL_GRAPH_THEME_REFRESH] = window.setInterval( function() {
+            for( let panId in graphs ) {
+               const panelsGraphs = graphs[panId];
 
-                  for( let graphId in panelsGraphs ) {
-                     const canvas = panelsGraphs[graphId].canvas;
+               for( let graphId in panelsGraphs ) {
+                  const canvas = panelsGraphs[graphId].canvas;
 
-                     if( isVisible(canvas) ) {
-                        refreshGraphTheme( panId, graphId );
-                        break;
-                     }
+                  if( isVisible(canvas) ) {
+                     refreshGraphTheme( panId, graphId );
+                     break;
                   }
                }
-            }, 1000 );
-         }
-
-         intervals[panelId] = window.setInterval( function() {
-            if( cfg.method === "GET" ) {
-               ajaxGet( cfg.address, onSuccess );
-            } else if( cfg.method === "POST" ) {
-               ajaxPost( cfg.address, cfg.postData, onSuccess );
-            } else {
-               throw new Error( "Invalid method: " + cfg.method );
             }
-         }, cfg.interval * 1000 );
+         }, 3000 );
       }
 
+      // Step 2:  Get data
+      if( !intervals[panelId] ) {
+         if( cfg.method === "GET" || cfg.method === "POST" ) {
+            intervals[panelId] = window.setInterval( function() {
+               if( cfg.method === "GET" ) {
+                  ajaxGet( cfg.address, onSuccess );
+               } else if( cfg.method === "POST" ) {
+                  ajaxPost( cfg.address, cfg.postData, onSuccess );
+               }
+            }, cfg.pollInterval * 1000 );
+         } else if( cfg.method === "websocket" ) {
+            const socket = new WebSocket( cfg.address );
+            sockets[panelId] = socket;
+
+            socket.onopen = function() {
+               status[panelId] = STATUS_CONNECTED;
+
+               if( something(cfg.wsGreeting) ) {
+                  socket.send( JSON.stringify(cfg.wsGreeting) );
+               };
+            };
+
+            socket.onclose = function( closeEvent ) {
+               if( status[panelId] !== STATUS_RECONNECTING )  {
+                  if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
+                     ID_STUB_STATUS_BAR
+                     writeStatusBar( panelId, "Connection lost.  Reconnecting..." );
+                     reconnect( panelId, RECONNECT_RETRIES );
+                  } else {
+                     status[panelId] = STATUS_DISCONNECTED;
+                  }
+               }
+            };
+
+            socket.onmessage = function( message ) {
+               onSuccess( message.data );
+            };
+         }
+      }
+
+      document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT ).innerHTML = TEXT_MENUITEM_DISCONNECT;
+
       function onSuccess( responseText ) {
-         // IE 11 is the minimal IE version supported; it doesn't support xhr.requestType = "json", so we're stuck using responseText and doing manual JSON parsing.
+         hideStatusBar( panelId );
+
          const response = JSON.parse( responseText );
          updateStats( panelId, response );
          updateUI( panelId );
       }
+   }
+
+   function disconnect( panelId, isReconnectAttempt ) {
+      // If the disconnection was initiated by the user, cancel any reconnect attempt that might be occurring, and close the notification, if any
+      if( !isReconnectAttempt ) {
+         const reconIntervalId = INTERVAL_RECONNECT + panelId;
+
+         if( something(intervals[reconIntervalId]) ) {
+            window.clearInterval( intervals[reconIntervalId] );
+            intervals[reconIntervalId] = undefined;
+            sockets[panelId].onclose = undefined;  // avoid triggering the reconnect logic
+         }
+
+         status[panelId] = STATUS_DISCONNECTED;
+
+         if( thresholdNotifications && thresholdNotifications[panelId] ) {
+            thresholdNotifications[panelId].close();
+            thresholdNotifications[panelId] = undefined;
+         }
+      }
+
+      // Stop GET/POST polling if in use
+      if( something(intervals[panelId]) ) {
+         window.clearInterval( intervals[panelId] );
+         intervals[panelId] = undefined;
+      }
+
+      // Close Web socket if in use
+      if( something(sockets[panelId]) ) {
+         if( sockets[panelId].readyState === 0 || sockets[panelId].readyState === 1 ) {
+            sockets[panelId].close( CLOSE_EVENT_NORMAL_CLOSURE );
+         }
+
+         sockets[panelId] = undefined;
+      }
+
+      const menuItem = document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT );
+
+      if( menuItem ) {
+         menuItem.innerHTML = TEXT_MENUITEM_CONNECT;
+      }
+   }
+
+   function reconnect( panelId, retries ) {
+      const intervalId = INTERVAL_RECONNECT + panelId;
+
+      if( something(intervals[intervalId]) ) {
+         return;
+      }
+
+      status[panelId] = STATUS_RECONNECTING;
+      intervals[intervalId] = setInterval( recon, RECONNECT_WAIT_MILLIS );
+
+      function recon() {
+         // Check whether we've exhausted the retry attempts.  Also check whether the user
+         // has cancelled the reconnect attempt by selecting Disconnect from the menu.
+         if( retries > 0 && status[panelId] !== STATUS_DISCONNECTED ) {
+            console.log( "Reconnecting... attempts remaining: " + retries );
+            disconnect( panelId, true );  // true to keep the notifications and to ensure that the status remains STATUS_RECONNECTING
+            connect( panelId );
+            retries = status[panelId] === STATUS_CONNECTED ? 0 : retries - 1;
+         } else if( retries === 0 ) {
+            clearInterval( intervals[intervalId] );
+
+            if( status[panelId] !== STATUS_CONNECTED ) {
+               writeStatusBar( panelId, "Connection lost - could not reconnect" );
+               disconnect( panelId, false );
+            }
+         }
+      }
+   }
+
+   function isConnected( panelId ) {
+      return status[panelId] === STATUS_CONNECTED;
    }
 
    function ajaxGet( url, onSuccessCallback ) {
@@ -639,22 +771,20 @@ function RealtimeMonitor() {
       return xhr;
    }
 
-   function disconnect( panelId ) {
-      window.clearInterval( intervals[panelId] );
-      intervals[panelId] = null;
+   function writeStatusBar( panelId, msg ) {
+      const statusBar = document.getElementById( panelId + ID_STUB_STATUS_BAR );
+      statusBar.innerText = msg;
+      statusBar.classList.remove( CLASS_VISIBILITY_GONE );
+   }
 
-      if( thresholdNotifications ) {
-         const notif = thresholdNotifications[panelId];
-
-         if( notif ) {
-            notif.close();
-            thresholdNotifications[panelId] = undefined;
-         }
-      }
+   function hideStatusBar( panelId ) {
+      const statusBar = document.getElementById( panelId + ID_STUB_STATUS_BAR );
+      statusBar.classList.add( CLASS_VISIBILITY_GONE );
+      statusBar.innerText = "";
    }
 
    function close( panelId ) {
-      disconnect( panelId );
+      disconnect( panelId, false );
 
       const panel = document.getElementById( panelId );
 
@@ -993,7 +1123,7 @@ function RealtimeMonitor() {
 
       const saved = {};
       saved.url = {};
-      saved.url.interval = SETTING_MINIMUM_INTERVAL_SECONDS;
+      saved.url.pollInterval = SETTING_MINIMUM_INTERVAL_SECONDS;
       saved.lowThresholds = {};
       saved.highThresholds = {};
       saved.autoConnect = true;
@@ -1013,24 +1143,60 @@ function RealtimeMonitor() {
       v( panelCfg.url.address, "url.address", "string", true );
       saved.url.address = panelCfg.url.address;
 
-      v( panelCfg.url.method,  "url.method",  "string", true  );
-      const method = panelCfg.url.method.toUpperCase();
-      if( method !== "GET" && method !== "POST" ) { throw new Error(ERR_PREFIX + "url.method must be GET or POST"); }
-      saved.url.method = panelCfg.url.method;
+      let method = null;
+
+      if( panelCfg.url.address.indexOf("http://") === 0 || panelCfg.url.address.indexOf("https://") === 0 ) {
+         v( panelCfg.url.method, "url.method", "string", true );
+
+         method = panelCfg.url.method.toUpperCase();
+
+         if( method !== "GET" && method !== "POST" ) { 
+            throw new Error( ERR_PREFIX + "url.method must be GET or POST" );
+         }
+
+         saved.url.method = method;
+      } else if( panelCfg.url.address.indexOf( "ws://") === 0 || panelCfg.url.address.indexOf("wss://") === 0 ) {
+         if( something(panelCfg.url.method) ) {
+            throw new Error( ERR_PREFIX + "url.method is not used with websocket URLs" );
+         }
+
+         saved.url.method = "websocket";
+
+         v( panelCfg.url.wsGreeting, "url.wsGreeting", "object", false );
+         saved.url.wsGreeting = panelCfg.url.wsGreeting;
+
+         v( panelCfg.url.wsCloseCodes, "url.wsCloseCodes", "array", false );
+         if( panelCfg.url.wsCloseCodes ) {
+            for( let i = 0; i < panelCfg.url.wsCloseCodes.length; i++ ) {
+               const name = "url.wsCloseCodes[" + i + "]";
+               v( panelCfg.url.wsCloseCodes[i], name, "number", true );
+
+               if( panelCfg.url.wsCloseCodes[i] === CLOSE_EVENT_NORMAL_CLOSURE ) {
+                  throw new Error( ERR_PREFIX + name + " cannot be " + CLOSE_EVENT_NORMAL_CLOSURE + " (normal closure)" );
+               }
+            }
+
+            saved.url.wsCloseCodes = panelCfg.url.wsCloseCodes;
+         } else {
+            saved.url.wsCloseCodes = [];
+         }
+      } else {
+         throw new Error( ERR_PREFIX + "unknown protocol in URL " + panelCfg.url.address );
+      }
 
       if( method === "POST" ) {
          v( panelCfg.url.postData, "url.postData", "object", true );
 
          if( !panelCfg.url.postData || Object.keys(panelCfg.url.postData).length < 1 ) {
-            throw new Error(ERR_PREFIX + "url.method is POST but url.postData is undefined or has no length");
+            throw new Error( ERR_PREFIX + "url.method is POST but url.postData is undefined or has no length" );
          }
 
          saved.url.postData = panelCfg.url.postData;
       }
 
-      v( panelCfg.url.interval, "url.interval", "number", false );
-      if( something(panelCfg.url.interval) && panelCfg.url.interval > SETTING_MINIMUM_INTERVAL_SECONDS ) {
-         saved.url.interval = panelCfg.url.interval;
+      v( panelCfg.url.pollInterval, "url.pollInterval", "number", false );
+      if( something(panelCfg.url.pollInterval) && panelCfg.url.pollInterval > SETTING_MINIMUM_INTERVAL_SECONDS ) {
+         saved.url.pollInterval = panelCfg.url.pollInterval;
       }
 
       v( panelCfg.autoConnect, "autoConnect", "boolean", false );
@@ -1103,8 +1269,12 @@ function RealtimeMonitor() {
          }
 
          if( something(field) ) {
-            if( typeof field !== requiredType ) {
-               throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type " + requiredType );
+            if( requiredType === "array" ) {
+               if( !Array.isArray(field) ) {
+                  throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type '" + requiredType + "' but is '" + (typeof field) + "'" );
+               }
+            } else if( typeof field !== requiredType ) {
+               throw new Error( "Invalid configuration:  property '" + fieldName + "' must be of type '" + requiredType + "' but is '" + (typeof field) + "'" );
             }
          }
       }

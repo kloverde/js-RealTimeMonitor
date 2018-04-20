@@ -3,9 +3,11 @@ RealtimeMonitor
 
 See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference which prohibits certain use.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
-This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - industrial equipment, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
+This is a pure JavaScript application (no jQuery, etc.) that is used for monitoring numeric data returned by a server.  The data could be from anything at all - machinery, atmospheric sensors... any type of numeric data that you can get into a server is fair game.
 
-The basic premise is you provide a configuration object which lists the fields you're expecting to get back, and the application polls for updates.  The server response must be JSON.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+Supported methods of data retrieval are Web sockets and AJAX GET/POST polling.  The server response must be JSON.
+
+Knowing what the server response looks like, you define a matching configuration object to set up the fields you want to display.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
 The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
 
@@ -36,7 +38,7 @@ The configuration object passed into `newPanel` has the following properties:
 
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|---------------|
-| `title`   | string    | Text displayed at the top of the panel | yes | none
+| `title`   | string    | Text displayed in the panel's title bar | yes | none
 |[`url`](#url-property)| object  | Specifies how data is retrieved.  Click the property name to be taken to the definition of this nested object. | yes | none
 |`autoConnect`| boolean | If `true`, the panel will connect as soon as it's added to the page | no | true
 |`startMinimized`|boolean | If `true`, the panel initializes collapsed down to its title bar | no | false
@@ -45,12 +47,14 @@ The configuration object passed into `newPanel` has the following properties:
 
 
 #### `url` property
-| Property  | Data Type | Description   | Required ? | Default Value |
-|-----------|-----------|---------------|------------|---------------|
-| `address` | string    | The URL used to update the panel.  Supported protocols are http and https. | yes | none
-| `method`  | string    | The HTTP method.  Valid values are **GET** and **POST**. | yes | none
-| `postData`| object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
-| `interval`| integer   | The polling interval, in seconds.  The lowest possible value is 3.  If the value is less than 3, it is ignored and 3 is used instead. | no | 3
+| Property   | Data Type | Description   | Required ? | Default Value |
+|------------|-----------|---------------|------------|---------------|
+| `address`  | string    | The URL used to update the panel.  Supported protocols are http, https, ws and wss. | yes | none
+| `method`   | string    | The HTTP method.  Valid values are **GET** and **POST**.  This property is not used with Web sockets. | yes, if using HTTP(S) | none
+| `postData` | object    | Only define this property if `method` is **POST**.  An object consisting of key/value pairs defining fields to be sent in the POST. | yes, if POST | none
+|`pollInterval`| int     | The GET/POST polling interval, in seconds.  The lowest possible value is 3; if the value is less than 3, it is ignored and 3 is used instead.  (Not used with Web sockets - Web sockets have updates pushed to them whenever the server decides to).  | no | 3
+|`wsGreeting`| object    | For use with Web sockets only.  If for whatever reason you need to send data as soon as the connection is established, provide it here.  The object will be transmitted as JSON, and will be transmitted only once. | no | none
+|`wsCloseCodes`| int[ ]  | For use with Web sockets only.  Specifies [CloseEvent.code values](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties) that, if encountered, will result in the panel attempting to automatically reconnect.  1000 (normal closure) is not allowed; using it will cause initialization to abort.  You'll need a carefully-coded back end to be sure of the reason you're reconnecting. | no | none
 
 [Back to Options](#options)
 
@@ -60,7 +64,7 @@ The configuration object passed into `newPanel` has the following properties:
 |-----------|-----------|---------------|------------|---------------|
 | `prop`    | string    | The property name in the JSON response | yes | none
 | `label`   | string    | Text displayed in front of the value | yes | none
-| `suffix`  | string    | Text displayed after the value to indicate units of measurement, etc. | no | none
+| `suffix`  | string    | Text displayed after the value to indicate unit of measurement, etc. | no | none
 | [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
 | [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
 | `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
@@ -69,7 +73,7 @@ The configuration object passed into `newPanel` has the following properties:
 [Back to Options](#options)
 
 
-#### `thresholds` properties
+#### `lowThresholds/highThresholds` property
 | Property  | Data Type | Description   | Required ? | Default Value |
 |-----------|-----------|---------------|------------|--------------|
 | `warn`    | number    | The warning threshold | Only if `danger` is not defined | none
@@ -78,6 +82,32 @@ The configuration object passed into `newPanel` has the following properties:
 [Back to Fields](#fields-property)
 
 [Back to Options](#options)
+
+
+## Running the Demo/Development Environment
+
+RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
+
+In the `demo` directory you'll find a barebones Node.js server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then:
+
+For Windows users, run `startserver.bat`.  The batch script takes care of dependencies, such installing required NPM modules and creating a certificate.
+
+If not using `startserver.bat`, change into the **base** directory, then install the server dependencies:
+
+```shell
+$ cd js-RealtimeMonitor
+$ npm install ws
+```
+
+Then, without changing the working directory:
+
+```shell
+$ node demo/server.js
+```
+
+By design, the server only honors requests from localhost.
+
+Once the server is running, open `demo/demo.html` straight from your filesystem, and it will automatically redirect to the secure localhost URL.
 
 
 ## Color Coding
@@ -109,7 +139,7 @@ I contemplated making the Chart.js settings configurable so that these choices a
 
 The application can generate system notifications when a warning or danger threshold is reached.  This feature is enabled/disabled through configuration.  The goal behind adding notification support is that you can keep your browser out of view and still know when something requires your attention.
 
-Notification technology is currently evolving.  It's somewhat of a mess right now; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
+Notification technology is currently evolving.  As of early 2018, it's still somewhat of a mess; there are deprecated APIs and browsers differ greatly in supported capabilities.  IE has no support; Firefox and Chrome support them, but each browser has its own set of annoyances - more on that in a moment.
 
 Each panel displays a notification when one of its warning or danger thresholds is reached.  Because it's important to not miss one of these events, the code is written so that the notifications are persistent:  they won't close on their own - the user must close them.  A panel cannot have more than one open notification at a time, so unless you have a dozen panels and conditions go south in all of them, you won't get buried in notifications.
 
@@ -129,24 +159,6 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Some browsers, such as Firefox and IE, place alternate stylesheets in a menu that the user can then select from to switch to a different theme.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
 Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
-
-
-## Running the Demo/Development Environment
-
-RealtimeMonitor doesn't have an offline simulator.  To see it process data, you'll need a Web application that returns JSON in response to requests.
-
-In the `demo` directory you'll find a barebones server which does this.  [Install Node.js](https://nodejs.org) and OpenSSL if you don't have them, then run `startserver.bat`.  If a certificate is not found in the `demo` directory, one will be created automatically.
-
-If not using `startserver.bat`, start the server from the **base** directory, like so:
-
-```shell
-$ cd js-RealtimeMonitor
-$ node demo/server.js
-```
-
-By design, the server only honors requests from localhost.
-
-Once the server is running, open `demo/demo.html` straight from your filesystem, and it will automatically redirect to the secure localhost URL.
 
 
 ## Third-party Attribution

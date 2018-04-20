@@ -34,6 +34,8 @@ REM OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE US
 REM OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+pushd "%~dp0"
+
 if not exist demo\cert.pem (
    goto generate
 )
@@ -42,7 +44,9 @@ if not exist demo\key.pem (
    goto generate
 )
 
-goto end
+echo Checking for certificate... certificate exists
+goto certExists
+
 
 :generate
 echo No certificate found.  Generating now...
@@ -59,9 +63,22 @@ echo for anything other than testing.  It was set to
 echo expire in 10 years (!) and wasn't secured with
 echo a password (!).
 echo.
-echo Starting server...
+echo Checking dependencies...
 echo.
 
 
-:end
+:certExists
+if exist node_modules\ws (
+   goto startServer
+) else (
+   echo Installing dependencies
+   call npm install ws
+   echo.
+)
+
+:startServer
+echo All dependencies are installed
+echo.
+
 node demo\server.js
+popd

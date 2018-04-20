@@ -33,18 +33,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 const http  = require( "http" ),
       https = require( "https" ),
-      url   = require( "url" );
-      fs    = require( "fs" );
+      ws    = require( "ws" ),
+      url   = require( "url" ),
+      fs    = require( "fs" ),
       path  = require( "path" );
 
 const HTTP_PORT  = 8080,
-      HTTPS_PORT = 8081,
-      WS_PORT    = 8082,
-      WSS_PORT   = 8083;
+      HTTPS_PORT = 8081;
 
-const httpsOpts = { key : fs.readFileSync( "demo/key.pem" ),
+const httpsOpts = { key  : fs.readFileSync( "demo/key.pem" ),
                     cert : fs.readFileSync( "demo/cert.pem" ) };
 
 const MIME_MAP = {
@@ -57,13 +58,27 @@ const MIME_MAP = {
 const HEADER_TEXT = { "Content-Type" : "text/plain" },
       HEADER_JSON = { "Content-Type" : "application/json" };
 
-http.createServer( function(request, response) {
+const sockets = {};
+
+const httpServer = http.createServer( function(request, response) {
    httpHandler( request, response );
 } ).listen( HTTP_PORT );
 
-https.createServer( httpsOpts, function(request, response) {
+const httpsServer = https.createServer( httpsOpts, function(request, response) {
    httpHandler( request, response );
 } ).listen( HTTPS_PORT );
+
+const wsServer = new ws.Server( {server : httpServer} );
+
+const wssServer = new ws.Server( {server : httpsServer} );
+
+wsServer.on( "connection", function(socket, request) {
+   wsHandler( socket, request );
+} );
+
+wssServer.on( "connection", function(socket, request) {
+   wsHandler( socket, request );
+} );
 
 function httpHandler( request, response ) {
    if( !isLocalhost(request, response) ) {
@@ -101,6 +116,50 @@ function httpHandler( request, response ) {
    } else {
       response.writeHead( 405, HEADER_TEXT );
       response.end( `Unsupported method:  ${request.method}` );
+   }
+}
+
+function wsHandler( socket, request ) {
+   const channel = request.url.substring( request.url.lastIndexOf("/") + 1 );
+   sockets[channel] = sockets[channel] || [];
+   sockets[channel].push( socket );
+
+   log( `Socket:  New socket connected to channel ${channel}` );
+
+   socket.on( "message", function(data) {
+      log( `Socket:  Received ${data}` );
+   } );
+
+   socket.on( "close", function(closeEvent) {
+      const idx = sockets[channel].indexOf( socket );
+
+      if( idx !== -1 ) {
+         sockets[channel].splice( idx, 1 );
+      }
+   } );
+}
+
+let socketInterval = setInterval( function() {
+   for( let channel in sockets ) {
+      broadcast( channel );
+   }
+}, 3000 );
+
+function broadcast( channel ) {
+   if( sockets[channel] ) {
+      const json = randomJson();
+      let clients = 0;
+
+      for( let i = 0; i < sockets[channel].length; i++ ) {
+         const socket = sockets[channel][i];
+         
+         if( socket.readyState === ws.OPEN ) {
+            socket.send( json );
+            clients++;
+         }
+      }
+
+      log( `SOCK broadcast to ${clients} clients` );
    }
 }
 
@@ -167,7 +226,8 @@ function log( msg ) {
    console.log( dateTimeStr + "  " + msg );
 }
 
-console.log( "HTTP server running at  http://localhost:" + HTTP_PORT );
-console.log( "HTTPS server running at http://localhost:" + HTTPS_PORT );
-//console.log( "WS server running at http://localhost:" + WS_PORT );
-//console.log( "WSS server running at http://localhost:" + WSS_PORT );
+console.log( `HTTP  server running at http://localhost:${HTTP_PORT}` );
+console.log( `WS    server running at ws://localhost:${HTTP_PORT}\n` );
+
+console.log( `HTTPS server running at https://localhost:${HTTPS_PORT}` );
+console.log( `WSS   server running at wss://localhost:${HTTPS_PORT}\n` );
