@@ -7,7 +7,7 @@ This is a pure JavaScript application (no jQuery, etc.) that is used for monitor
 
 Supported methods of data retrieval are Web sockets and AJAX GET/POST polling.  The server response must be JSON.
 
-Knowing what the server response looks like, you define a matching configuration object to set up the fields you want to display.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
+Knowing what the server response looks like, you create a corresponding configuration object to set up the fields you want to display.  Optional high and low thresholds can be set on each field.  Each threshold has a warning level and a danger level.  Visual feedback is given if the data falls outside of the established boundaries.
 
 The fields are laid out vertically in a panel, and you can create as many panels as you wish.  Current, highest and lowest values are tracked, and realtime graphs display the last 35 data points for each field.
 
@@ -65,8 +65,8 @@ The configuration object passed into `newPanel` has the following properties:
 | `prop`    | string    | The property name in the JSON response | yes | none
 | `label`   | string    | Text displayed in front of the value | yes | none
 | `suffix`  | string    | Text displayed after the value to indicate unit of measurement, etc. | no | none
-| [`lowThresholds`](#thresholds-properties) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
-| [`highThresholds`](#thresholds-properties)|object | Same idea as `lowThresholds` | no | none
+| [`lowThresholds`](#lowthresholdshighthresholds-property) | object| An optional object specifying numeric warning and danger levels - used to drive visual feedback.  Click the property name to be taken to the definition of this nested object. | no | none
+| [`highThresholds`](#lowthresholdshighthresholds-property)|object | Same idea as `lowThresholds` | no | none
 | `showLowest`| boolean | Specifies whether to display the lowest recorded value for `prop`.  When enabled, the value will appear as a separate field immediately beneath the field being tracked.  When disabled, the value will still be viewable as a tooltip on the field name. | no | true
 |`showHighest`| boolean | Same idea as `showLowest` | no | true
 
