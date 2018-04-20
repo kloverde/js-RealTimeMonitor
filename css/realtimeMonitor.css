@@ -153,6 +153,19 @@
    background: linear-gradient( to right, #FFFFFF, #FF0000 );
 }
 
+.monitoringPanel .statusBar {
+   line-height: 30px;
+   background-color: #fffd73;
+   font-family: monospace;
+   font-size: small;
+   font-weight: bold;
+   padding-left: 5px;
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
 .monitoringPanel .graphContainer {
    position: relative;
    width: 100%;

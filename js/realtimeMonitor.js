@@ -45,6 +45,7 @@ function RealtimeMonitor() {
          CLASS_APP_MENU_ACTIVE       = "menuActive",
          CLASS_APP_MENU_BUTTON       = "appMenuButton",
          CLASS_APP_MENU_ITEM         = "applicationMenuItem",
+         CLASS_STATUS_BAR            = "statusBar",
          CLASS_FIELD_CONTAINER       = "fieldContainer",
          CLASS_FIELDS_CONTAINER      = "fieldsContainer",
          CLASS_GRAPH_CONTAINER       = "graphContainer",
@@ -77,6 +78,7 @@ function RealtimeMonitor() {
          ID_STUB_MENUITEM_MIN_MAX    = "menuItemMinMax",
          ID_STUB_MENUITEM_MUTE       = "menuItemNotif",
          ID_STUB_MENUITEM_CLOSE      = "menuItemClose",
+         ID_STUB_STATUS_BAR          = "statusBar",
          ID_STUB_LABEL               = "label",
          ID_STUB_GRAPH               = "graph",
          ID_STUB_GRAPH_FILL_COLOR    = CLASS_GRAPH_FILL_COLOR,
@@ -266,6 +268,13 @@ function RealtimeMonitor() {
       const panelBody = document.createElement( "div" );
       panelBody.id = panel.id + ID_STUB_PANEL_BODY;
       panelBody.className = CLASS_PANEL_BODY;
+
+      const statusBar = document.createElement( "div" );
+      statusBar.id = panel.id + ID_STUB_STATUS_BAR;
+      statusBar.classList.add( CLASS_STATUS_BAR );
+      statusBar.classList.add( CLASS_VISIBILITY_GONE );
+
+      panelBody.appendChild( statusBar );
 
       const fieldsContainer = document.createElement( "div" );
       fieldsContainer.className = CLASS_FIELDS_CONTAINER;
@@ -629,7 +638,8 @@ function RealtimeMonitor() {
             socket.onclose = function( closeEvent ) {
                if( status[panelId] !== STATUS_RECONNECTING )  {
                   if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
-                     console.log( "Connection lost.  Attempting to reconnect..." );
+                     ID_STUB_STATUS_BAR
+                     writeStatusBar( panelId, "Connection lost.  Reconnecting..." );
                      reconnect( panelId, RECONNECT_RETRIES );
                   } else {
                      status[panelId] = STATUS_DISCONNECTED;
@@ -646,6 +656,8 @@ function RealtimeMonitor() {
       document.getElementById( panelId + ID_STUB_MENUITEM_CONNECT ).innerHTML = TEXT_MENUITEM_DISCONNECT;
 
       function onSuccess( responseText ) {
+         hideStatusBar( panelId );
+
          const response = JSON.parse( responseText );
          updateStats( panelId, response );
          updateUI( panelId );
@@ -715,7 +727,7 @@ function RealtimeMonitor() {
             clearInterval( intervals[intervalId] );
 
             if( status[panelId] !== STATUS_CONNECTED ) {
-               console.log( "Unable to reconnect.  Giving up." );
+               writeStatusBar( panelId, "Connection lost - could not reconnect" );
                disconnect( panelId, false );
             }
          }
@@ -757,6 +769,18 @@ function RealtimeMonitor() {
       };
 
       return xhr;
+   }
+
+   function writeStatusBar( panelId, msg ) {
+      const statusBar = document.getElementById( panelId + ID_STUB_STATUS_BAR );
+      statusBar.innerText = msg;
+      statusBar.classList.remove( CLASS_VISIBILITY_GONE );
+   }
+
+   function hideStatusBar( panelId ) {
+      const statusBar = document.getElementById( panelId + ID_STUB_STATUS_BAR );
+      statusBar.classList.add( CLASS_VISIBILITY_GONE );
+      statusBar.innerText = "";
    }
 
    function close( panelId ) {
