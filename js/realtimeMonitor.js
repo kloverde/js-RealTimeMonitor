@@ -638,7 +638,6 @@ function RealtimeMonitor() {
             socket.onclose = function( closeEvent ) {
                if( status[panelId] !== STATUS_RECONNECTING )  {
                   if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
-                     ID_STUB_STATUS_BAR
                      writeStatusBar( panelId, "Connection lost.  Reconnecting..." );
                      reconnect( panelId, RECONNECT_RETRIES );
                   } else {
