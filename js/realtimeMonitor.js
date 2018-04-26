@@ -129,8 +129,8 @@ function RealtimeMonitor() {
    const SETTING_MINIMUM_INTERVAL_SECONDS = 3;
 
    const CLOSE_EVENT_NORMAL_CLOSURE = 1000,  // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Properties
-         RECONNECT_WAIT_MILLIS      = 2000,
-         RECONNECT_RETRIES          = 10;
+         RECONNECT_WAIT_MILLIS      = 7000,
+         RECONNECT_RETRIES          = 15;
 
    const settings  = {},  // This is a subset of the configuration passed into newPanel().  Most of the configuration is single-use, so we don't hold onto it.
          panelData = {},
@@ -638,7 +638,6 @@ function RealtimeMonitor() {
             socket.onclose = function( closeEvent ) {
                if( status[panelId] !== STATUS_RECONNECTING )  {
                   if( settings[panelId].url.wsCloseCodes.indexOf(closeEvent.code) >= 0 ) {
-                     writeStatusBar( panelId, "Connection lost.  Reconnecting..." );
                      reconnect( panelId, RECONNECT_RETRIES );
                   } else {
                      status[panelId] = STATUS_DISCONNECTED;
@@ -718,6 +717,7 @@ function RealtimeMonitor() {
          // Check whether we've exhausted the retry attempts.  Also check whether the user
          // has cancelled the reconnect attempt by selecting Disconnect from the menu.
          if( retries > 0 && status[panelId] !== STATUS_DISCONNECTED ) {
+            writeStatusBar( panelId, "Connection lost.  Reconnecting...(" + retries + ")" );
             console.log( "Reconnecting... attempts remaining: " + retries );
             disconnect( panelId, true );  // true to keep the notifications and to ensure that the status remains STATUS_RECONNECTING
             connect( panelId );
