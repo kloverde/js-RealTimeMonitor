@@ -724,11 +724,12 @@ function RealtimeMonitor() {
             retries = status[panelId] === STATUS_CONNECTED ? 0 : retries - 1;
          } else if( retries === 0 ) {
             clearInterval( intervals[intervalId] );
-            intervals[intervalId] = undefined;
 
             if( status[panelId] !== STATUS_CONNECTED ) {
                writeStatusBar( panelId, "Connection lost - could not reconnect" );
                disconnect( panelId, false );
+            } else {
+               intervals[intervalId] = undefined;
             }
          }
       }
