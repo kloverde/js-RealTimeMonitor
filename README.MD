@@ -1,5 +1,5 @@
-RealtimeMonitor
-===============
+RealtimeMonitor v1.0
+====================
 
 See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference which prohibits certain use.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
