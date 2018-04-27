@@ -13,8 +13,6 @@ The fields are laid out vertically in a panel, and you can create as many panels
 
 Compatibility is limited to browsers which support [const](https://caniuse.com/#search=const), [let](https://caniuse.com/#search=let) and [mutation observers](https://caniuse.com/#search=mutationobserver), which means anything loosely modern, including the aging IE 11.
 
-This application is nearing completion, but the API should not be considered stable until an actual release is posted.
-
 
 ## Using
 
