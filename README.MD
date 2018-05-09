@@ -181,3 +181,10 @@ Several different aspects of the panels are changed by theming, but of particula
 1. Graphs are implemented with [Chart.js](http://www.chartjs.org)
 
 2. The [warning](https://pixabay.com/en/sign-triangle-caution-yellow-36071) and [danger](https://pixabay.com/en/sign-triangle-attention-warning-36070) notification icons were provided by Pixabay user [Clker-Free-Vector-Images](https://pixabay.com/en/users/Clker-Free-Vector-Images-3736).
+
+
+## Donations
+
+https://paypal.me/KurtisLoVerde/10
+
+Thank you for your support!
