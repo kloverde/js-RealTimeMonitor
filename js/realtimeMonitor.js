@@ -151,8 +151,8 @@ function RealtimeMonitor() {
 
    polyfills();
 
-//   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
-//                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
+   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
+                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
 
    areNotificationsOk();
 
@@ -913,8 +913,16 @@ function RealtimeMonitor() {
       const sheets = getThemeStylesheets();
 
       for( let i = 0; i < sheets.length; i++ ) {
-         sheets[i].disabled = sheets[i].title !== themeName;
-      }      
+         // This loop could have been a one-liner, but bizarre IE behavior requires this be done in two steps.
+         // The stylesheet that's being enabled must be explicitly disabled before being enabled, otherwise
+         // the *property* will update, but won't actually enable the stylesheet.
+
+         sheets[i].disabled = true;
+
+         if( sheets[i].title === themeName ) {
+            sheets[i].disabled = false;
+         }
+      }
    }
 
    function updateUI( panelId ) {
