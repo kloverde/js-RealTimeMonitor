@@ -1,4 +1,4 @@
-RealtimeMonitor v1.1 (UPCOMING RELEASE)
+RealtimeMonitor v1.1
 ====================
 
 See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference which prohibits certain use.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
@@ -86,7 +86,7 @@ The configuration object passed into `newPanel` has the following properties:
 
 | Method                 | Return Type  | Description                        |
 |------------------------|--------------|------------------------------------|
-| `getAvailableThemes()` | string[]     | Returns all available themes.  The array contains the `title` attribute of all alternate stylesheets. |
+| `getAvailableThemes()` | string[ ]    | Returns all available themes.  The array contains the `title` attribute of all alternate stylesheets. |
 | `loadTheme(string)`    | void         | Changes the current theme - in other words, sets an alternate stylesheet to active based on a `title` attribute matching the supplied argument. |
 
 
@@ -96,7 +96,7 @@ The configuration object passed into `newPanel` has the following properties:
 |-----------------|----------------------------------------------------------|
 | RTMThemeChange* | Fired when the theme is changed.  The theme name is attached to the event in `event.detail.themeName`. |
 
-* For IE 11 compatibility, RealtimeMonitor contains a polyfill for CustomEvent.  If your practice is to keep polyfills separate in your projects, you'll want to remove it from your copy of RealtimeMonitor.
+\* For IE 11 compatibility, RealtimeMonitor contains a polyfill for CustomEvent.  If your practice is to keep polyfills separate in your projects, you'll want to remove it from your copy of RealtimeMonitor.
 
 
 ## Running the Demo/Development Environment
