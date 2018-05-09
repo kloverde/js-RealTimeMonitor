@@ -1,3 +1,13 @@
+# Release 1.1 (UPCOMING RELEASE)
+
+This release improves theme support.
+
+* Added public method `getAvailableThemes` for getting available themes
+* Added public method `loadTheme` for changing the current theme
+* An `RTMThemeChange` event now fires when RealtimeMonitor detects a theme change
+* Updated demo to incorporate the new features of this release
+
+
 # Release 1.0 (April 26, 2018)
 
 * First release

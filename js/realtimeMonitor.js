@@ -1,5 +1,5 @@
 /*
- * RealtimeMonitor v1.0
+ * RealtimeMonitor v1.1
  * https://www.github.com/kloverde/js-RealtimeMonitor
  *
  * Copyright (c) 2018, Kurtis LoVerde
@@ -139,14 +139,20 @@ function RealtimeMonitor() {
          graphs    = [],
          status    = [];
 
+   const EVENT_THEME_CHANGE = "RTMThemeChange";
+
    let panelCnt = 0;
+   let theme = null;
 
    let notificationsSupported = true,
        notificationsOk        = false,
        thresholdNotifications = [];
 
-   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
-                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
+
+   polyfills();
+
+//   cacheImages( CACHE, [ [THRESHOLD_NOTIFICATION_ICON_WARN,   "img/notification-warn.png"],
+//                         [THRESHOLD_NOTIFICATION_ICON_DANGER, "img/notification-danger.png"] ] );
 
    areNotificationsOk();
 
@@ -835,10 +841,10 @@ function RealtimeMonitor() {
     * As icky as all this sounds (and is), there's no noticeable performance impact - neither in user perception nor observed CPU use.
     */
    function refreshGraphTheme( panelId, graphId ) {
-      const graph = graphs[panelId][graphId].graph,
-      dataset = graph.data.datasets[0],
-      labelColor = getGraphLabelColor( panelId ),
-      gridColor = getGraphGridColor( panelId );
+      const graph      = graphs[panelId][graphId].graph,
+            dataset    = graph.data.datasets[0],
+            labelColor = getGraphLabelColor( panelId ),
+            gridColor  = getGraphGridColor( panelId );
 
       // Change the color of the y-axis label.  Changing the color through the fine-grained
       // setting works only once:  graph.options.scales.yAxes[0].ticks.fontColor = labelColor;
@@ -853,6 +859,62 @@ function RealtimeMonitor() {
       dataset.borderColor = getGraphEdgeColor( panelId );
 
       graph.update();
+
+      const newTheme = _getTheme();
+
+      if( theme !== newTheme ) {
+         theme = newTheme;
+
+         const e = new CustomEvent( EVENT_THEME_CHANGE, {
+            detail : {
+               themeName : newTheme
+            }
+         } );
+
+         document.dispatchEvent( e );
+      }
+   }
+
+   function getThemeStylesheets() {
+      return document.querySelectorAll( "link[rel='alternate stylesheet']" );
+   }
+
+   function _getTheme() {
+      let theme = null;
+
+      const sheets = getThemeStylesheets();
+
+      for( let i = 0; i < sheets.length; i++ ) {
+         if( !sheets[i].disabled ) {
+            theme = sheets[i].title;
+            break;
+         }         
+      }
+
+      return theme;      
+   }
+
+   this.getTheme = function() {
+      return _getTheme();
+   }
+
+   this.getAvailableThemes = function() {
+      const sheets = getThemeStylesheets();
+      const themeNames = [];
+
+      for( let i = 0; i < sheets.length; i++ ) {
+         themeNames.push( sheets[i].title );
+      }
+
+      return themeNames;
+   };
+
+   this.loadTheme = function( themeName ) {
+      const sheets = getThemeStylesheets();
+
+      for( let i = 0; i < sheets.length; i++ ) {
+         sheets[i].disabled = sheets[i].title !== themeName;
+      }      
    }
 
    function updateUI( panelId ) {
@@ -1294,5 +1356,10 @@ function RealtimeMonitor() {
       }
 
       return !isUndef && !isNull;
+   }
+
+   function polyfills() {
+      // CustomEvent:  https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent#Polyfill
+      (function(){if(typeof window.CustomEvent==="function")return false;function CustomEvent(event,params){params=params||{bubbles:false,cancelable:false,detail:undefined};var evt=document.createEvent('CustomEvent');evt.initCustomEvent(event,params.bubbles,params.cancelable,params.detail);return evt;}CustomEvent.prototype=window.Event.prototype;window.CustomEvent=CustomEvent;})();
    }
 }
