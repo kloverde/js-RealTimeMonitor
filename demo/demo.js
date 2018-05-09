@@ -38,8 +38,6 @@
 document.addEventListener( "DOMContentLoaded", function() {
    const rtm = new RealtimeMonitor();
 
-   loadThemeFromCookie();
-
    const panel1 = rtm.newPanel( {
       title  : "GET Polling",
       url    : { address : "https://localhost:8081/status/site1",
@@ -102,14 +100,16 @@ document.addEventListener( "DOMContentLoaded", function() {
                ]
    } );
 
+   document.addEventListener( "RTMThemeChange", function(event) {
+      saveThemeToCookie( event.detail.themeName );
+   } );
+
+   loadThemeFromCookie();
+
    document.body.appendChild( panel1 );
    document.body.appendChild( panel2 );
    document.body.appendChild( panel3 );
    document.body.appendChild( panel4 );
-
-   document.addEventListener( "RTMThemeChange", function(event) {
-      saveThemeToCookie( event.detail.themeName );
-   } );
 
    function saveThemeToCookie( themeName ) {
       const expires = new Date();
@@ -117,7 +117,7 @@ document.addEventListener( "DOMContentLoaded", function() {
 
       // Could use rtm.getTheme() to get the current theme, but that's not as efficient when
       // you've already received the theme name from a RTMThemeChange CustomEvent.
-      document.cookie = "rtmTheme=" + themeName + "; expires=" + expires.toGMTString();
+      document.cookie = "rtmTheme=" + encodeURIComponent(themeName) + "; expires=" + expires.toGMTString();
    }
 
    function loadThemeFromCookie() {
