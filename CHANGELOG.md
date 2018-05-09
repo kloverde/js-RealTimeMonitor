@@ -1,4 +1,4 @@
-# Release 1.1
+# Release 1.1 (May 9, 2018)
 
 This release improves theme support.
 
