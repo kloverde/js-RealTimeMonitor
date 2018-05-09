@@ -83,18 +83,20 @@ The configuration object passed into `newPanel` has the following properties:
 
 
 ## Public Methods
+
 | Method                 | Return Type  | Description                        |
 |------------------------|--------------|------------------------------------|
-| `getAvailableThemes()` | string array | Returns a list of all available themes.  The array contains the `title` attribute of all alternate stylesheets. |
+| `getAvailableThemes()` | string[]     | Returns all available themes.  The array contains the `title` attribute of all alternate stylesheets. |
 | `loadTheme(string)`    | void         | Changes the current theme - in other words, sets an alternate stylesheet to active based on a `title` attribute matching the supplied argument. |
 
 
 ## Events
-| Event           | Description                                      |
-|-----------------|------------- ------------------------------------|
-| RTMThemeChange*  | Fired when the theme is changed.  The theme name is attached to the event in `event.detail.themeName`. |
 
-* For IE 11 compatibility, RealtimeMonitor contains a CustomEvent polyfill.  If your practice is to keep polyfills separate in your projects, you'll want to remove it from your copy of RealtimeMonitor.
+| Event           | Description                                              |
+|-----------------|----------------------------------------------------------|
+| RTMThemeChange* | Fired when the theme is changed.  The theme name is attached to the event in `event.detail.themeName`. |
+
+* For IE 11 compatibility, RealtimeMonitor contains a polyfill for CustomEvent.  If your practice is to keep polyfills separate in your projects, you'll want to remove it from your copy of RealtimeMonitor.
 
 
 ## Running the Demo/Development Environment
