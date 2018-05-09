@@ -933,8 +933,10 @@ function RealtimeMonitor() {
           anyDanger = false,
           showStatusInTitleBar = false;
 
+      const regexPropStub = new RegExp( "^(" + PROP_STUB_LOWEST + "|" + PROP_STUB_HIGHEST + ")" );
+
       for( let prop in data ) {
-         const thresholdProp = prop.replace( new RegExp("^(" + PROP_STUB_LOWEST + "|" + PROP_STUB_HIGHEST + ")"), "" );
+         const thresholdProp = prop.replace( regexPropStub, "" );
 
          const lowThresholds  = settings[ panelId ].lowThresholds[ thresholdProp ],
                highThresholds = settings[ panelId ].highThresholds[ thresholdProp ];
