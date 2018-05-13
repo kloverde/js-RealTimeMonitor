@@ -1,5 +1,5 @@
-RealtimeMonitor v1.1
-====================
+RealtimeMonitor v1.1.1
+======================
 
 See LICENSE for this software's licensing terms.  At first glance, it resembles the BSD-3 license, but it contains a significant difference which prohibits certain use.  Read it carefully.  Licenses for third-party components used by RealtimeMonitor are in THIRD_PARTY_LICENSES.MD.
 
@@ -173,7 +173,7 @@ Chrome only displays notifications if the page is loaded over HTTPS - or so I've
 
 The application includes several alternate color schemes, or themes.  Themes are implemented by alternate stylesheets which override portions of the base stylesheet.  Some browsers, such as Firefox and IE, place alternate stylesheets in a menu that the user can then select from to switch to a different theme.  Chrome does not have built-in support for this functionality.  I've read that there are third-party Chrome addons that add this capability, but I haven't looked into it any further than that.
 
-Several different aspects of the panels are changed by theming, but of particular note are the colors used to represent statuses of normal, warning and danger.  Some themes use green/yellow/red while others use green/orange/red, depending on the panel's background color.
+Chromium (and by extension, all Chromium-based browsers) has a bug where alternate stylesheets aren't correctly initialized upon page load.  Chromium initializes the 'disabled' property of every alternate stylesheet to `false`, which is wrong.  The workaround for this needs to be made at the page level, not within RealtimeMonitor.  If you plan on using themes, you need to forcibly set this property to `true` on all alternate stylesheets before instantiating RealtimeMonitor.  See the `fixBrokenBrowsers` function in `demo.js` for code which does this.
 
 
 ## Third-party Attribution

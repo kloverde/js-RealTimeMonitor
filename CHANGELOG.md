@@ -1,3 +1,8 @@
+# Release 1.1.1 (May 13, 2018)
+
+* Updated the demo to handle a Chromium bug that affects the proper operation of themes.  See README.MD and demo.js for more information.
+
+
 # Release 1.1 (May 9, 2018)
 
 This release improves theme support.

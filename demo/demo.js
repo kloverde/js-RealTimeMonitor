@@ -36,6 +36,8 @@
 "use strict";
 
 document.addEventListener( "DOMContentLoaded", function() {
+   fixBrokenBrowsers();  // You should read the documentation in this function.
+
    const rtm = new RealtimeMonitor();
 
    const panel1 = rtm.newPanel( {
@@ -125,6 +127,19 @@ document.addEventListener( "DOMContentLoaded", function() {
 
       if( ("" + theme).length > 0 ) {
          rtm.loadTheme( theme );
+      }
+   }
+
+   function fixBrokenBrowsers() {
+      // Forcibly set all alternate stylesheets to disabled.  You MUST do this if you're using RealtimeMonitor's themes in your project.
+      // There's a bug in Chromium where all alternate stylesheets are initialized with their 'disabled' property set to false, even
+      // though they all start out disabled.  This is incorrect behavior, and it interferes with how RealtimeMonitor detects the active
+      // theme.  This affects all Chromium browsers, so Chrome, Brave, etc. will not function correctly unless you do this.
+
+      const sheets = document.querySelectorAll( "link[rel='alternate stylesheet']" );
+
+      for( let i = 0; i < sheets.length; i++ ) {
+         sheets[i].disabled = true;
       }
    }
 } );
