@@ -87,6 +87,7 @@ The configuration object passed into `newPanel` has the following properties:
 | Method                 | Return Type  | Description                        |
 |------------------------|--------------|------------------------------------|
 | `getAvailableThemes()` | string[ ]    | Returns all available themes.  The array contains the `title` attribute of all alternate stylesheets. |
+| `getTheme()`           | string       | Returns the name of the current theme.  This is the `title` attribute of the currently active alternate stylesheet.  Returns null if no theme is in use. |
 | `loadTheme(string)`    | void         | Changes the current theme - in other words, sets an alternate stylesheet to active based on a `title` attribute matching the supplied argument. |
 
 
