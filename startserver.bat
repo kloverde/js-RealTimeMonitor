@@ -44,7 +44,7 @@ if not exist demo\key.pem (
    goto generate
 )
 
-echo Checking for certificate... certificate exists
+echo Checking for certificate and dependencies
 goto certExists
 
 
